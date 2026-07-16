@@ -1,13 +1,44 @@
 {
   "pages": [
-    "pages/index/index"
+    "pages/home/home",
+    "pages/study/study",
+    "pages/ai/ai",
+    "pages/mine/mine",
+    "pages/knowledge/knowledge",
+    "pages/quiz/quiz"
   ],
   "window": {
-    "backgroundColor": "#F6F6F6",
+    "backgroundColor": "#F3F8F3",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarBackgroundColor": "#F3F8F3",
     "navigationBarTitleText": "高中生物",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#98A29B",
+    "selectedColor": "#1E2621",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/study/study",
+        "text": "学习"
+      },
+      {
+        "pagePath": "pages/ai/ai",
+        "text": "AI答疑"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的"
+      }
+    ]
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2",

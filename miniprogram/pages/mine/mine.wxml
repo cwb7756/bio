@@ -1,0 +1,109 @@
+<!--pages/mine/mine.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 用户信息卡片 -->
+      <view class="profile-card">
+        <view class="profile-bg"></view>
+        <view class="profile-info">
+          <view class="profile-avatar">
+            <view class="icon {{user.avatar}} avatar-emoji"></view>
+          </view>
+          <view class="profile-text">
+            <view class="profile-name-row">
+              <text class="profile-name">{{user.name}}</text>
+              <view class="profile-level">
+                <text>{{user.level}}</text>
+              </view>
+            </view>
+            <text class="profile-grade">{{user.grade}} · 在路上</text>
+          </view>
+          <view class="profile-edit" bindtap="goVip">
+            <text>编辑</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 学习统计 -->
+      <view class="stats-card">
+        <view
+          wx:for="{{stats}}"
+          wx:key="label"
+          class="stats-item"
+        >
+          <view class="stats-num-row">
+            <text class="stats-num">{{item.num}}</text>
+            <text class="stats-unit">{{item.unit}}</text>
+          </view>
+          <text class="stats-label">{{item.label}}</text>
+        </view>
+      </view>
+
+      <!-- 成就展示 -->
+      <view class="sec-title">
+        <text class="u">我的成就</text>
+        <view class="more"><text>全部</text><view class="icon ic-chevron-right more-icon"></view></view>
+      </view>
+      <view class="achievement-row">
+        <view
+          wx:for="{{achievements}}"
+          wx:key="name"
+          class="achievement-item"
+        >
+          <view class="achievement-icon">
+            <view class="icon {{item.icon}}"></view>
+          </view>
+          <text class="achievement-name">{{item.name}}</text>
+          <text class="achievement-desc">{{item.desc}}</text>
+        </view>
+      </view>
+
+      <!-- VIP 横幅 -->
+      <view class="vip-banner" bindtap="goVip">
+        <view class="vip-left">
+          <view class="icon ic-crown vip-icon"></view>
+          <view class="vip-text">
+            <text class="vip-title">开通 VIP 会员</text>
+            <text class="vip-desc">解锁全部课程 · 无限AI答疑 · 专属题库</text>
+          </view>
+        </view>
+        <view class="vip-go">
+          <text>立即开通</text>
+          <view class="icon ic-chevron-right"></view>
+        </view>
+      </view>
+
+      <!-- 菜单列表 -->
+      <view class="menu-list">
+        <view
+          wx:for="{{menuList}}"
+          wx:key="name"
+          class="menu-item"
+          data-name="{{item.name}}"
+          bindtap="goMenu"
+        >
+          <view class="menu-icon-wrap">
+            <view class="icon {{item.icon}} menu-icon"></view>
+          </view>
+          <view class="menu-info">
+            <text class="menu-name">{{item.name}}</text>
+            <text class="menu-desc">{{item.desc}}</text>
+          </view>
+          <view class="menu-badge" wx:if="{{item.badge}}">
+            <text>{{item.badge}}</text>
+          </view>
+          <view class="menu-arrow">
+            <view class="icon ic-chevron-right"></view>
+          </view>
+        </view>
+      </view>
+
+      <view style="height: 180rpx;"></view>
+    </view>
+  </view>
+</view>

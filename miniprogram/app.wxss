@@ -1,27 +1,425 @@
 /**app.wxss**/
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-} 
-
-button {
-  background: initial;
-}
-
-button:focus{
-  outline: 0;
-}
-
-button::after{
-  border: none;
-}
-
-
+/* ============ 设计系统 · Design Tokens ============ */
 page {
-  background: #f6f6f6;
+  /* 颜色 */
+  --green: #8FD3A8;
+  --green-accent: #5FB894;
+  --green-deep: #3D9970;
+  --green-soft: #E8F5EE;
+  --green-soft2: #D6EFE0;
+  --bg: #F1F6F0;
+  --paper: #FCFDFB;
+  --paper2: #FBFDFB;
+  --ink: #1E2621;
+  --ink-soft: #4A554E;
+  --line: #4A5852;
+  --gray: #98A29B;
+  --gray-line: #D5DED8;
+  --hl: #FFF0A6;
+
+  /* 手绘阴影：降黑 + 微模糊 + 降透明度，弱化对比 */
+  --sh: 5rpx 5rpx 1rpx rgba(74, 88, 82, .42);
+  --sh-sm: 3rpx 3rpx 1rpx rgba(74, 88, 82, .34);
+  --sh-green: 5rpx 5rpx 1rpx rgba(61, 153, 112, .45);
+  --sh-soft: 0 16rpx 40rpx rgba(30, 38, 33, .10);
+
+  /* 字体 */
+  --f-hand: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --f-cn-hand: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --f-body: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  /* 手绘圆角变体 */
+  --r1: 510rpx 30rpx 450rpx 30rpx / 30rpx 450rpx 30rpx 510rpx;
+  --r2: 30rpx 450rpx 30rpx 510rpx / 510rpx 30rpx 450rpx 30rpx;
+  --r3: 450rpx 30rpx 510rpx 30rpx / 30rpx 510rpx 30rpx 450rpx;
+
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 28rpx;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+view, text, scroll-view, swiper, input, textarea, button {
+  box-sizing: border-box;
+}
+
+/* ============ 通用手绘组件 ============ */
+.sketch {
+  border: 4rpx solid var(--line);
+  border-radius: var(--r1);
+  background: var(--paper);
+  box-shadow: var(--sh);
+}
+
+.card {
+  border: 4rpx solid var(--line);
+  border-radius: 40rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+  padding: 30rpx;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14rpx;
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 30rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx 28rpx 34rpx 26rpx;
+  padding: 24rpx 36rpx;
+  background: var(--green);
+  color: var(--ink);
+  box-shadow: var(--sh);
+  transition: transform .12s, box-shadow .12s;
+  line-height: 1.2;
+}
+
+.btn:active {
+  transform: translate(6rpx, 6rpx);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.btn.ghost {
+  background: var(--paper);
+}
+
+.btn.deep {
+  background: var(--green-accent);
+  color: #fff;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 25rpx;
+  font-weight: 700;
+  border: 3rpx solid var(--line);
+  border-radius: 40rpx;
+  padding: 6rpx 22rpx;
+  background: var(--paper);
+}
+
+.chip.on {
+  background: var(--green);
+}
+
+.hl {
+  background: linear-gradient(180deg, transparent 55%, var(--hl) 55%);
+  padding: 0 4rpx;
+}
+
+.sec-title {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  font-size: 32rpx;
+  font-weight: 800;
+  margin: 40rpx 8rpx 24rpx;
+}
+
+.sec-title .u {
+  position: relative;
+}
+
+.sec-title .u::after {
+  content: "";
+  position: absolute;
+  left: -4rpx;
+  right: -4rpx;
+  bottom: -6rpx;
+  height: 12rpx;
+  background: var(--green);
+  border-radius: 12rpx;
+  z-index: -1;
+  opacity: .7;
+}
+
+.sec-title .more {
+  margin-left: auto;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.more-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+/* 分段控件 */
+.segment {
+  display: flex;
+  gap: 0;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.segment .seg-item {
+  flex: 1;
+  text-align: center;
+  font-size: 27rpx;
+  font-weight: 700;
+  padding: 16rpx 0;
+  border-right: 3rpx solid var(--line);
+}
+
+.segment .seg-item:last-child {
+  border-right: none;
+}
+
+.segment .seg-item.on {
+  background: var(--green);
+  position: relative;
+}
+
+/* 搜索框 */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 44rpx;
+  background: var(--paper);
+  padding: 20rpx 30rpx;
+  box-shadow: var(--sh-sm);
+}
+
+.search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--f-body);
+  font-size: 28rpx;
+  flex: 1;
+  color: var(--ink);
+}
+
+.search input::placeholder {
+  color: var(--gray);
+}
+
+/* 状态栏占位 */
+.statusbar {
+  height: 88rpx;
+  flex: 0 0 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 48rpx 0 52rpx;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.statusbar .r {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+/* 页面内导航栏 */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 36rpx 24rpx;
+}
+
+.navbar .nav-t {
+  font-size: 44rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.icon-btn {
+  width: 76rpx;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 3rpx solid var(--line);
+  border-radius: 28rpx 24rpx 30rpx 22rpx;
+  box-shadow: var(--sh-sm);
+  font-size: 36rpx;
+}
+
+/* 底部操作栏 */
+.action-bar {
+  display: flex;
+  gap: 22rpx;
+  padding: 24rpx 36rpx;
+  border-top: 4rpx solid var(--line);
+  background: var(--paper);
+}
+
+.action-bar .btn {
+  flex: 1;
+}
+
+/* 内容区 */
+.page-body {
+  flex: 1;
+  overflow: visible;
+}
+
+.page-pad {
+  padding: 12rpx 36rpx 36rpx;
+}
+
+/* 页面容器 */
+.page-container {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* 背景点状纹理 */
+.bg-dots {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle, rgba(95,184,148,.12) 2.4rpx, transparent 2.4rpx);
+  background-size: 44rpx 44rpx;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============ 通用 SVG 线性图标系统 ============ */
+.icon {
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 44rpx;
+  height: 44rpx;
+  flex-shrink: 0;
+}
+
+/* ---- 导航类 ---- */
+.ic-back {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M19 12H5'/><path d='M12 19l-7-7 7-7'/></svg>");
+}
+.ic-arrow-right {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12h14'/><path d='M12 5l7 7-7 7'/></svg>");
+}
+.ic-chevron-right {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18l6-6-6-6'/></svg>");
+}
+.ic-more {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231E2621' stroke='none'><circle cx='5' cy='12' r='1.5'/><circle cx='12' cy='12' r='1.5'/><circle cx='19' cy='12' r='1.5'/></svg>");
+}
+
+/* ---- 操作类 ---- */
+.ic-search {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><path d='M21 21l-4.35-4.35'/></svg>");
+}
+.ic-check {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg>");
+}
+.ic-check-circle {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235FB894' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M16 9l-5 5-3-3'/></svg>");
+}
+.ic-close {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6L6 18'/><path d='M6 6l12 12'/></svg>");
+}
+.ic-close-circle {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M15 9l-6 6'/><path d='M9 9l6 6'/></svg>");
+}
+.ic-lock {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg>");
+}
+.ic-star {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/></svg>");
+}
+.ic-star-fill {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231E2621' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z'/></svg>");
+}
+.ic-plus {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 5v14'/><path d='M5 12h14'/></svg>");
+}
+.ic-play {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231E2621' stroke='none'><path d='M6 3l14 9-14 9z'/></svg>");
+}
+
+/* ---- 角色类 ---- */
+.ic-bot {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='4' y='8' width='16' height='12' rx='3'/><path d='M12 4v4'/><path d='M12 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z' fill='%231E2621' stroke='none'/><path d='M9 14h.01'/><path d='M15 14h.01'/><path d='M9 18h6'/></svg>");
+}
+.ic-student {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M22 10L12 5 2 10l10 5 10-5z'/><path d='M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5'/><path d='M22 10v6'/></svg>");
+}
+.ic-crown {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M2 18l2-10 5 4 3-6 3 6 5-4 2 10z'/><path d='M2 18h20'/></svg>");
+}
+.ic-fire {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z'/></svg>");
+}
+.ic-target {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='%231E2621' stroke='none'/></svg>");
+}
+.ic-spark {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M7 20h10'/><path d='M10 20c5-1 7-5 7-10-4 0-7 1-7 7'/><path d='M10 20c-5-1-7-5-7-10 4 0 7 1 7 7'/></svg>");
+}
+
+/* ---- 科学类 ---- */
+.ic-microscope {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 20h12M8 20v-2M14 20v-2'/><path d='M7 18l3-7 4 2-3 7z'/><circle cx='14' cy='8' r='2.5'/><path d='M11.5 8.5l3-1.5'/></svg>");
+}
+.ic-pen {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z'/></svg>");
+}
+.ic-folder {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/></svg>");
+}
+.ic-video {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='1' y='5' width='15' height='14' rx='2'/><path d='M23 7l-7 5 7 5V7z'/></svg>");
+}
+.ic-flask {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M9 3h6M10 3v6l-5 9a2 2 0 0 0 2 3h6a2 2 0 0 0 2-3l-5-9V3'/><path d='M7.5 14h9'/></svg>");
+}
+.ic-dna {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M4 3c0 5 16 5 16 9s-16 4-16 9'/><path d='M20 3c0 5-16 5-16 9s16 4 16 9'/><path d='M7 7h10M7 17h10M5 10h5M14 14h5M5 14h5M14 10h5'/></svg>");
+}
+.ic-bolt {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9z'/></svg>");
+}
+.ic-leaf {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 3c1 3.5.5 7-1.5 9.5C14.5 16 11 16 11 16'/><path d='M2 21c0-3 1.85-5.36 5.08-6'/></svg>");
+}
+.ic-refresh {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 12a9 9 0 0 1 15-6.7L21 8'/><path d='M21 3v5h-5'/><path d='M21 12a9 9 0 0 1-15 6.7L3 16'/><path d='M3 21v-5h5'/></svg>");
+}
+
+/* ---- 菜单/成就类 ---- */
+.ic-trophy {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M7 4h10v5a5 5 0 0 1-10 0z'/><path d='M7 5H4v1a3 3 0 0 0 3 3'/><path d='M17 5h3v1a3 3 0 0 1-3 3'/><path d='M12 14v3'/><path d='M8 21h8l-2-4h-4z'/></svg>");
+}
+.ic-chart {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 3v18h18'/><rect x='6' y='14' width='3' height='4' rx='0.5'/><rect x='11' y='10' width='3' height='8' rx='0.5'/><rect x='16' y='6' width='3' height='12' rx='0.5'/></svg>");
+}
+.ic-settings {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41'/></svg>");
+}
+.ic-target-white {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><circle cx='12' cy='12' r='6'/><circle cx='12' cy='12' r='2' fill='%23FFFFFF' stroke='none'/></svg>");
+}
+.ic-check-white {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 6L9 17l-5-5'/></svg>");
+}
+.ic-lock-white {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg>");
 }

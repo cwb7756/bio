@@ -1,0 +1,89 @@
+<!--pages/quiz/quiz.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">遗传 · 刷题</text>
+    <view class="icon-btn" bindtap="showMore">
+      <view class="icon ic-more nav-icon"></view>
+    </view>
+  </view>
+
+  <!-- 题目进度 -->
+  <view class="q-progress">
+    <text class="q-num q-num-current">{{current}}</text>
+    <view class="q-bar">
+      <view class="q-bar-fill" style="width: {{current / total * 100}}%;"></view>
+    </view>
+    <text class="q-num q-num-total">/{{total}}</text>
+  </view>
+
+  <view class="page-body" style="padding-bottom: 0;">
+    <view class="page-pad">
+      <!-- 题干 -->
+      <view class="q-stem">
+        <view class="q-type">{{question.type}}</view>
+        <text class="q-text">{{question.stem}}</text>
+      </view>
+
+      <!-- 选项 -->
+      <view class="q-options">
+        <view
+          wx:for="{{options}}"
+          wx:key="key"
+          class="q-opt {{answered && item.correct ? 'opt-right' : ''}} {{answered && selectedOption === index && !item.correct ? 'opt-wrong' : ''}}"
+          data-index="{{index}}"
+          bindtap="selectOption"
+        >
+          <view class="opt-key {{answered && item.correct ? 'key-right' : ''}} {{answered && selectedOption === index && !item.correct ? 'key-wrong' : ''}}">{{item.key}}</view>
+          <text class="opt-text">{{item.text}}</text>
+          <view class="icon ic-check-circle opt-res" wx:if="{{answered && item.correct}}"></view>
+          <view class="icon ic-close-circle opt-res" wx:if="{{answered && selectedOption === index && !item.correct}}"></view>
+        </view>
+      </view>
+
+      <!-- AI 讲解 -->
+      <view class="ai-block" wx:if="{{answered}}">
+        <view class="ai-avatar">
+          <view class="icon ic-bot"></view>
+        </view>
+        <view class="ai-bubble">
+          <view class="ai-who">
+            <text>● AI 生物老师 · 帮你拆解</text>
+          </view>
+          <view
+            wx:for="{{aiSteps}}"
+            wx:key="num"
+            class="ai-step"
+          >
+            <view class="step-num">{{item.num}}</view>
+            <text class="step-text">{{item.text}}</text>
+          </view>
+          <view class="ai-answer">
+            <view class="icon ic-check-circle"></view>
+            <text>{{aiAnswer}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <view class="btn ghost" bindtap="saveToMistakes">
+      <view class="icon ic-star"></view>
+      <text>收藏到错题本</text>
+    </view>
+    <view class="btn" bindtap="nextQuestion">
+      <text>下一题</text>
+      <view class="icon ic-arrow-right"></view>
+    </view>
+  </view>
+</view>

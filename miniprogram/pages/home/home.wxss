@@ -1,0 +1,270 @@
+/* pages/home/home.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Tab 页底部留白 */
+.page-pad {
+  padding-bottom: 180rpx;
+}
+
+/* 顶部问候 */
+.greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4rpx 4rpx 24rpx;
+}
+
+.greeting-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.greeting-hi {
+  font-size: 25rpx;
+  color: var(--gray);
+  font-weight: 700;
+}
+
+.greeting-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.avatar-btn {
+  border-radius: 50%;
+  background: var(--green-soft);
+}
+
+.avatar-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+/* 搜索框 */
+.search-wrap {
+  position: relative;
+  margin-top: 24rpx;
+}
+
+.cat-mascot {
+  position: absolute;
+  top: -76rpx;
+  right: 24rpx;
+  width: 112rpx;
+  height: 112rpx;
+  z-index: 10;
+  transition: transform .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cat-mascot:active {
+  transform: scale(0.92);
+}
+
+.home-search {
+  margin-top: 0;
+}
+
+.search-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 继续学习卡 */
+.continue-card {
+  background: linear-gradient(140deg, var(--green-soft2), var(--green-soft));
+  border: 4rpx solid var(--line);
+  border-radius: 44rpx;
+  box-shadow: var(--sh);
+  padding: 30rpx 32rpx;
+  position: relative;
+  overflow: hidden;
+  margin-top: 28rpx;
+}
+
+.continue-tag {
+  display: inline-block;
+  font-size: 26rpx;
+  background: var(--paper);
+  border: 3rpx solid var(--line);
+  border-radius: 28rpx;
+  padding: 2rpx 20rpx;
+  transform: rotate(-2deg);
+  font-weight: 600;
+}
+
+.continue-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  margin: 18rpx 0 8rpx;
+}
+
+.continue-meta {
+  font-size: 25rpx;
+  color: var(--ink-soft);
+  margin-bottom: 22rpx;
+}
+
+.progress-bar {
+  height: 22rpx;
+  background: var(--paper);
+  border: 3rpx solid var(--line);
+  border-radius: 20rpx;
+  overflow: hidden;
+  width: 80%;
+}
+
+.progress-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    var(--green-accent),
+    var(--green-accent) 12rpx,
+    var(--green) 12rpx,
+    var(--green) 24rpx
+  );
+  transition: width .3s;
+}
+
+.continue-go {
+  position: absolute;
+  right: 28rpx;
+  bottom: 28rpx;
+  width: 92rpx;
+  height: 92rpx;
+  border-radius: 50%;
+  background: var(--green-accent);
+  border: 4rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-sm);
+}
+
+.go-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 4rpx;
+}
+
+/* 功能宫格 */
+.grid6 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22rpx;
+}
+
+.feat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14rpx;
+  padding: 26rpx 8rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  transition: transform .12s;
+}
+
+.feat:active {
+  transform: translate(4rpx, 4rpx);
+}
+
+.feat-ic {
+  width: 92rpx;
+  height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 4rpx solid var(--line);
+}
+
+.feat-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.ic-g { background: var(--green-soft); }
+.ic-g2 { background: var(--green); }
+.ic-g3 { background: var(--hl); }
+.ic-g4 { background: var(--green-soft2); }
+.ic-g5 { background: #E7EEFB; }
+.ic-g6 { background: #FBE7EF; }
+
+.feat-name {
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+/* 热门考点列表 */
+.hot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.hot-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 22rpx 26rpx;
+}
+
+.hot-no {
+  flex: 0 0 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  border: 3rpx solid var(--line);
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.hot-no-y {
+  background: var(--hl);
+}
+
+.hot-txt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.hot-title {
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.hot-desc {
+  font-size: 23rpx;
+  color: var(--gray);
+}
+
+.hot-fire {
+  font-size: 24rpx;
+  color: var(--green-deep);
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.hot-fire .icon {
+  width: 28rpx;
+  height: 28rpx;
+}

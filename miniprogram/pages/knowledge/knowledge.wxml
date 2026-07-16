@@ -1,0 +1,113 @@
+<!--pages/knowledge/knowledge.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">{{title}}</text>
+    <view class="icon-btn" bindtap="toggleBookmark">
+      <view class="icon nav-icon {{bookmarked ? 'ic-star-fill star-on' : 'ic-star'}}"></view>
+    </view>
+  </view>
+
+  <view class="page-body" style="padding-bottom: 0;">
+    <view class="page-pad">
+      <!-- 手绘细胞插画 -->
+      <view class="cell-wrap">
+        <view class="float-tag">必修① 分子与细胞</view>
+        <view class="cell-diagram">
+          <!-- 细胞壁 -->
+          <view class="cell-wall">
+            <!-- 细胞膜内层 -->
+            <view class="cell-membrane">
+              <!-- 细胞核 -->
+              <view class="organelle nucleus">
+                <view class="nucleolus"></view>
+                <view class="nuclear-pores"></view>
+              </view>
+              <!-- 线粒体 -->
+              <view class="organelle mitochondria">
+                <view class="mito-crest"></view>
+                <view class="mito-crest" style="left: 16rpx;"></view>
+                <view class="mito-crest" style="left: 32rpx;"></view>
+              </view>
+              <!-- 叶绿体 -->
+              <view class="organelle chloroplast">
+                <view class="granum g1"></view>
+                <view class="granum g2"></view>
+                <view class="granum g3"></view>
+              </view>
+              <!-- 液泡 -->
+              <view class="organelle vacuole"></view>
+              <!-- 细胞质颗粒 -->
+              <view class="cytoplasm-dot d1"></view>
+              <view class="cytoplasm-dot d2"></view>
+              <view class="cytoplasm-dot d3"></view>
+              <view class="cytoplasm-dot d4"></view>
+            </view>
+          </view>
+          <!-- 标签 -->
+          <view class="cell-label label-wall">
+            <text>细胞壁</text>
+          </view>
+          <view class="cell-label label-nucleus">
+            <text>细胞核</text>
+          </view>
+          <view class="cell-label label-mito">
+            <text>线粒体</text>
+          </view>
+          <view class="cell-label label-chloro">
+            <text>叶绿体</text>
+          </view>
+          <view class="cell-label label-vac">
+            <text>液泡</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 核心细胞器 -->
+      <view class="sec-title">
+        <text class="u">核心细胞器</text>
+        <view class="more" bindtap="goCompare"><text>对比表</text><view class="icon ic-chevron-right more-icon"></view></view>
+      </view>
+
+      <view class="kp-list">
+        <view
+          wx:for="{{knowledgePoints}}"
+          wx:key="title"
+          class="kp-card"
+        >
+          <view class="kp-badge kp-badge-{{item.badgeBg}}">
+            <view class="icon {{item.icon}}"></view>
+          </view>
+          <view class="kp-content">
+            <text class="kp-title">{{item.title}}</text>
+            <text class="kp-desc">{{item.desc}}</text>
+            <view class="kp-exam">
+              <view class="icon ic-target-white"></view>
+              <text>{{item.exam}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar">
+    <view class="btn ghost" bindtap="addToCards">
+      <view class="icon ic-plus"></view>
+      <text>加入速记卡</text>
+    </view>
+    <view class="btn" bindtap="askAI">
+      <view class="icon ic-bot"></view>
+      <text>AI老师讲一讲</text>
+    </view>
+  </view>
+</view>

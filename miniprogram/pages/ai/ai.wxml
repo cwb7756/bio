@@ -1,0 +1,99 @@
+<!--pages/ai/ai.wxml-->
+<view class="page-container ai-page">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 头部 -->
+  <view class="ai-header">
+    <view class="ai-header-info">
+      <view class="ai-header-avatar">
+        <view class="icon ic-bot"></view>
+      </view>
+      <view class="ai-header-text">
+        <text class="ai-header-title">AI 生物老师</text>
+        <text class="ai-header-status">● 在线 · 随时为你解答</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 聊天区域 -->
+  <scroll-view
+    class="ai-chat"
+    scroll-y="true"
+    scroll-into-view="{{scrollIntoView}}"
+    scroll-with-animation="true"
+    enhanced="true"
+    show-scrollbar="{{false}}"
+  >
+    <view class="chat-welcome">
+      <view class="welcome-icon"><view class="icon ic-spark"></view></view>
+      <text class="welcome-text">向AI老师提问，获得专业解答</text>
+    </view>
+
+    <view
+      wx:for="{{messages}}"
+      wx:key="index"
+      id="msg-{{index}}"
+      class="msg-row msg-{{item.role}}"
+    >
+      <!-- AI 消息 -->
+ <block wx:if="{{item.role === 'ai'}}">
+        <view class="msg-avatar">
+          <view class="icon ic-bot"></view>
+        </view>
+        <view class="msg-bubble msg-bubble-ai">
+          <text class="msg-content">{{item.content}}</text>
+        </view>
+      </block>
+
+      <!-- 用户消息 -->
+ <block wx:else>
+        <view class="msg-bubble msg-bubble-user">
+          <text class="msg-content">{{item.content}}</text>
+        </view>
+        <view class="msg-avatar msg-avatar-user">
+          <view class="icon ic-student"></view>
+        </view>
+      </block>
+    </view>
+
+    <view style="height: 20rpx;"></view>
+  </scroll-view>
+
+  <!-- 快捷问题 -->
+  <view class="ai-suggestions">
+    <scroll-view scroll-x="true" show-scrollbar="{{false}}" enhanced="true">
+      <view class="suggestion-list">
+        <view
+          wx:for="{{suggestions}}"
+          wx:key="*this"
+          class="suggestion-chip"
+          data-text="{{item}}"
+          bindtap="sendSuggestion"
+        >
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 输入区 -->
+  <view class="ai-input-bar">
+    <view class="ai-input-wrap">
+      <input
+        class="ai-input"
+        placeholder="输入你的生物问题..."
+        value="{{inputValue}}"
+        bindinput="onInput"
+        bindconfirm="sendMessage"
+        confirm-type="send"
+        adjust-position="{{true}}"
+      />
+    </view>
+    <view class="ai-send-btn {{inputValue ? 'active' : ''}}" bindtap="sendMessage">
+      <text>发送</text>
+    </view>
+  </view>
+</view>

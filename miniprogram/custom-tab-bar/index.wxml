@@ -1,0 +1,17 @@
+<view class="tabbar">
+  <view class="tabbar-inner">
+    <!-- 滑块：随 selected 滑动 -->
+    <view class="slider" style="transform: translateX({{selected * 100}}%);"></view>
+    <!-- 导航项 -->
+    <view
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      class="tab {{selected === index ? 'on' : ''}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >
+      <view class="icon ic-{{item.icon}}"></view>
+      <text class="label">{{item.text}}</text>
+    </view>
+  </view>
+</view>

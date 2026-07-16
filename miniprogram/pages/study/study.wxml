@@ -1,0 +1,81 @@
+<!--pages/study/study.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 标题 -->
+      <view class="page-header">
+        <text class="page-title">课程学习</text>
+        <text class="page-subtitle">按章节系统学习，逐个突破</text>
+      </view>
+
+      <!-- 学段切换 -->
+      <view class="segment study-segment">
+        <view
+          wx:for="{{tabs}}"
+          wx:key="*this"
+          class="seg-item {{activeTab === index ? 'on' : ''}}"
+          data-index="{{index}}"
+          bindtap="switchTab"
+        >{{item}}</view>
+      </view>
+
+      <!-- 学习概览 -->
+      <view class="study-overview">
+        <view class="overview-item">
+          <text class="overview-num">28</text>
+          <text class="overview-label">已学课时</text>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item">
+          <text class="overview-num">45</text>
+          <text class="overview-label">总课时</text>
+        </view>
+        <view class="overview-divider"></view>
+        <view class="overview-item">
+          <text class="overview-num">62%</text>
+          <text class="overview-label">完成率</text>
+        </view>
+      </view>
+
+      <!-- 章节列表 -->
+      <view class="sec-title">
+        <text class="u">章节列表</text>
+      </view>
+
+      <view class="chapter-list">
+        <view
+          wx:for="{{chapters}}"
+          wx:key="title"
+          class="chapter-card ch-{{item.color}}"
+          data-index="{{index}}"
+          bindtap="goChapter"
+        >
+          <view class="ch-icon-wrap">
+            <view class="icon {{item.icon}} ch-icon"></view>
+            <view class="ch-badge" wx:if="{{item.progress === 100}}">
+              <view class="icon ic-check-white"></view>
+            </view>
+            <view class="ch-badge ch-badge-lock" wx:if="{{item.progress === 0}}">
+              <view class="icon ic-lock-white"></view>
+            </view>
+          </view>
+          <view class="ch-info">
+            <text class="ch-title">第{{index + 1}}章 {{item.title}}</text>
+            <text class="ch-meta">{{item.completed}}/{{item.lessons}} 课时</text>
+            <view class="ch-progress">
+              <view class="ch-progress-fill" style="width: {{item.progress}}%;"></view>
+            </view>
+          </view>
+          <view class="ch-arrow">
+            <view class="icon ic-chevron-right"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

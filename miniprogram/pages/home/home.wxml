@@ -1,0 +1,89 @@
+<!--pages/home/home.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 顶部问候 -->
+      <view class="greeting">
+        <view class="greeting-text">
+          <text class="greeting-hi">同学，早上好</text>
+          <text class="greeting-title">今天也要加油鸭</text>
+        </view>
+        <view class="icon-btn avatar-btn">
+          <view class="icon ic-student avatar-icon"></view>
+        </view>
+      </view>
+
+      <!-- 搜索 -->
+      <view class="search-wrap">
+        <image class="cat-mascot" src="{{catImage}}" mode="aspectFit"></image>
+        <view class="search home-search">
+          <view class="icon ic-search search-icon"></view>
+          <input
+            placeholder="搜考点 / 题目，如：光合作用"
+            value="{{searchValue}}"
+            bindinput="onSearchInput"
+            bindconfirm="onSearchConfirm"
+            confirm-type="search"
+          />
+        </view>
+      </view>
+
+      <!-- 继续学习 -->
+      <view class="continue-card" bindtap="continueStudy">
+        <view class="continue-tag">{{continueLearning.tag}}</view>
+        <view class="continue-title">{{continueLearning.title}}</view>
+        <view class="continue-meta">{{continueLearning.meta}}</view>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{continueLearning.progress}}%;"></view>
+        </view>
+        <view class="continue-go">
+          <view class="icon ic-play go-icon"></view>
+        </view>
+      </view>
+
+      <!-- 功能宫格 -->
+      <view class="sec-title">
+        <text class="u">学习工具</text>
+      </view>
+      <view class="grid6">
+        <view
+          wx:for="{{features}}"
+          wx:key="name"
+          class="feat"
+          data-path="{{item.path}}"
+          bindtap="goFeature"
+        >
+          <view class="feat-ic ic-{{item.bg}}">
+            <view class="icon {{item.icon}} feat-icon"></view>
+          </view>
+          <text class="feat-name">{{item.name}}</text>
+        </view>
+      </view>
+
+      <!-- 热门考点 -->
+      <view class="sec-title">
+        <text class="u">热门考点</text>
+        <view class="more" bindtap="goAllTopics"><text>全部</text><view class="icon ic-chevron-right more-icon"></view></view>
+      </view>
+      <view class="hot-list">
+        <view
+          wx:for="{{hotTopics}}"
+          wx:key="no"
+          class="hot-item"
+        >
+          <view class="hot-no {{item.hot ? 'hot-no-y' : ''}}">{{item.no}}</view>
+          <view class="hot-txt">
+            <text class="hot-title">{{item.title}}</text>
+            <text class="hot-desc">{{item.desc}}</text>
+          </view>
+          <view class="hot-fire"><view class="icon ic-fire"></view><text>{{item.fire}}</text></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

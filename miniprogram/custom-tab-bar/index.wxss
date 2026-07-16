@@ -1,0 +1,112 @@
+/* ============ 悬浮圆角玻璃质感导航栏 ============ */
+.tabbar {
+  position: fixed;
+  left: 36rpx;
+  right: 36rpx;
+  bottom: calc(20rpx + env(safe-area-inset-bottom));
+  z-index: 999;
+}
+
+.tabbar-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 104rpx;
+  border-radius: 52rpx;
+  /* 玻璃质感：半透明 + 毛玻璃模糊 */
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(40rpx) saturate(180%);
+  -webkit-backdrop-filter: blur(40rpx) saturate(180%);
+  /* 细线描绘风格 */
+  border: 1rpx solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 8rpx 32rpx rgba(30, 38, 33, 0.12),
+    0 2rpx 8rpx rgba(30, 38, 33, 0.06),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.6);
+}
+
+/* ============ 滑块 ============ */
+.slider {
+  position: absolute;
+  top: 8rpx;
+  bottom: 8rpx;
+  left: 0;
+  width: 25%;
+  background: linear-gradient(135deg, var(--green-soft), var(--green-soft2));
+  border: 1.5rpx solid var(--green-accent);
+  border-radius: 48rpx;
+  box-shadow: 0 2rpx 12rpx rgba(95, 184, 148, 0.25);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 0;
+}
+
+/* ============ 导航项 ============ */
+.tab {
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  color: var(--gray);
+  transition: color 0.3s ease;
+}
+
+.tab.on {
+  color: var(--green-deep);
+}
+
+.tab .icon {
+  width: 44rpx;
+  height: 44rpx;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tab.on .icon {
+  transform: scale(1.12);
+}
+
+/* ---- 图标 · 默认态（灰 #98A29B） ---- */
+.ic-home {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5'/><path d='M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5'/><path d='M9.5 21v-6h5v6'/></svg>");
+}
+
+.ic-study {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 6.5C10.5 5 8 4.5 4 5v13c4-.5 6.5 0 8 1.5'/><path d='M12 6.5C13.5 5 16 4.5 20 5v13c-4-.5-6.5 0-8 1.5'/><path d='M12 6.5v13'/></svg>");
+}
+
+.ic-ai {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z'/><path d='M18.5 3.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z'/></svg>");
+}
+
+.ic-mine {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8' r='4'/><path d='M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8'/></svg>");
+}
+
+/* ---- 图标 · 选中态（深绿 #3D9970） ---- */
+.tab.on .ic-home {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D9970' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M3 10.5L12 3l9 7.5'/><path d='M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5'/><path d='M9.5 21v-6h5v6'/></svg>");
+}
+
+.tab.on .ic-study {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D9970' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 6.5C10.5 5 8 4.5 4 5v13c4-.5 6.5 0 8 1.5'/><path d='M12 6.5C13.5 5 16 4.5 20 5v13c-4-.5-6.5 0-8 1.5'/><path d='M12 6.5v13'/></svg>");
+}
+
+.tab.on .ic-ai {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D9970' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M12 3l2.2 6.8L21 12l-6.8 2.2L12 21l-2.2-6.8L3 12l6.8-2.2z'/><path d='M18.5 3.5l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z'/></svg>");
+}
+
+.tab.on .ic-mine {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233D9970' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='8' r='4'/><path d='M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8'/></svg>");
+}
+
+.tab .label {
+  font-size: 20rpx;
+  font-weight: 600;
+  line-height: 1.2;
+}
