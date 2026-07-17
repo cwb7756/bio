@@ -333,6 +333,9 @@ view, text, scroll-view, swiper, input, textarea, button {
 .ic-check-circle {
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235FB894' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><path d='M16 9l-5 5-3-3'/></svg>");
 }
+.ic-check-circle-un {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2398A29B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/></svg>");
+}
 .ic-close {
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6L6 18'/><path d='M6 6l12 12'/></svg>");
 }
@@ -422,4 +425,12 @@ view, text, scroll-view, swiper, input, textarea, button {
 }
 .ic-lock-white {
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='5' y='11' width='14' height='10' rx='2'/><path d='M8 11V7a4 4 0 0 1 8 0v4'/></svg>");
+}
+
+/* ---- 登录专用图标 ---- */
+.ic-mail {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='14' rx='2'/><path d='M3 7l9 6 9-6'/></svg>");
+}
+.ic-wechat {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M9.5 4C5.36 4 2 6.69 2 10c0 1.89 1.08 3.56 2.78 4.66L4 17l2.5-1.5c.95.24 1.96.37 3 .37.34 0 .67-.02 1-.05'/><path d='M22 14.5c0-2.49-2.46-4.5-5.5-4.5S11 12.01 11 14.5s2.46 4.5 5.5 4.5c.83 0 1.62-.15 2.33-.42L21 20l-.5-2c.94-.83 1.5-1.91 1.5-3z'/><circle cx='7' cy='9' r='.5' fill='%231E2621' stroke='none'/><circle cx='12' cy='9' r='.5' fill='%231E2621' stroke='none'/><circle cx='15' cy='14' r='.5' fill='%231E2621' stroke='none'/><circle cx='18' cy='14' r='.5' fill='%231E2621' stroke='none'/></svg>");
 }

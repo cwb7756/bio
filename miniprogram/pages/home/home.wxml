@@ -10,7 +10,7 @@
       <!-- 顶部问候 -->
       <view class="greeting">
         <view class="greeting-text">
-          <text class="greeting-hi">同学，早上好</text>
+          <text class="greeting-hi">{{userName}}，你好</text>
           <text class="greeting-title">今天也要加油鸭</text>
         </view>
         <view class="icon-btn avatar-btn">
@@ -34,12 +34,27 @@
       </view>
 
       <!-- 继续学习 -->
-      <view class="continue-card" bindtap="continueStudy">
+      <block wx:if="{{loading}}">
+        <view class="skeleton-block skeleton-continue"></view>
+      </block>
+      <view wx:elif="{{continueLearning}}" class="continue-card" bindtap="continueStudy">
         <view class="continue-tag">{{continueLearning.tag}}</view>
         <view class="continue-title">{{continueLearning.title}}</view>
         <view class="continue-meta">{{continueLearning.meta}}</view>
         <view class="progress-bar">
           <view class="progress-fill" style="width: {{continueLearning.progress}}%;"></view>
+        </view>
+        <view class="continue-go">
+          <view class="icon ic-play go-icon"></view>
+        </view>
+      </view>
+      <view wx:else class="continue-empty" bindtap="continueStudy">
+        <view class="continue-empty-icon">
+          <view class="icon ic-play"></view>
+        </view>
+        <view class="continue-empty-text">
+          <text class="continue-empty-title">开始你的第一节生物课</text>
+          <text class="continue-empty-desc">探索细胞、遗传与生态的奥秘</text>
         </view>
         <view class="continue-go">
           <view class="icon ic-play go-icon"></view>
@@ -72,9 +87,12 @@
       </view>
       <view class="hot-list">
         <view
+          wx:if="{{!loading}}"
           wx:for="{{hotTopics}}"
           wx:key="no"
           class="hot-item"
+          data-course-id="{{item.courseId}}"
+          bindtap="goHotTopic"
         >
           <view class="hot-no {{item.hot ? 'hot-no-y' : ''}}">{{item.no}}</view>
           <view class="hot-txt">
@@ -83,6 +101,7 @@
           </view>
           <view class="hot-fire"><view class="icon ic-fire"></view><text>{{item.fire}}</text></view>
         </view>
+        <view wx:if="{{loading}}" class="skeleton-block skeleton-hot" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
       </view>
     </view>
   </view>

@@ -5,7 +5,8 @@
     "pages/ai/ai",
     "pages/mine/mine",
     "pages/knowledge/knowledge",
-    "pages/quiz/quiz"
+    "pages/quiz/quiz",
+    "pages/login/login"
   ],
   "window": {
     "backgroundColor": "#F3F8F3",

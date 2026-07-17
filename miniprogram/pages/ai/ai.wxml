@@ -43,8 +43,14 @@
         <view class="msg-avatar">
           <view class="icon ic-bot"></view>
         </view>
-        <view class="msg-bubble msg-bubble-ai">
-          <text class="msg-content">{{item.content}}</text>
+        <view class="msg-bubble msg-bubble-ai {{!item.content && isStreaming ? 'streaming' : ''}}">
+          <!-- 流式加载指示（AI消息为空且正在流式时） -->
+          <view wx:if="{{!item.content && isStreaming}}" class="typing-indicator">
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+          </view>
+          <text wx:else class="msg-content">{{item.content}}</text>
         </view>
       </block>
 
@@ -92,8 +98,8 @@
         adjust-position="{{true}}"
       />
     </view>
-    <view class="ai-send-btn {{inputValue ? 'active' : ''}}" bindtap="sendMessage">
-      <text>发送</text>
+    <view class="ai-send-btn {{inputValue && !isStreaming ? 'active' : ''}} {{isStreaming ? 'disabled' : ''}}" bindtap="sendMessage">
+      <text>{{isStreaming ? '回复中' : '发送'}}</text>
     </view>
   </view>
 </view>

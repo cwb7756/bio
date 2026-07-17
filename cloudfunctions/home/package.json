@@ -1,0 +1,9 @@
+{
+  "name": "home",
+  "version": "1.0.0",
+  "description": "首页数据聚合云函数 - 用户信息 + 继续学习 + 热门考点",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

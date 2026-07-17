@@ -1,28 +1,26 @@
 // pages/home/home.js
+const app = getApp();
+
+// tabBar 页面路径集合，跳转时需用 switchTab
+const TAB_PAGES = ['/pages/ai/ai'];
+
 Page({
   data: {
     statusBarHeight: 20,
     searchValue: '',
     catImage: '',
-    continueLearning: {
-      tag: '继续学习',
-      title: '细胞的能量"货币" — ATP',
-      meta: '第 3 章 · 细胞的能量供应和利用 · 已学 65%',
-      progress: 65
-    },
+    userName: '同学',
+    loading: true,
+    continueLearning: null,
     features: [
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quiz/quiz' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '' },
       { icon: 'ic-close', name: '错题本', bg: 'g4', path: '' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '' },
-      { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '' }
+      { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/ai/ai' }
     ],
-    hotTopics: [
-      { no: 1, title: '光合作用与呼吸作用', desc: '必修一 · 高频大题 · 图表分析', fire: '9.2k', hot: false },
-      { no: 2, title: '基因的自由组合定律', desc: '必修二 · 计算题必考', fire: '8.7k', hot: true },
-      { no: 3, title: '内环境稳态与调节', desc: '选择性必修 · 概念辨析', fire: '7.5k', hot: false }
-    ]
+    hotTopics: []
   },
 
   onLoad() {
@@ -42,6 +40,49 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
+    // 先用本地缓存快速回显用户名
+    const info = wx.getStorageSync('userInfo');
+    if (info && info.nickname) {
+      this.setData({ userName: info.nickname });
+    }
+    // 拉取最新云端数据
+    this.loadHomeData();
+  },
+
+  // 调用 home 云函数获取首页数据
+  loadHomeData() {
+    this.setData({ loading: true });
+
+    wx.cloud.callFunction({
+      name: 'home',
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          const { user, continueLearning, hotTopics } = res.result.data;
+
+          const updateData = {
+            continueLearning,
+            hotTopics,
+            loading: false
+          };
+
+          if (user) {
+            updateData.userName = user.nickname || '同学';
+            // 同步更新本地缓存
+            const cached = wx.getStorageSync('userInfo') || {};
+            wx.setStorageSync('userInfo', { ...cached, ...user });
+            app.globalData.userInfo = { ...cached, ...user };
+          }
+
+          this.setData(updateData);
+        } else {
+          this.setData({ loading: false });
+        }
+      },
+      fail: (err) => {
+        console.error('home cloud function error:', err);
+        this.setData({ loading: false });
+      }
+    });
   },
 
   onSearchInput(e) {
@@ -56,15 +97,33 @@ Page({
 
   goFeature(e) {
     const path = e.currentTarget.dataset.path;
-    if (path) {
-      wx.navigateTo({ url: path });
-    } else {
+    if (!path) {
       wx.showToast({ title: '功能开发中...', icon: 'none' });
+      return;
+    }
+    if (TAB_PAGES.includes(path)) {
+      wx.switchTab({ url: path });
+    } else {
+      wx.navigateTo({ url: path });
     }
   },
 
+  // 继续学习：study 是 tab 页，用 globalData 传递 courseId 后 switchTab
   continueStudy() {
-    wx.navigateTo({ url: '/pages/knowledge/knowledge' });
+    const cl = this.data.continueLearning;
+    if (cl && cl.courseId) {
+      app.globalData.pendingCourseId = cl.courseId;
+    }
+    wx.switchTab({ url: '/pages/study/study' });
+  },
+
+  // 点击热门考点跳转学习页
+  goHotTopic(e) {
+    const courseId = e.currentTarget.dataset.courseId;
+    if (courseId) {
+      app.globalData.pendingCourseId = courseId;
+    }
+    wx.switchTab({ url: '/pages/study/study' });
   },
 
   goAllTopics() {

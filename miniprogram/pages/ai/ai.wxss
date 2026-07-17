@@ -213,3 +213,57 @@
 .ai-send-btn:active {
   transform: translate(4rpx, 4rpx);
 }
+
+/* 发送按钮禁用状态 */
+.ai-send-btn.disabled {
+  opacity: 0.5;
+}
+
+/* 流式加载动画 - 三点跳动 */
+.typing-indicator {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.typing-dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 50%;
+  background: var(--green-deep);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-10rpx);
+    opacity: 1;
+  }
+}
+
+/* AI消息气泡流式状态 */
+.msg-bubble-ai.streaming {
+  animation: stream-glow 1.5s infinite ease-in-out;
+}
+
+@keyframes stream-glow {
+  0%, 100% {
+    border-color: var(--line);
+  }
+  50% {
+    border-color: var(--green);
+  }
+}

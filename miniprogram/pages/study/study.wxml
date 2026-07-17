@@ -27,17 +27,17 @@
       <!-- 学习概览 -->
       <view class="study-overview">
         <view class="overview-item">
-          <text class="overview-num">28</text>
+          <text class="overview-num">{{overview.completedLessons}}</text>
           <text class="overview-label">已学课时</text>
         </view>
         <view class="overview-divider"></view>
         <view class="overview-item">
-          <text class="overview-num">45</text>
+          <text class="overview-num">{{overview.totalLessons}}</text>
           <text class="overview-label">总课时</text>
         </view>
         <view class="overview-divider"></view>
         <view class="overview-item">
-          <text class="overview-num">62%</text>
+          <text class="overview-num">{{overview.completionRate}}%</text>
           <text class="overview-label">完成率</text>
         </view>
       </view>
@@ -47,25 +47,31 @@
         <text class="u">章节列表</text>
       </view>
 
-      <view class="chapter-list">
+      <!-- 加载中 -->
+      <view class="study-loading" wx:if="{{loading}}">
+        <text>加载中...</text>
+      </view>
+
+      <!-- 章节列表 -->
+      <view class="chapter-list" wx:else>
         <view
           wx:for="{{chapters}}"
-          wx:key="title"
+          wx:key="_id"
           class="chapter-card ch-{{item.color}}"
           data-index="{{index}}"
           bindtap="goChapter"
         >
           <view class="ch-icon-wrap">
             <view class="icon {{item.icon}} ch-icon"></view>
-            <view class="ch-badge" wx:if="{{item.progress === 100}}">
+            <view class="ch-badge" wx:if="{{item.color === 'done'}}">
               <view class="icon ic-check-white"></view>
             </view>
-            <view class="ch-badge ch-badge-lock" wx:if="{{item.progress === 0}}">
+            <view class="ch-badge ch-badge-lock" wx:if="{{item.color === 'lock'}}">
               <view class="icon ic-lock-white"></view>
             </view>
           </view>
           <view class="ch-info">
-            <text class="ch-title">第{{index + 1}}章 {{item.title}}</text>
+            <text class="ch-title">{{item.title}}</text>
             <text class="ch-meta">{{item.completed}}/{{item.lessons}} 课时</text>
             <view class="ch-progress">
               <view class="ch-progress-fill" style="width: {{item.progress}}%;"></view>

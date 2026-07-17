@@ -151,6 +151,80 @@
   margin-left: 4rpx;
 }
 
+/* 继续学习 - 空态卡片 */
+.continue-empty {
+  background: linear-gradient(140deg, var(--green-soft2), var(--green-soft));
+  border: 4rpx solid var(--line);
+  border-radius: 44rpx;
+  box-shadow: var(--sh);
+  padding: 30rpx 32rpx;
+  position: relative;
+  overflow: hidden;
+  margin-top: 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.continue-empty-icon {
+  flex: 0 0 80rpx;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: var(--green-accent);
+  border: 4rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.continue-empty-icon .icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 4rpx;
+}
+
+.continue-empty-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.continue-empty-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.continue-empty-desc {
+  font-size: 25rpx;
+  color: var(--ink-soft);
+}
+
+/* 骨架占位 */
+.skeleton-block {
+  background: linear-gradient(90deg, var(--line) 25%, rgba(255,255,255,0.6) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.2s ease-in-out infinite;
+  border-radius: 32rpx;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-continue {
+  height: 200rpx;
+  margin-top: 28rpx;
+  border-radius: 44rpx;
+}
+
+.skeleton-hot {
+  height: 104rpx;
+  border-radius: 32rpx;
+}
+
 /* 功能宫格 */
 .grid6 {
   display: grid;

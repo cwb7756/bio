@@ -1,43 +1,18 @@
 // pages/study/study.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
     activeTab: 0,
     tabs: ['必修一', '必修二', '选择性必修'],
-    chapters: [
-      {
-        title: '分子与细胞',
-        progress: 65,
-        lessons: 12,
-        completed: 8,
-        icon: 'ic-microscope',
-        color: 'green'
-      },
-      {
-        title: '细胞的结构与功能',
-        progress: 100,
-        lessons: 10,
-        completed: 10,
-        icon: 'ic-flask',
-        color: 'done'
-      },
-      {
-        title: '细胞的代谢',
-        progress: 40,
-        lessons: 15,
-        completed: 6,
-        icon: 'ic-bolt',
-        color: 'green'
-      },
-      {
-        title: '细胞的生命历程',
-        progress: 0,
-        lessons: 8,
-        completed: 0,
-        icon: 'ic-refresh',
-        color: 'lock'
-      }
-    ]
+    chapters: [],
+    overview: {
+      completedLessons: 0,
+      totalLessons: 0,
+      completionRate: 0
+    },
+    loading: true
   },
 
   onLoad() {
@@ -49,19 +24,51 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    this.loadCourseList();
+  },
+
+  // 调用 getCourseList 云函数获取课程列表
+  loadCourseList() {
+    this.setData({ loading: true });
+    const textbook = this.data.tabs[this.data.activeTab];
+
+    wx.cloud.callFunction({
+      name: 'getCourseList',
+      data: { textbook },
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          this.setData({
+            chapters: res.result.data.chapters,
+            overview: res.result.data.overview,
+            loading: false
+          });
+        } else {
+          this.setData({ loading: false });
+          wx.showToast({ title: '加载失败', icon: 'none' });
+        }
+      },
+      fail: (err) => {
+        console.error('getCourseList error:', err);
+        this.setData({ loading: false });
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      }
+    });
   },
 
   switchTab(e) {
     this.setData({ activeTab: e.currentTarget.dataset.index });
+    this.loadCourseList();
   },
 
   goChapter(e) {
     const idx = e.currentTarget.dataset.index;
     const ch = this.data.chapters[idx];
-    if (ch.progress === 0) {
+    if (ch.color === 'lock') {
       wx.showToast({ title: '请先完成前置章节', icon: 'none' });
     } else {
-      wx.navigateTo({ url: '/pages/knowledge/knowledge' });
+      wx.navigateTo({
+        url: '/pages/knowledge/knowledge?courseId=' + ch._id + '&title=' + encodeURIComponent(ch.title)
+      });
     }
   }
 });

@@ -1,0 +1,113 @@
+<!--pages/login/login.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶部渐变区 -->
+  <view class="hero">
+    <view class="hero-deco">
+      <view class="icon ic-dna hero-dna"></view>
+      <view class="icon ic-leaf hero-leaf"></view>
+    </view>
+    <view class="hero-logo">
+      <view class="icon ic-flask hero-flask"></view>
+    </view>
+    <text class="hero-title">高中生物</text>
+    <text class="hero-tagline">探索生命的奥秘</text>
+  </view>
+
+  <!-- 表单卡片 -->
+  <view class="form-card">
+    <!-- 微信一键登录 -->
+    <view class="btn deep wx-login-btn" bindtap="handleWeChatLogin">
+      <view class="icon ic-wechat wx-login-icon"></view>
+      <text>微信一键登录</text>
+    </view>
+
+    <!-- 分割线 -->
+    <view class="divider">
+      <view class="divider-line"></view>
+      <text class="divider-text">或使用邮箱</text>
+      <view class="divider-line"></view>
+    </view>
+
+    <!-- 登录/注册切换 -->
+    <view class="segment auth-segment">
+      <view
+        class="seg-item {{authMode === 'login' ? 'on' : ''}}"
+        data-mode="login"
+        bindtap="switchAuthMode"
+      >登录</view>
+      <view
+        class="seg-item {{authMode === 'register' ? 'on' : ''}}"
+        data-mode="register"
+        bindtap="switchAuthMode"
+      >注册</view>
+    </view>
+
+    <!-- 邮箱输入框 -->
+    <view class="input-row">
+      <view class="icon ic-mail input-icon"></view>
+      <input
+        class="input-field"
+        type="text"
+        placeholder="请输入邮箱"
+        placeholder-class="input-placeholder"
+        value="{{email}}"
+        bindinput="onEmailInput"
+      />
+    </view>
+
+    <!-- 密码输入框 -->
+    <view class="input-row">
+      <view class="icon ic-lock input-icon"></view>
+      <input
+        class="input-field"
+        password="{{true}}"
+        placeholder="{{authMode === 'register' ? '设置密码（至少6位）' : '请输入密码'}}"
+        placeholder-class="input-placeholder"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+    </view>
+
+    <!-- 确认密码输入框（仅注册） -->
+    <view class="input-row" wx:if="{{authMode === 'register'}}">
+      <view class="icon ic-lock input-icon"></view>
+      <input
+        class="input-field"
+        password="{{true}}"
+        placeholder="请再次输入密码"
+        placeholder-class="input-placeholder"
+        value="{{confirmPassword}}"
+        bindinput="onConfirmPasswordInput"
+      />
+    </view>
+
+    <!-- 用户协议 -->
+    <view class="agreement-row" bindtap="toggleAgreement">
+      <view class="icon {{agreed ? 'ic-check-circle' : 'ic-check-circle-un'}}"></view>
+      <text class="agreement-text">
+        我已阅读并同意<text class="agreement-link">《用户协议》</text>和<text class="agreement-link">《隐私政策》</text>
+      </text>
+    </view>
+
+    <!-- 邮箱登录/注册按钮 -->
+    <view
+      class="btn ghost email-login-btn {{(!email || !password || !agreed || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
+      bindtap="handleEmailSubmit"
+    >
+      <text>{{authMode === 'register' ? '注册并登录' : '邮箱登录'}}</text>
+    </view>
+  </view>
+
+  <!-- 底部 -->
+  <view class="login-footer">
+    <view class="back-home" bindtap="goHome">
+      <text>跳过，返回首页</text>
+    </view>
+    <text class="version-text">v1.0.0</text>
+  </view>
+</view>

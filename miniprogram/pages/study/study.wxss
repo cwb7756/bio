@@ -72,6 +72,16 @@
   border-radius: 2rpx;
 }
 
+/* 加载中 */
+.study-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 0;
+  color: var(--ink-soft);
+  font-size: 28rpx;
+}
+
 /* 章节列表 */
 .chapter-list {
   display: flex;

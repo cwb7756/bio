@@ -10,21 +10,22 @@
       <!-- 用户信息卡片 -->
       <view class="profile-card">
         <view class="profile-bg"></view>
-        <view class="profile-info">
+        <view class="profile-info" bindtap="onProfileTap">
           <view class="profile-avatar">
-            <view class="icon {{user.avatar}} avatar-emoji"></view>
+            <image wx:if="{{user.avatarUrl}}" class="avatar-img" src="{{user.avatarUrl}}" mode="aspectFill"></image>
+            <view wx:else class="icon {{user.avatar}} avatar-emoji"></view>
           </view>
           <view class="profile-text">
             <view class="profile-name-row">
               <text class="profile-name">{{user.name}}</text>
-              <view class="profile-level">
+              <view class="profile-level" wx:if="{{isLoggedIn}}">
                 <text>{{user.level}}</text>
               </view>
             </view>
-            <text class="profile-grade">{{user.grade}} · 在路上</text>
+            <text class="profile-grade">{{user.grade}}</text>
           </view>
-          <view class="profile-edit" bindtap="goVip">
-            <text>编辑</text>
+          <view class="profile-edit" catchtap="handleAuthBtn">
+            <text>{{isLoggedIn ? '退出' : '登录'}}</text>
           </view>
         </view>
       </view>
