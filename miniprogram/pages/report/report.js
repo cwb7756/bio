@@ -1,4 +1,6 @@
 // pages/report/report.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -16,16 +18,20 @@ Page({
   },
 
   onShow() {
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     this.loadReport();
   },
 
   // 调用 report 云函数获取学习报告
-  loadReport() {
+  loadReport(done) {
     this.setData({ loading: true });
-    const info = wx.getStorageSync('userInfo') || {};
     wx.cloud.callFunction({
       name: 'report',
-      data: { userID: info.userID || '' },
+      data: {},
       success: (res) => {
         if (res.result && res.result.code === 0) {
           const d = res.result.data;
@@ -47,16 +53,32 @@ Page({
           this.setData({ loading: false });
           wx.showToast({ title: '加载失败', icon: 'none' });
         }
+        if (done) done();
       },
       fail: (err) => {
         console.error('report error:', err);
         this.setData({ loading: false });
         wx.showToast({ title: '网络异常', icon: 'none' });
+        if (done) done();
       }
+    });
+  },
+
+  onPullDownRefresh() {
+    this.loadReport(() => {
+      wx.stopPullDownRefresh();
     });
   },
 
   goBack() {
     wx.navigateBack();
+  },
+
+  onShareAppMessage() {
+    return { title: 'Bio - 高中生物学习助手', path: '/pages/home/home' };
+  },
+
+  onShareTimeline() {
+    return { title: 'Bio - 高中生物学习助手' };
   }
 });

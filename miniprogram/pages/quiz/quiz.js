@@ -1,97 +1,206 @@
 // pages/quiz/quiz.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
-    current: 3,
-    total: 10,
-    answered: true, // 是否已作答
-    selectedOption: 2, // 用户选了C (index 2)
-    question: {
-      type: '选择题 · 自由组合定律',
-      stem: '豌豆黄色(Y)对绿色(y)为显性，圆粒(R)对皱粒(r)为显性，两对基因独立遗传。基因型为 YyRr 的豌豆自交，后代中 黄圆：绿圆：黄皱：绿皱 的比例为？'
-    },
-    options: [
-      { key: 'A', text: '1 : 1 : 1 : 1', correct: false },
-      { key: 'B', text: '9 : 3 : 3 : 1', correct: true },
-      { key: 'C', text: '3 : 1 : 3 : 1', correct: false },
-      { key: 'D', text: '9 : 3 : 1 : 3', correct: false }
-    ],
-    aiSteps: [
-      { num: 1, text: '两对等位基因独立遗传，遵循自由组合定律——诀窍是"先分开、再相乘"。' },
-      { num: 2, text: 'Yy×Yy → 黄：绿 = 3：1；Rr×Rr → 圆：皱 = 3：1。' },
-      { num: 3, text: '按题目顺序相乘：黄圆(3×3)：绿圆(1×3)：黄皱(3×1)：绿皱(1×1)。' }
-    ],
-    aiAnswer: '所以为 9 : 3 : 3 : 1，选 B。你错选了 C，是把两对性状的顺序弄反啦~'
+    navTitle: '刷题',
+    loading: true,
+    loadError: false,
+    emptyHint: '',
+
+    questions: [],
+    current: 0,
+    total: 0,
+    currentQuestion: null,
+    selectedOption: -1,
+    answered: false,
+    correct: false,
+    correctAnswer: '',
+    explanation: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     const sys = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sys.statusBarHeight });
+
+    // 登录拦截：刷题需上传用户数据（错题本），未登录则跳转登录页
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录后再刷题', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
+
+    this.chapter = decodeURIComponent(options.chapter || '');
+    this.topic = decodeURIComponent(options.topic || '');
+
+    let navTitle = '刷题';
+    if (this.chapter) navTitle = this.chapter + ' · 刷题';
+
+    this.setData({ navTitle });
+    this.loadQuestions(this.chapter, this.topic);
+  },
+
+  // 调用 quiz 云函数加载题目列表（不返回答案/解析）
+  loadQuestions(chapter, topic) {
+    this.setData({ loading: true, loadError: false });
+    wx.showLoading({ title: '加载中' });
+    wx.cloud.callFunction({
+      name: 'quiz',
+      data: { action: 'list', chapter: chapter || '', topic: topic || '' }
+    }).then(res => {
+      wx.hideLoading();
+      if (res.result.code === 0 && res.result.questions.length > 0) {
+        this.setData({
+          loading: false,
+          questions: res.result.questions,
+          current: 0,
+          total: res.result.questions.length,
+          currentQuestion: res.result.questions[0],
+          answered: false,
+          selectedOption: -1,
+          correct: false,
+          correctAnswer: '',
+          explanation: ''
+        });
+      } else {
+        this.setData({
+          loading: false,
+          loadError: false,
+          emptyHint: '暂无题目',
+          questions: [],
+          total: 0,
+          currentQuestion: null
+        });
+        wx.showToast({ title: '暂无题目', icon: 'none' });
+      }
+    }).catch(err => {
+      wx.hideLoading();
+      this.setData({
+        loading: false,
+        loadError: true,
+        emptyHint: '加载失败',
+        questions: [],
+        total: 0,
+        currentQuestion: null
+      });
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    });
+  },
+
+  // 选择选项 → 调用 quiz 云函数 submit 判定正误
+  selectOption(e) {
+    if (this.data.answered) return;
+    const index = e.currentTarget.dataset.index;
+    const question = this.data.currentQuestion;
+    if (!question || !question.options[index]) return;
+    const userAnswer = question.options[index].key;
+
+    this.setData({ selectedOption: index, answered: true });
+
+    wx.cloud.callFunction({
+      name: 'quiz',
+      data: { action: 'submit', questionId: question.questionId, userAnswer }
+    }).then(res => {
+      if (res.result.code === 0) {
+        this.setData({
+          correct: res.result.correct,
+          correctAnswer: res.result.answer,
+          explanation: res.result.explanation
+        });
+        // 答错时自动保存到错题本
+        if (!res.result.correct) {
+          this.saveToMistakes(question, userAnswer, res.result);
+        }
+      } else {
+        // 云函数返回非 0，回退作答状态
+        this.setData({ answered: false, selectedOption: -1 });
+        wx.showToast({ title: res.result.msg || '判定失败', icon: 'none' });
+      }
+    }).catch(err => {
+      // 判定失败，回退作答状态允许重试
+      this.setData({ answered: false, selectedOption: -1 });
+      wx.showToast({ title: '判定失败', icon: 'none' });
+    });
+  },
+
+  // 下一题（从已加载的列表中取）
+  nextQuestion() {
+    const next = this.data.current + 1;
+    if (next < this.data.total) {
+      this.setData({
+        current: next,
+        currentQuestion: this.data.questions[next],
+        answered: false,
+        selectedOption: -1,
+        correct: false,
+        correctAnswer: '',
+        explanation: ''
+      });
+      wx.pageScrollTo({ scrollTop: 0, duration: 200 });
+    } else {
+      wx.showToast({ title: '已是最后一题', icon: 'none' });
+    }
+  },
+
+  // 答错时自动保存到错题本（使用真实 questionId，不传 userID）
+  saveToMistakes(question, userAnswer, result) {
+    wx.cloud.callFunction({
+      name: 'mistakes',
+      data: {
+        action: 'add',
+        questionId: question.questionId,
+        stem: question.stem,
+        options: question.options,
+        userAnswer: userAnswer,
+        answer: result.answer,
+        explanation: result.explanation,
+        chapter: question.chapter,
+        topic: question.topic
+      }
+    }).then(res => {
+      if (res.result.code === 0) {
+        wx.showToast({ title: '已加入错题本', icon: 'success' });
+      }
+    }).catch(() => {});
   },
 
   goBack() {
     wx.navigateBack();
   },
 
-  selectOption(e) {
-    if (this.data.answered) return;
-    const idx = e.currentTarget.dataset.index;
-    this.setData({
-      selectedOption: idx,
-      answered: true
-    });
+  // 下拉重试
+  onRetry() {
+    this.loadQuestions(this.chapter || '', this.topic || '');
   },
 
-  // 收藏到错题本：调用 mistakes 云函数真实写入
-  saveToMistakes() {
-    const { question, options, selectedOption } = this.data;
-    const info = wx.getStorageSync('userInfo') || {};
-    const correctOpt = options.find((o) => o.correct);
-    wx.cloud.callFunction({
-      name: 'mistakes',
-      data: {
-        action: 'add',
-        userID: info.userID || '',
-        questionId: 'quiz_demo_1',
-        chapter: '必修二',
-        topic: '自由组合定律',
-        stem: question.stem,
-        options: options.map((o) => ({ key: o.key, text: o.text })),
-        answer: correctOpt ? correctOpt.key : '',
-        userAnswer: selectedOption >= 0 ? options[selectedOption].key : '',
-        explanation: this.data.aiAnswer
-      },
-      success: (res) => {
-        if (res.result && res.result.code === 0) {
-          wx.showToast({ title: '已收藏到错题本', icon: 'none' });
-        } else {
-          wx.showToast({ title: (res.result && res.result.msg) || '收藏失败', icon: 'none' });
-        }
-      },
-      fail: () => wx.showToast({ title: '网络异常', icon: 'none' })
-    });
-  },
-
-  nextQuestion() {
-    if (this.data.current < this.data.total) {
-      wx.showToast({ title: '加载下一题...', icon: 'none' });
-      // 模拟加载下一题
-      this.setData({
-        current: this.data.current + 1,
-        answered: false,
-        selectedOption: -1
-      });
-    } else {
-      wx.showToast({ title: '已完成全部题目！', icon: 'none' });
-    }
-  },
-
+  // 更多操作
   showMore() {
+    const that = this;
     wx.showActionSheet({
       itemList: ['查看解析', '分享题目', '举报错误'],
-      success: function(res) {
-        wx.showToast({ title: '功能开发中...', icon: 'none' });
+      success: function (res) {
+        if (res.tapIndex === 0) {
+          // 查看解析：若未作答则提示，已作答则滚动到解析区
+          if (!that.data.answered) {
+            wx.showToast({ title: '作答后即可查看解析', icon: 'none' });
+          } else {
+            wx.pageScrollTo({ scrollTop: 9999, duration: 200 });
+          }
+        } else {
+          wx.showToast({ title: '功能开发中...', icon: 'none' });
+        }
       }
     });
+  },
+
+  onShareAppMessage() {
+    return { title: 'Bio - 高中生物学习助手', path: '/pages/home/home' };
+  },
+
+  onShareTimeline() {
+    return { title: 'Bio - 高中生物学习助手' };
   }
 });

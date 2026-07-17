@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "错题本",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
 }

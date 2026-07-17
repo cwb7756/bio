@@ -32,6 +32,22 @@
   margin-bottom: 28rpx;
 }
 
+/* 学段切换 + 猫咪装饰 */
+.segment-wrap {
+  position: relative;
+  margin-top: 80rpx;
+}
+
+.seg-cat {
+  position: absolute;
+  top: -78rpx;
+  right: 20rpx;
+  width: 116rpx;
+  height: 116rpx;
+  z-index: 10;
+  pointer-events: none;
+}
+
 /* 知识地图入口 */
 .map-entry {
   display: flex;

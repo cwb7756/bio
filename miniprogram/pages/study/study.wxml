@@ -14,14 +14,17 @@
       </view>
 
       <!-- 学段切换 -->
-      <view class="segment study-segment">
-        <view
-          wx:for="{{tabs}}"
-          wx:key="*this"
-          class="seg-item {{activeTab === index ? 'on' : ''}}"
-          data-index="{{index}}"
-          bindtap="switchTab"
-        >{{item}}</view>
+      <view class="segment-wrap">
+        <image class="seg-cat" src="/images/cat-study.png" mode="aspectFit"></image>
+        <view class="segment study-segment">
+          <view
+            wx:for="{{tabs}}"
+            wx:key="*this"
+            class="seg-item {{activeTab === index ? 'on' : ''}}"
+            data-index="{{index}}"
+            bindtap="switchTab"
+          >{{item}}</view>
+        </view>
       </view>
 
       <!-- 学习概览 -->

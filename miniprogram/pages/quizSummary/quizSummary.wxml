@@ -1,0 +1,144 @@
+<!--pages/quizSummary/quizSummary.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goHome">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">答题总结</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <view class="page-body summary-body" wx:if="{{summary}}">
+    <view class="page-pad summary-pad">
+
+      <!-- 成绩卡 -->
+      <view class="score-wrap">
+        <image class="score-cat" src="{{catImage}}" mode="aspectFit"></image>
+        <view class="score-card">
+        <view class="score-top">
+          <view class="score-emoji">
+            <view class="icon ic-trophy"></view>
+          </view>
+          <view class="score-words">
+            <text class="score-title">{{encourage}}</text>
+            <text class="score-sub">{{encourageSub}}</text>
+          </view>
+        </view>
+        <view class="score-ring">
+          <text class="score-num">{{accuracyText}}</text>
+          <text class="score-label">正确率</text>
+        </view>
+        <view class="score-bar">
+          <view class="score-bar-fill" style="width: {{summary.accuracy}}%;"></view>
+        </view>
+
+        <!-- 离线提示 -->
+        <view class="offline-tip" wx:if="{{summary.offline}}">
+          <text>本次学习记录未同步到云端（网络异常），但不影响查看总结</text>
+        </view>
+        </view>
+      </view>
+
+      <!-- 统计 -->
+      <view class="stat-row">
+        <view class="stat-item stat-correct">
+          <text class="stat-num">{{summary.correct}}</text>
+          <text class="stat-label">答对</text>
+        </view>
+        <view class="stat-item stat-wrong">
+          <text class="stat-num">{{summary.wrong}}</text>
+          <text class="stat-label">答错</text>
+        </view>
+        <view class="stat-item stat-skip">
+          <text class="stat-num">{{summary.skipped}}</text>
+          <text class="stat-label">跳过</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-num">{{durationText}}</text>
+          <text class="stat-label">用时</text>
+        </view>
+      </view>
+
+      <!-- 逐题回顾 -->
+      <view class="sec-title">
+        <text class="u">逐题回顾</text>
+        <text class="more">共 {{summary.total}} 题</text>
+      </view>
+
+      <view class="review-list">
+        <view
+          wx:for="{{summary.details}}"
+          wx:for-item="d"
+          wx:key="questionId"
+          class="review-card"
+        >
+          <!-- 题头 -->
+          <view class="rv-head">
+            <view class="rv-no {{d.correct ? 'no-right' : 'no-wrong'}}">{{index + 1}}</view>
+            <view class="rv-type">{{d.type}}</view>
+            <view class="rv-status">
+              <text class="rv-st-txt {{d.correct ? 'st-right' : (d.skipped ? 'st-skip' : 'st-wrong')}}">
+                {{d.correct ? '答对' : (d.skipped ? '未作答' : '答错')}}
+              </text>
+            </view>
+          </view>
+
+          <!-- 题干 -->
+          <text class="rv-stem">{{d.stem}}</text>
+
+          <!-- 选项 -->
+          <view class="rv-options">
+            <view
+              wx:for="{{d.options}}"
+              wx:for-item="o"
+              wx:key="key"
+              class="rv-opt {{o.isCorrect ? 'opt-correct' : ''}} {{o.isUserWrong ? 'opt-wrong' : ''}}"
+            >
+              <view class="rv-opt-key {{o.isCorrect ? 'k-correct' : ''}} {{o.isUserWrong ? 'k-wrong' : ''}}">{{o.key}}</view>
+              <text class="rv-opt-text">{{o.text}}</text>
+              <view class="icon ic-check-circle rv-opt-res" wx:if="{{o.isCorrect}}"></view>
+              <view class="icon ic-close-circle rv-opt-res" wx:if="{{o.isUserWrong}}"></view>
+            </view>
+          </view>
+
+          <!-- 答案对比 -->
+          <view class="rv-answer">
+            <text>你的答案：<text class="rv-mine {{d.correct ? 'mine-right' : 'mine-wrong'}}">{{d.userAnswer || '未作答'}}</text></text>
+            <text class="rv-correct">正确答案：{{d.answer}}</text>
+          </view>
+
+          <!-- 解析 -->
+          <view class="rv-explain-toggle" data-index="{{index}}" bindtap="toggleExplain">
+            <text>{{d.expanded ? '收起解析' : '查看解析'}}</text>
+            <view class="icon ic-chevron-right {{d.expanded ? 'chev-up' : ''}}"></view>
+          </view>
+          <view class="rv-explain" wx:if="{{d.expanded}}">
+            <view class="icon ic-spark rv-explain-ico"></view>
+            <text>{{d.explanation}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部留白 -->
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar summary-bar" wx:if="{{summary}}">
+    <view class="btn ghost" bindtap="saveAllMistakes">
+      <view class="icon ic-star"></view>
+      <text>错题收藏</text>
+    </view>
+    <view class="btn deep" bindtap="retry">
+      <view class="icon ic-refresh"></view>
+      <text>再来一组</text>
+    </view>
+  </view>
+</view>

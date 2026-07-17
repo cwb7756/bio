@@ -4,14 +4,30 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const _ = db.command;
 
 // demo 节点掌握度（新用户示例）：前3课已掌握，第4课闯关中，第5课学习中，其余锁定
 const DEMO_MASTERIES = [95, 88, 82, 45, 12];
 
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
+  }
+  return null;
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { courseId = 'course_required_1', userID = '' } = event;
+  const { courseId = 'course_required_1' } = event;
+
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
 
   try {
     // 1. 课程信息
@@ -31,16 +47,12 @@ exports.main = async (event) => {
       .limit(50)
       .get();
 
-    // 3. 用户该课程学习记录（仅拼接存在的标识，避免空对象匹配全部文档）
+    // 3. 用户该课程学习记录（仅用 _openid）
     let completedIndexes = [];
     let isDemo = true;
-    const clauses = [];
-    if (OPENID) clauses.push({ _openid: OPENID, courseId, type: 'lesson' });
-    if (userID) clauses.push({ userID, courseId, type: 'lesson' });
-    if (clauses.length > 0) {
-      const condition = clauses.length === 1 ? clauses[0] : _.or(clauses);
+    if (OPENID) {
       const { data: progress } = await db.collection('study_progress')
-        .where(condition)
+        .where({ _openid: OPENID, courseId, type: 'lesson' })
         .limit(100)
         .get();
       if (progress.length > 0) {
@@ -62,6 +74,7 @@ exports.main = async (event) => {
         }
         return {
           lessonId: l._id,
+          courseId: courseId,
           index: l.index || i + 1,
           title: l.title,
           mastery,
@@ -74,13 +87,13 @@ exports.main = async (event) => {
       nodes = lessons.map((l, i) => {
         const done = completedIndexes.includes(l.index || i + 1) || completedIndexes.includes(i);
         if (done) {
-          return { lessonId: l._id, index: l.index || i + 1, title: l.title, mastery: 100, status: 'done' };
+          return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 100, status: 'done' };
         }
         if (!currentAssigned) {
           currentAssigned = true;
-          return { lessonId: l._id, index: l.index || i + 1, title: l.title, mastery: 0, status: 'current' };
+          return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'current' };
         }
-        return { lessonId: l._id, index: l.index || i + 1, title: l.title, mastery: 0, status: 'lock' };
+        return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'lock' };
       });
     }
 

@@ -4,21 +4,42 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
-// 卡片列表：系统卡 + 当前用户卡（集合数据量小，全量取回后内存过滤）
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
+  }
+  return null;
+}
+
+// 卡片列表：系统卡 + 当前用户卡（条件查询替代全表扫描）
 async function listCards(openid) {
-  const { data: all } = await db.collection('flashcards').get();
-  const cards = all
-    .filter((c) => c.scope === 'system' || (openid && c._openid === openid))
-    .map((c) => ({
-      _id: c._id,
-      chapter: c.chapter || '',
-      title: c.title,
-      content: c.content,
-      icon: c.icon || 'ic-folder',
-      sort: c.sort || 0,
-      mine: !!c._openid && c._openid === openid
-    }));
+  // 条件查询：系统卡 + 当前用户卡（_.or 在云函数服务端可用）
+  const condition = openid
+    ? _.or([{ scope: 'system' }, { _openid: openid }])
+    : { scope: 'system' };
+
+  const { data: all } = await db.collection('flashcards')
+    .where(condition)
+    .get();
+
+  const cards = all.map((c) => ({
+    _id: c._id,
+    chapter: c.chapter || '',
+    title: c.title,
+    content: c.content,
+    icon: c.icon || 'ic-folder',
+    sort: c.sort || 0,
+    mine: !!c._openid && c._openid === openid
+  }));
   cards.sort((a, b) => (a.sort - b.sort) || (a.mine ? 1 : -1));
   return { code: 0, data: { cards } };
 }
@@ -57,7 +78,7 @@ async function removeCard(event, openid) {
   if (data.length === 0) {
     return { code: 404, msg: '卡片不存在' };
   }
-  if (!data[0]._openid || data[0]._openid !== openid) {
+  if (!openid || !data[0]._openid || data[0]._openid !== openid) {
     return { code: 403, msg: '只能删除自己创建的卡片' };
   }
   await db.collection('flashcards').doc(cardId).remove();
@@ -67,6 +88,9 @@ async function removeCard(event, openid) {
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
   const { action = 'list' } = event;
+
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
 
   try {
     switch (action) {

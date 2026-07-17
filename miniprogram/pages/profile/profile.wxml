@@ -1,0 +1,124 @@
+<!--pages/profile/profile.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">{{mode === 'setup' ? '完善个人信息' : '编辑资料'}}</text>
+    <view class="icon-btn" wx:if="{{mode === 'setup'}}" bindtap="skipSetup">
+      <text class="skip-text">跳过</text>
+    </view>
+    <view class="icon-btn" wx:else style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 提示语（仅 setup 模式） -->
+      <view class="setup-hint" wx:if="{{mode === 'setup'}}">
+        <text>欢迎加入！请完善你的个人信息，让大家认识你</text>
+      </view>
+
+      <!-- 表单卡片 -->
+      <view class="form-card">
+        <!-- 头像 -->
+        <view class="avatar-section" bindtap="chooseAvatar">
+          <view class="avatar-wrap">
+            <image wx:if="{{avatar}}" class="avatar-img" src="{{avatar}}" mode="aspectFill"></image>
+            <view wx:else class="icon ic-student avatar-default"></view>
+            <view class="avatar-camera">
+              <view class="icon ic-pen camera-icon"></view>
+            </view>
+          </view>
+          <text class="avatar-hint">点击更换头像</text>
+        </view>
+
+        <!-- 昵称 -->
+        <view class="field-label">
+          <text>昵称</text>
+          <text class="field-required">*</text>
+        </view>
+        <view class="input-row">
+          <view class="icon ic-student input-icon"></view>
+          <input
+            class="input-field"
+            type="text"
+            placeholder="请输入昵称"
+            placeholder-class="input-placeholder"
+            value="{{nickname}}"
+            bindinput="onNicknameInput"
+            maxlength="20"
+          />
+        </view>
+
+        <!-- 年级 -->
+        <view class="field-label">
+          <text>年级</text>
+        </view>
+        <view class="segment grade-segment">
+          <view
+            wx:for="{{grades}}"
+            wx:key="*this"
+            class="seg-item {{grade === item ? 'on' : ''}}"
+            data-grade="{{item}}"
+            bindtap="switchGrade"
+          >{{item}}</view>
+        </view>
+
+        <!-- 可选区域 -->
+        <view class="optional-divider">
+          <view class="divider-line"></view>
+          <text class="divider-text">以下为可选项（绑定后可用邮箱登录）</text>
+          <view class="divider-line"></view>
+        </view>
+
+        <!-- 邮箱 -->
+        <view class="field-label">
+          <text>邮箱</text>
+        </view>
+        <view class="input-row">
+          <view class="icon ic-mail input-icon"></view>
+          <input
+            class="input-field"
+            type="text"
+            placeholder="选填，用于绑定邮箱登录"
+            placeholder-class="input-placeholder"
+            value="{{email}}"
+            bindinput="onEmailInput"
+          />
+        </view>
+
+        <!-- 密码 -->
+        <view class="field-label">
+          <text>密码</text>
+        </view>
+        <view class="input-row">
+          <view class="icon ic-lock input-icon"></view>
+          <input
+            class="input-field"
+            password="{{true}}"
+            placeholder="选填，至少6位"
+            placeholder-class="input-placeholder"
+            value="{{password}}"
+            bindinput="onPasswordInput"
+          />
+        </view>
+      </view>
+
+      <!-- 保存按钮 -->
+      <view
+        class="btn deep save-btn {{(!nickname || submitting) ? 'btn-disabled' : ''}}"
+        bindtap="submit"
+      >
+        <text>{{submitting ? '保存中...' : '保存'}}</text>
+      </view>
+
+      <view style="height: 80rpx;"></view>
+    </view>
+  </view>
+</view>

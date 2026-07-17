@@ -13,24 +13,35 @@ const DEFAULT_SETTINGS = {
   dailyReminder: false  // 每日打卡提醒
 };
 
-async function findUser(openid, userId) {
-  if (openid) {
-    const { data } = await db.collection('users').where({ _openid: openid }).limit(1).get();
-    if (data.length > 0) return data[0];
-  }
-  if (userId) {
-    const { data } = await db.collection('users').where({ userID: userId }).limit(1).get();
-    if (data.length > 0) return data[0];
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
   }
   return null;
 }
 
+async function findUser(openid) {
+  if (!openid) return null;
+  const { data } = await db.collection('users').where({ _openid: openid }).limit(1).get();
+  return data.length > 0 ? data[0] : null;
+}
+
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action = 'get', userID = '' } = event;
+  const { action = 'get' } = event;
+
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
 
   try {
-    const user = await findUser(OPENID, userID);
+    const user = await findUser(OPENID);
 
     if (action === 'get') {
       const settings = { ...DEFAULT_SETTINGS, ...((user && user.settings) || {}) };

@@ -105,9 +105,6 @@
 
   <!-- 底部 -->
   <view class="login-footer">
-    <view class="back-home" bindtap="goHome">
-      <text>跳过，返回首页</text>
-    </view>
     <text class="version-text">v1.0.0</text>
   </view>
 </view>

@@ -4,7 +4,20 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const _ = db.command;
+
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
+  }
+  return null;
+}
 
 /**
  * 获取用户信息
@@ -22,8 +35,7 @@ async function getUserInfo(openid) {
   return {
     nickname: user.nickname || '同学',
     avatar: user.avatar || '',
-    grade: user.grade || '',
-    userID: user.userID || user._id
+    grade: user.grade || ''
   };
 }
 
@@ -34,16 +46,10 @@ async function getUserInfo(openid) {
  * 3. 查 lessons by courseId → 得到总课时
  * 4. 统计该 chapter 下 study_progress 总数 → 计算进度
  */
-async function getContinueLearning(openid, userId) {
-  // 兼容 userID 和 _openid 两种标识
-  const queryCondition = _.or([
-    { userID: userId },
-    { _openid: openid }
-  ]);
-
-  // 取最近一条学习记录
+async function getContinueLearning(openid) {
+  // 取最近一条学习记录（仅用 _openid）
   const { data: latestList } = await db.collection('study_progress')
-    .where(queryCondition)
+    .where({ _openid: openid })
     .orderBy('updatedAt', 'desc')
     .limit(1)
     .get();
@@ -69,12 +75,11 @@ async function getContinueLearning(openid, userId) {
 
   const totalLessons = lessons.length;
 
-  // 统计该章节下用户的学习记录总数
-  const { data: allProgress } = await db.collection('study_progress')
-    .where(queryCondition)
-    .get();
+  // 统计该用户的学习记录总数（count 替代全量 get + length）
+  const { total: completedCount } = await db.collection('study_progress')
+    .where({ _openid: openid })
+    .count();
 
-  const completedCount = allProgress.length;
   const progress = totalLessons > 0
     ? Math.min(Math.round((completedCount / totalLessons) * 100), 100)
     : 0;
@@ -113,6 +118,9 @@ async function getHotTopics() {
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
 
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
+
   try {
     // 并行获取用户信息 + 热门考点（无依赖关系）
     const [userInfo, hotTopics] = await Promise.all([
@@ -123,7 +131,7 @@ exports.main = async (event, context) => {
     // 继续学习依赖用户信息
     let continueLearning = null;
     if (userInfo) {
-      continueLearning = await getContinueLearning(OPENID, userInfo.userID);
+      continueLearning = await getContinueLearning(OPENID);
     }
 
     return {

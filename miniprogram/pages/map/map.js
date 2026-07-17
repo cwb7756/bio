@@ -29,12 +29,10 @@ Page({
   // 调用 knowledgeMap 云函数获取地图数据
   loadMap() {
     this.setData({ loading: true });
-    const info = wx.getStorageSync('userInfo') || {};
     wx.cloud.callFunction({
       name: 'knowledgeMap',
       data: {
-        courseId: this.data.courseId,
-        userID: info.userID || ''
+        courseId: this.data.courseId
       },
       success: (res) => {
         if (res.result && res.result.code === 0) {
@@ -72,15 +70,20 @@ Page({
   // 点击节点
   tapNode(e) {
     const node = e.currentTarget.dataset.node;
-    if (node.status === 'lock') {
+    if (node.status === 'locked' || node.status === 'lock') {
       wx.showToast({ title: '先完成前面的关卡吧', icon: 'none' });
       return;
     }
-    wx.showToast({ title: node.title + ' · 掌握度 ' + node.mastery + '%', icon: 'none' });
+    wx.navigateTo({ url: '/pages/course/course?courseId=' + node.courseId });
   },
 
-  // 开始当前关卡 → 跳学习页
+  // 开始当前关卡 → 跳课程页
   startCurrent() {
-    wx.switchTab({ url: '/pages/study/study' });
+    const node = this.data.nodes.find((n) => n.status === 'current');
+    if (node) {
+      wx.navigateTo({ url: '/pages/course/course?courseId=' + node.courseId });
+    } else {
+      wx.showToast({ title: '暂无进行中的关卡', icon: 'none' });
+    }
   }
 });

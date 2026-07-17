@@ -24,6 +24,13 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    // 消费 home 页传递的 pendingCourseId，跳转对应课程详情
+    const pendingCourseId = app.globalData.pendingCourseId;
+    if (pendingCourseId) {
+      delete app.globalData.pendingCourseId;
+      wx.navigateTo({ url: '/pages/course/course?courseId=' + pendingCourseId });
+      return;
+    }
     this.loadCourseList();
   },
 
@@ -74,6 +81,10 @@ Page({
 
   // 知识地图：默认展示当前教材第一门课程
   goMap() {
+    if (!this.data.chapters || this.data.chapters.length === 0) {
+      wx.showToast({ title: '暂无课程', icon: 'none' });
+      return;
+    }
     const first = this.data.chapters[0];
     const courseId = first ? first._id : 'course_required_1';
     wx.navigateTo({ url: '/pages/map/map?courseId=' + courseId });

@@ -1,0 +1,98 @@
+# ---------------------------------------------
+# 依赖目录 (Dependencies)
+# ---------------------------------------------
+node_modules/
+**/node_modules/
+jspm_packages/
+bower_components/
+
+# npm 构建产物（小程序 npm 构建）
+miniprogram_npm/
+**/miniprogram_npm/
+
+# ---------------------------------------------
+# 微信开发者工具 (WeChat DevTools)
+# ---------------------------------------------
+# 本地私有配置（包含本地设置、编译配置等，不应提交）
+project.private.config.json
+
+# 开发者工具本地缓存与上传预览产物
+.wechat/
+node_modules.upload/
+package.upload/
+upload/
+uploadPreview/
+
+# ---------------------------------------------
+# 云函数 (Cloud Functions)
+# ---------------------------------------------
+# 云函数依赖已在上方 node_modules 忽略
+# 云函数本地日志
+cloudfunctions/**/*.log
+
+# ---------------------------------------------
+# 日志文件 (Logs)
+# ---------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---------------------------------------------
+# 环境变量与密钥 (Environment & Secrets)
+# ---------------------------------------------
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# ---------------------------------------------
+# 编辑器与 IDE (Editors & IDEs)
+# ---------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ---------------------------------------------
+# 操作系统文件 (OS Files)
+# ---------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ---------------------------------------------
+# 构建与临时文件 (Build & Temp)
+# ---------------------------------------------
+dist/
+build/
+.tmp/
+tmp/
+temp/
+*.tmp
+.cache/
+
+# ---------------------------------------------
+# 测试与覆盖率 (Test & Coverage)
+# ---------------------------------------------
+coverage/
+.nyc_output/

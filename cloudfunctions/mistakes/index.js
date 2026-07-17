@@ -1,18 +1,22 @@
 // 云函数 mistakes - 错题本
-// list: 用户错题列表（无记录时返回 demo 示例）；add: 收藏错题（防重）；remove: 删除错题
+// list: 用户错题列表（无记录时返回空列表 + isDemo）；add: 收藏错题（防重）；remove: 删除错题
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-const _ = db.command;
 
-// 构建用户查询条件：仅拼接存在的标识，避免空对象匹配全部文档
-function userCondition(openid, userId, extra) {
-  const clauses = [];
-  if (openid) clauses.push({ _openid: openid, ...(extra || {}) });
-  if (userId) clauses.push({ userID: userId, ...(extra || {}) });
-  if (clauses.length === 0) return null;
-  return clauses.length === 1 ? clauses[0] : _.or(clauses);
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
+  }
+  return null;
 }
 
 function formatMistake(m, isDemo) {
@@ -31,46 +35,42 @@ function formatMistake(m, isDemo) {
   };
 }
 
-// 错题列表：优先用户真实记录，无记录回退 demo 示例
-async function listMistakes(openid, userId) {
-  let own = [];
-  const condition = userCondition(openid, userId);
-  if (condition) {
-    const { data } = await db.collection('mistakes')
-      .where(condition)
-      .orderBy('createdAt', 'desc')
-      .limit(100)
-      .get();
-    own = data;
+// 错题列表：仅查当前用户记录，无记录返回空列表 + isDemo
+async function listMistakes(openid, skip, limit) {
+  if (!openid) {
+    return { code: 0, list: [], total: 0, isDemo: true };
   }
 
-  if (own.length > 0) {
-    return { code: 0, data: { mistakes: own.map((m) => formatMistake(m, false)), isDemo: false } };
+  const condition = { _openid: openid };
+  const { total } = await db.collection('mistakes').where(condition).count();
+
+  if (total === 0) {
+    return { code: 0, list: [], total: 0, isDemo: true };
   }
 
-  // demo 兜底
-  const { data: demo } = await db.collection('mistakes')
-    .where({ userID: 'demo' })
+  const { data } = await db.collection('mistakes')
+    .where(condition)
     .orderBy('createdAt', 'desc')
-    .limit(20)
+    .skip(skip)
+    .limit(limit)
     .get();
-  return { code: 0, data: { mistakes: demo.map((m) => formatMistake(m, true)), isDemo: true } };
+
+  return { code: 0, list: data.map((m) => formatMistake(m, false)), total, isDemo: false };
 }
 
 // 收藏错题：同一用户同一题仅保留最新一条
-async function addMistake(event, openid, userId) {
+async function addMistake(event, openid) {
   const { questionId, chapter = '', topic = '', stem, options = [], answer, userAnswer = '', explanation = '' } = event;
   if (!stem || !answer) {
     return { code: 400, msg: '缺少题目内容' };
   }
-  if (!openid && !userId) {
+  if (!openid) {
     return { code: 401, msg: '请先登录' };
   }
 
   const now = Date.now();
   const doc = {
-    _openid: openid || '',
-    userID: userId || '',
+    _openid: openid,
     questionId: questionId || '',
     chapter,
     topic,
@@ -83,10 +83,9 @@ async function addMistake(event, openid, userId) {
   };
 
   // 防重：同题更新而非重复插入
-  const dupCondition = userCondition(openid, userId, { questionId });
-  if (questionId && dupCondition) {
+  if (questionId) {
     const { data: exist } = await db.collection('mistakes')
-      .where(dupCondition)
+      .where({ _openid: openid, questionId })
       .limit(1)
       .get();
     if (exist.length > 0) {
@@ -102,7 +101,7 @@ async function addMistake(event, openid, userId) {
 }
 
 // 删除错题（仅本人）
-async function removeMistake(event, openid, userId) {
+async function removeMistake(event, openid) {
   const { mistakeId } = event;
   if (!mistakeId) {
     return { code: 400, msg: '缺少 mistakeId' };
@@ -112,8 +111,7 @@ async function removeMistake(event, openid, userId) {
     return { code: 404, msg: '记录不存在' };
   }
   const m = data[0];
-  const isOwner = (openid && m._openid === openid) || (userId && m.userID === userId);
-  if (!isOwner) {
+  if (!openid || m._openid !== openid) {
     return { code: 403, msg: '只能删除自己的错题' };
   }
   await db.collection('mistakes').doc(mistakeId).remove();
@@ -122,16 +120,23 @@ async function removeMistake(event, openid, userId) {
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
-  const { action = 'list', userID = '' } = event;
+  const { action = 'list', skip = 0, limit = 20 } = event;
+
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
+
+  // 分页参数校验与规范化
+  const pageNum = Math.max(0, parseInt(skip, 10) || 0);
+  const pageSize = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
   try {
     switch (action) {
       case 'list':
-        return await listMistakes(OPENID, userID);
+        return await listMistakes(OPENID, pageNum, pageSize);
       case 'add':
-        return await addMistake(event, OPENID, userID);
+        return await addMistake(event, OPENID);
       case 'remove':
-        return await removeMistake(event, OPENID, userID);
+        return await removeMistake(event, OPENID);
       default:
         return { code: -1, msg: '未知的操作类型' };
     }

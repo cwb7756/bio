@@ -21,16 +21,20 @@ Page({
   },
 
   onShow() {
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     this.loadSettings();
     this.loadCacheSize();
   },
 
   // 调用 settings 云函数读取设置
   loadSettings() {
-    const info = wx.getStorageSync('userInfo') || {};
     wx.cloud.callFunction({
       name: 'settings',
-      data: { action: 'get', userID: info.userID || '' },
+      data: { action: 'get' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
           this.setData({
@@ -67,26 +71,28 @@ Page({
   onSwitch(e) {
     const key = e.currentTarget.dataset.key;
     const value = e.detail.value;
+    const oldValue = this.data.settings[key];
     this.setData({ ['settings.' + key]: value });
 
-    const info = wx.getStorageSync('userInfo') || {};
     wx.cloud.callFunction({
       name: 'settings',
       data: {
         action: 'update',
-        userID: info.userID || '',
         settings: { [key]: value }
       },
       success: (res) => {
         if (!res.result || res.result.code !== 0) {
-          // 未登录等情况：保留本地状态，仅提示
           if (res.result && res.result.code === 401) {
             wx.showToast({ title: '登录后设置将云端同步', icon: 'none' });
+          } else {
+            this.setData({ ['settings.' + key]: oldValue });
+            wx.showToast({ title: '同步失败，请重试', icon: 'none' });
           }
         }
       },
       fail: () => {
-        wx.showToast({ title: '同步失败，已本地保存', icon: 'none' });
+        this.setData({ ['settings.' + key]: oldValue });
+        wx.showToast({ title: '同步失败，请重试', icon: 'none' });
       }
     });
   },

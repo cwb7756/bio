@@ -20,7 +20,11 @@
         <text>示例数据 · 登录后球球将记录你的真实陪伴</text>
       </view>
 
+      <!-- 加载/空态 -->
+      <view wx:if="{{!pet}}" class="loading-tip">加载中...</view>
+
       <!-- 猫咪舞台 -->
+      <block wx:if="{{pet}}">
       <view class="pet-stage">
         <view class="pet-lv">Lv.{{pet.level}}</view>
         <view class="pet-days">已陪伴 {{pet.accompanyDays}} 天</view>
@@ -101,6 +105,7 @@
           <text class="ia-cost">Lv.6 解锁</text>
         </view>
       </view>
+      </block>
 
       <!-- 成长日记 -->
       <view class="sec-title">

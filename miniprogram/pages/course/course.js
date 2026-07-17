@@ -76,6 +76,10 @@ Page({
       wx.showToast({ title: '暂无视频', icon: 'none' });
       return;
     }
+    if (!v.aid || !v.url) {
+      wx.showToast({ title: '暂无视频源', icon: 'none' });
+      return;
+    }
     wx.navigateToMiniProgram({
       appId: 'wx7564fd5313d24844',
       path: 'pages/video/video?avid=' + v.aid,
@@ -106,5 +110,22 @@ Page({
 
   goBack() {
     wx.navigateBack();
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    const course = this.data.course;
+    return {
+      title: course ? course.title || '高中生物课程' : '高中生物课程',
+      path: '/pages/course/course?courseId=' + this.data.courseId
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    const course = this.data.course;
+    return {
+      title: course ? course.title || '高中生物课程' : '高中生物课程'
+    };
   }
 });

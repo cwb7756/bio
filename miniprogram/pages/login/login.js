@@ -108,6 +108,7 @@ Page({
           const user = res.result.user;
           wx.setStorageSync('userInfo', user);
           app.globalData.userInfo = user;
+          app.globalData.isLoggedIn = true;
 
           wx.showToast({
             title: res.result.isNewUser ? '欢迎加入!' : '登录成功',
@@ -116,7 +117,12 @@ Page({
           });
 
           setTimeout(() => {
-            wx.switchTab({ url: '/pages/home/home' });
+            // 微信一键登录的新用户跳转信息填写页，其余直接进首页
+            if (action === 'wxLogin' && res.result.isNewUser) {
+              wx.redirectTo({ url: '/pages/profile/profile?mode=setup' });
+            } else {
+              wx.switchTab({ url: '/pages/home/home' });
+            }
           }, 1500);
         } else {
           wx.showToast({
@@ -138,10 +144,5 @@ Page({
   _validateEmail(email) {
     const reg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return reg.test(email);
-  },
-
-  // ---- 返回首页 ----
-  goHome() {
-    wx.switchTab({ url: '/pages/home/home' });
   }
 });

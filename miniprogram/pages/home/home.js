@@ -16,7 +16,7 @@ Page({
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quiz/quiz' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
-      { icon: 'ic-close', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
+      { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
       { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/ai/ai' }
     ],
@@ -47,6 +47,30 @@ Page({
     }
     // 拉取最新云端数据
     this.loadHomeData();
+    // 同步猫咪等级样式（与猫咪页面一致）
+    this.syncPetCat();
+  },
+
+  // 等级样式：Lv.1-2 幼猫 / Lv.3-4 绿围巾 / Lv.5+ 皇冠
+  levelImage(level) {
+    if (level >= 5) return '/images/cat-lv5.png';
+    if (level >= 3) return '/images/cat-lv3.png';
+    return '/images/cat-lv1.png';
+  },
+
+  // 获取宠物等级，同步搜索框上的猫咪样式；失败保持默认随机图
+  syncPetCat() {
+    if (!app.globalData.isLoggedIn) return;
+    wx.cloud.callFunction({
+      name: 'pet',
+      data: { action: 'get' },
+      success: (res) => {
+        if (res.result && res.result.code === 0 && res.result.data && res.result.data.pet) {
+          this.setData({ catImage: this.levelImage(res.result.data.pet.level) });
+        }
+      },
+      fail: () => {}
+    });
   },
 
   // 调用 home 云函数获取首页数据
@@ -90,9 +114,7 @@ Page({
   },
 
   onSearchConfirm() {
-    if (this.data.searchValue) {
-      wx.showToast({ title: '搜索: ' + this.data.searchValue, icon: 'none' });
-    }
+    wx.showToast({ title: '搜索功能开发中', icon: 'none' });
   },
 
   goFeature(e) {
@@ -128,5 +150,20 @@ Page({
 
   goAllTopics() {
     wx.showToast({ title: '更多考点即将上线', icon: 'none' });
+  },
+
+  // 分享给好友
+  onShareAppMessage() {
+    return {
+      title: '高中生物 · 探索生命的奥秘',
+      path: '/pages/home/home'
+    };
+  },
+
+  // 分享到朋友圈
+  onShareTimeline() {
+    return {
+      title: '高中生物 · 探索生命的奥秘'
+    };
   }
 });

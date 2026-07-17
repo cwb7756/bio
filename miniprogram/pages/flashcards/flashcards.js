@@ -1,4 +1,6 @@
 // pages/flashcards/flashcards.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -21,11 +23,16 @@ Page({
   },
 
   onShow() {
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     this.loadCards();
   },
 
   // 调用 flashcards 云函数获取卡片列表
-  loadCards() {
+  loadCards(done) {
     this.setData({ loading: true });
     wx.cloud.callFunction({
       name: 'flashcards',
@@ -37,12 +44,20 @@ Page({
           this.setData({ loading: false });
           wx.showToast({ title: '加载失败', icon: 'none' });
         }
+        if (done) done();
       },
       fail: (err) => {
         console.error('flashcards error:', err);
         this.setData({ loading: false });
         wx.showToast({ title: '网络异常', icon: 'none' });
+        if (done) done();
       }
+    });
+  },
+
+  onPullDownRefresh() {
+    this.loadCards(() => {
+      wx.stopPullDownRefresh();
     });
   },
 
@@ -130,5 +145,13 @@ Page({
         });
       }
     });
+  },
+
+  onShareAppMessage() {
+    return { title: 'Bio - 高中生物学习助手', path: '/pages/home/home' };
+  },
+
+  onShareTimeline() {
+    return { title: 'Bio - 高中生物学习助手' };
   }
 });

@@ -13,16 +13,11 @@ Page({
       avatarUrl: ''
     },
     stats: [
-      { num: '23', label: '连续打卡', unit: '天' },
-      { num: '486', label: '刷题总数', unit: '题' },
-      { num: '38', label: '学习时长', unit: 'h' }
+      { num: '--', label: '连续学习', unit: '天' },
+      { num: '--', label: '刷题数', unit: '题' },
+      { num: '--', label: '学习时长', unit: 'h' }
     ],
-    achievements: [
-      { icon: 'ic-fire', name: '连胜达人', desc: '连续学习20天' },
-      { icon: 'ic-target', name: '刷题高手', desc: '累计刷题400+' },
-      { icon: 'ic-spark', name: '初露锋芒', desc: '完成第一章' },
-      { icon: 'ic-star', name: '错题终结', desc: '错题正确率90%' }
-    ],
+    achievements: [],
     menuList: [
       { icon: 'ic-close', name: '我的错题本', desc: '错题回顾与复习', badge: '', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-folder', name: '速记卡片', desc: '考点速记随身看', badge: '', path: '/pages/flashcards/flashcards' },
@@ -43,6 +38,8 @@ Page({
       this.getTabBar().setData({ selected: 3 });
     }
     this.refreshUser();
+    this.loadStats();
+    this.loadAchievements();
   },
 
   // 读取登录态并刷新用户信息
@@ -55,6 +52,8 @@ Page({
         'user.grade': (info.grade || '高中') + ' · 在路上',
         'user.avatarUrl': info.avatar || ''
       });
+      app.globalData.isLoggedIn = true;
+      app.globalData.userInfo = info;
     } else {
       this.setData({
         isLoggedIn: false,
@@ -62,12 +61,56 @@ Page({
         'user.grade': '登录后同步学习数据',
         'user.avatarUrl': ''
       });
+      app.globalData.isLoggedIn = false;
+      app.globalData.userInfo = null;
     }
   },
 
-  // 点击用户卡片：未登录跳登录页
+  // 加载学习统计数据
+  loadStats() {
+    wx.cloud.callFunction({
+      name: 'report',
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          const d = res.result.data || {};
+          this.setData({
+            'stats[0].num': d.streakDays != null ? String(d.streakDays) : '--',
+            'stats[1].num': d.quizTotal != null ? String(d.quizTotal) : '--',
+            'stats[2].num': d.studyHours != null ? String(d.studyHours) : '--'
+          });
+        }
+      },
+      fail: (err) => {
+        console.error('report cloud function error:', err);
+      }
+    });
+  },
+
+  // 加载已解锁成就列表
+  loadAchievements() {
+    wx.cloud.callFunction({
+      name: 'achievements',
+      data: { action: 'list' },
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          var list = res.result.list || (res.result.data && res.result.data.achievements) || [];
+          this.setData({ achievements: list });
+        } else {
+          this.setData({ achievements: [] });
+        }
+      },
+      fail: (err) => {
+        console.error('achievements cloud function error:', err);
+        this.setData({ achievements: [] });
+      }
+    });
+  },
+
+  // 点击用户卡片：已登录跳编辑资料页，未登录跳登录页
   onProfileTap() {
-    if (!this.data.isLoggedIn) {
+    if (this.data.isLoggedIn) {
+      wx.navigateTo({ url: '/pages/profile/profile?mode=edit' });
+    } else {
       wx.navigateTo({ url: '/pages/login/login' });
     }
   },
@@ -85,6 +128,7 @@ Page({
         if (res.confirm) {
           wx.removeStorageSync('userInfo');
           app.globalData.userInfo = null;
+          app.globalData.isLoggedIn = false;
           this.refreshUser();
           wx.showToast({ title: '已退出登录', icon: 'none' });
         }
@@ -93,6 +137,11 @@ Page({
   },
 
   goMenu(e) {
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     const path = e.currentTarget.dataset.path;
     if (path) {
       wx.navigateTo({ url: path });

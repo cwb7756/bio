@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "速记卡片",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
 }

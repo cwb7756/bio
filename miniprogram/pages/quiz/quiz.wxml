@@ -10,80 +10,88 @@
     <view class="icon-btn" bindtap="goBack">
       <view class="icon ic-back nav-icon"></view>
     </view>
-    <text class="nav-t">遗传 · 刷题</text>
+    <text class="nav-t">{{navTitle}}</text>
     <view class="icon-btn" bindtap="showMore">
       <view class="icon ic-more nav-icon"></view>
     </view>
   </view>
 
-  <!-- 题目进度 -->
-  <view class="q-progress">
-    <text class="q-num q-num-current">{{current}}</text>
-    <view class="q-bar">
-      <view class="q-bar-fill" style="width: {{current / total * 100}}%;"></view>
-    </view>
-    <text class="q-num q-num-total">/{{total}}</text>
+  <!-- 加载中 -->
+  <view class="state-block" wx:if="{{loading}}">
+    <view class="icon ic-pen state-icon"></view>
+    <text class="state-text">正在为你抽取题目...</text>
   </view>
 
-  <view class="page-body" style="padding-bottom: 0;">
-    <view class="page-pad">
-      <!-- 题干 -->
-      <view class="q-stem">
-        <view class="q-type">{{question.type}}</view>
-        <text class="q-text">{{question.stem}}</text>
-      </view>
+  <!-- 空 / 错误态 -->
+  <view class="state-block" wx:elif="{{!currentQuestion}}">
+    <view class="icon ic-folder state-icon"></view>
+    <text class="state-text">{{emptyHint || '暂无题目'}}</text>
+    <view class="btn retry-btn" bindtap="onRetry">
+      <view class="icon ic-refresh"></view>
+      <text>重试</text>
+    </view>
+  </view>
 
-      <!-- 选项 -->
-      <view class="q-options">
-        <view
-          wx:for="{{options}}"
-          wx:key="key"
-          class="q-opt {{answered && item.correct ? 'opt-right' : ''}} {{answered && selectedOption === index && !item.correct ? 'opt-wrong' : ''}}"
-          data-index="{{index}}"
-          bindtap="selectOption"
-        >
-          <view class="opt-key {{answered && item.correct ? 'key-right' : ''}} {{answered && selectedOption === index && !item.correct ? 'key-wrong' : ''}}">{{item.key}}</view>
-          <text class="opt-text">{{item.text}}</text>
-          <view class="icon ic-check-circle opt-res" wx:if="{{answered && item.correct}}"></view>
-          <view class="icon ic-close-circle opt-res" wx:if="{{answered && selectedOption === index && !item.correct}}"></view>
-        </view>
+  <!-- 答题区 -->
+  <block wx:else>
+    <!-- 题目进度 -->
+    <view class="q-progress">
+      <text class="q-num q-num-current">{{current + 1}}</text>
+      <view class="q-bar">
+        <view class="q-bar-fill" style="width: {{(current + 1) / total * 100}}%;"></view>
       </view>
+      <text class="q-num q-num-total">/{{total}}</text>
+    </view>
 
-      <!-- AI 讲解 -->
-      <view class="ai-block" wx:if="{{answered}}">
-        <view class="ai-avatar">
-          <view class="icon ic-bot"></view>
+    <view class="page-body" style="padding-bottom: 0;">
+      <view class="page-pad">
+        <!-- 题干 -->
+        <view class="q-stem">
+          <view class="q-type">{{currentQuestion.type}}</view>
+          <text class="q-text">{{currentQuestion.stem}}</text>
         </view>
-        <view class="ai-bubble">
-          <view class="ai-who">
-            <text>● AI 生物老师 · 帮你拆解</text>
-          </view>
+
+        <!-- 选项 -->
+        <view class="q-options">
           <view
-            wx:for="{{aiSteps}}"
-            wx:key="num"
-            class="ai-step"
+            wx:for="{{currentQuestion.options}}"
+            wx:key="key"
+            class="q-opt {{answered && item.key === correctAnswer ? 'opt-right' : ''}} {{answered && selectedOption === index && item.key !== correctAnswer ? 'opt-wrong' : ''}}"
+            data-index="{{index}}"
+            bindtap="selectOption"
           >
-            <view class="step-num">{{item.num}}</view>
-            <text class="step-text">{{item.text}}</text>
+            <view class="opt-key {{answered && item.key === correctAnswer ? 'key-right' : ''}} {{answered && selectedOption === index && item.key !== correctAnswer ? 'key-wrong' : ''}}">{{item.key}}</view>
+            <text class="opt-text">{{item.text}}</text>
+            <view class="icon ic-check-circle opt-res" wx:if="{{answered && item.key === correctAnswer}}"></view>
+            <view class="icon ic-close-circle opt-res" wx:if="{{answered && selectedOption === index && item.key !== correctAnswer}}"></view>
           </view>
-          <view class="ai-answer">
-            <view class="icon ic-check-circle"></view>
-            <text>{{aiAnswer}}</text>
+        </view>
+
+        <!-- AI 讲解（submit 返回后才显示） -->
+        <view class="ai-block" wx:if="{{answered && explanation}}">
+          <view class="ai-avatar">
+            <view class="icon ic-bot"></view>
+          </view>
+          <view class="ai-bubble">
+            <view class="ai-who">
+              <text>● AI 生物老师 · 帮你拆解</text>
+            </view>
+            <view class="ai-answer">
+              <view class="icon ic-check-circle"></view>
+              <text>正确答案：{{correctAnswer}}。{{explanation}}</text>
+            </view>
           </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <!-- 底部操作栏 -->
-  <view class="action-bar">
-    <view class="btn ghost" bindtap="saveToMistakes">
-      <view class="icon ic-star"></view>
-      <text>收藏到错题本</text>
+    <!-- 底部操作栏 -->
+    <view class="action-bar">
+      <view class="btn" bindtap="nextQuestion">
+        <text>{{current + 1 === total ? '完成' : '下一题'}}</text>
+        <view class="icon ic-arrow-right" wx:if="{{current + 1 < total}}"></view>
+        <view class="icon ic-check" wx:else></view>
+      </view>
     </view>
-    <view class="btn" bindtap="nextQuestion">
-      <text>下一题</text>
-      <view class="icon ic-arrow-right"></view>
-    </view>
-  </view>
+  </block>
 </view>

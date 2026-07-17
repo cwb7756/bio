@@ -224,3 +224,36 @@
   height: 32rpx;
   margin-top: 4rpx;
 }
+
+/* ============ 加载 / 空态 ============ */
+.state-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  gap: 24rpx;
+}
+
+.state-icon {
+  width: 96rpx;
+  height: 96rpx;
+  opacity: .55;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: var(--gray);
+  font-weight: 600;
+}
+
+.retry-btn {
+  margin-top: 16rpx;
+}
+
+/* ============ 提交禁用态 ============ */
+.btn.disabled {
+  opacity: .55;
+  pointer-events: none;
+}

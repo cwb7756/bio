@@ -4,7 +4,7 @@
 //          无序列表(-/*)、有序列表(1.)、引用(>)、普通段落
 // 流式友好：未闭合的标记按普通文本容错处理，可对不完整文本反复全量解析
 
-// 解析行内语法 -> segments: [{ type: 'text'|'bold'|'code', text }]
+// 解析行内语法 -> segments: [{ type: 'text'|'bold'|'code'|'link'|'image', text?, url?, alt? }]
 function parseInline(text) {
   const segments = [];
   // 第一步：按行内代码 `code` 拆分
@@ -19,8 +19,9 @@ function parseInline(text) {
   }
   if (last < text.length) parts.push({ isCode: false, val: text.slice(last) });
 
-  // 第二步：非代码部分处理加粗 **text**
-  const boldRe = /\*\*([^*]+)\*\*/g;
+  // 第二步：非代码部分处理图片 ![](url)、链接 [](url)、加粗 **text**
+  // 注意：图片正则在链接之前，确保 ![alt](url) 不会被误匹配为链接
+  const combinedRe = /!\[([^\]]*)\]\(([^)]+)\)|\[([^\]]*)\]\(([^)]+)\)|\*\*([^*]+)\*\*/g;
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
     if (p.isCode) {
@@ -29,10 +30,19 @@ function parseInline(text) {
     }
     let l = 0;
     let mm;
-    boldRe.lastIndex = 0;
-    while ((mm = boldRe.exec(p.val))) {
+    combinedRe.lastIndex = 0;
+    while ((mm = combinedRe.exec(p.val))) {
       if (mm.index > l) segments.push({ type: 'text', text: p.val.slice(l, mm.index) });
-      segments.push({ type: 'bold', text: mm[1] });
+      if (mm[1] !== undefined) {
+        // 图片: ![alt](url)
+        segments.push({ type: 'image', alt: mm[1], url: mm[2] });
+      } else if (mm[3] !== undefined) {
+        // 链接: [text](url)
+        segments.push({ type: 'link', text: mm[3], url: mm[4] });
+      } else {
+        // 加粗: **text**
+        segments.push({ type: 'bold', text: mm[5] });
+      }
       l = mm.index + mm[0].length;
     }
     if (l < p.val.length) segments.push({ type: 'text', text: p.val.slice(l) });

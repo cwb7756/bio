@@ -23,9 +23,9 @@ const SESSIONS_LIMIT = 20;
 // 欢迎语文案（不持久化，无 ts 标记）
 const WELCOME_TEXT = '同学你好！我是AI生物老师\n有任何生物问题都可以问我，比如知识点讲解、题目解析、实验设计等～';
 
-// 生成带 Markdown 块的欢迎语消息
+// 生成带 Markdown 块的欢迎语消息（ts:-1 表示不持久化的欢迎语，避免与流式占位 ts:0 冲突）
 function welcomeMsg() {
-  return { role: 'ai', content: WELCOME_TEXT, blocks: parseMarkdown(WELCOME_TEXT) };
+  return { role: 'ai', content: WELCOME_TEXT, blocks: parseMarkdown(WELCOME_TEXT), ts: -1 };
 }
 
 // 相对时间格式化：刚刚 / x分钟前 / x小时前 / 昨天 / MM-DD
@@ -66,11 +66,18 @@ Page({
     showHistory: false    // 历史抽屉显隐
   },
 
-  onLoad() {
+  onLoad(options) {
     const sys = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sys.statusBarHeight });
-    this.prefetchData();
-    this.loadSessions(true);
+    // 预填问题（从知识点页面 askAI 跳转传来）
+    if (options && options.question) {
+      const question = decodeURIComponent(options.question);
+      this.setData({ inputValue: question });
+      this.loadSessions(false);
+      this.sendMessage();
+    } else {
+      this.loadSessions(true);
+    }
   },
 
   onShow() {
@@ -88,12 +95,12 @@ Page({
   // 加载会话列表；openLatest=true 时自动打开最近会话（仅页面首载）
   async loadSessions(openLatest) {
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('ai_chat_sessions')
-        .orderBy('updatedAt', 'desc')
-        .limit(SESSIONS_LIMIT)
-        .get();
-      const sessions = res.data.map(function(s) {
+      const res = await wx.cloud.callFunction({
+        name: 'aiChat',
+        data: { action: 'listSessions' }
+      });
+      const rawSessions = (res.result && res.result.sessions) || [];
+      const sessions = rawSessions.map(function(s) {
         return {
           _id: s._id,
           title: s.title || '未命名对话',
@@ -114,9 +121,12 @@ Page({
   async openSessionById(id) {
     if (this.data.isStreaming) return;
     try {
-      const db = wx.cloud.database();
-      const res = await db.collection('ai_chat_sessions').doc(id).get();
-      const cloudMsgs = res.data.messages || [];
+      const res = await wx.cloud.callFunction({
+        name: 'aiChat',
+        data: { action: 'getSession', sessionId: id }
+      });
+      const session = (res.result && res.result.session) || {};
+      const cloudMsgs = session.messages || [];
       const messages = cloudMsgs.map(function(m) {
         return {
           role: m.role,
@@ -195,9 +205,9 @@ Page({
           scrollIntoView: ''
         });
         if (this.data.sessionId) {
-          const db = wx.cloud.database();
-          db.collection('ai_chat_sessions').doc(this.data.sessionId).update({
-            data: { messages: [], updatedAt: Date.now() }
+          wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'clearSession', sessionId: this.data.sessionId }
           }).catch(function(err) {
             console.error('clear session error:', err);
           });
@@ -208,23 +218,26 @@ Page({
 
   // 将本地真实消息（带 ts）整体同步到云端；返回是否为新创建的会话
   async persistSession() {
-    const db = wx.cloud.database();
-    const now = Date.now();
     const realMsgs = this.data.messages
       .filter(function(m) { return !!m.ts; })
       .map(function(m) { return { role: m.role, content: m.content, ts: m.ts }; })
       .slice(-MAX_SESSION_MESSAGES);
     try {
-      if (!this.data.sessionId) {
-        const res = await db.collection('ai_chat_sessions').add({
-          data: { title: '新对话', messages: realMsgs, createdAt: now, updatedAt: now }
-        });
-        this.setData({ sessionId: res._id });
-        return true;
-      }
-      await db.collection('ai_chat_sessions').doc(this.data.sessionId).update({
-        data: { messages: realMsgs, updatedAt: now }
+      const res = await wx.cloud.callFunction({
+        name: 'aiChat',
+        data: {
+          action: 'saveSession',
+          sessionId: this.data.sessionId || '',
+          title: this.data.sessionId ? '' : '新对话',
+          messages: realMsgs
+        }
       });
+      if (res.result && res.result.code === 0) {
+        if (!this.data.sessionId) {
+          this.setData({ sessionId: res.result.sessionId });
+          return true;
+        }
+      }
       return false;
     } catch (err) {
       console.error('persistSession error:', err);
@@ -261,14 +274,16 @@ Page({
   async updateSessionTitle(title) {
     if (!this.data.sessionId) return;
     try {
-      const db = wx.cloud.database();
-      await db.collection('ai_chat_sessions').doc(this.data.sessionId).update({
-        data: { title: title }
+      const res = await wx.cloud.callFunction({
+        name: 'aiChat',
+        data: { action: 'updateTitle', sessionId: this.data.sessionId, title: title }
       });
-      const sessions = this.data.sessions.map(function(s) {
-        return s._id === this.data.sessionId ? Object.assign({}, s, { title: title }) : s;
-      }, this);
-      this.setData({ sessions });
+      if (res.result && res.result.code === 0) {
+        const sessions = this.data.sessions.map(function(s) {
+          return s._id === this.data.sessionId ? Object.assign({}, s, { title: title }) : s;
+        }, this);
+        this.setData({ sessions });
+      }
     } catch (err) {
       console.error('updateSessionTitle error:', err);
     }
@@ -282,78 +297,23 @@ Page({
     }, 50);
   },
 
-  // ---------- RAG 数据预取与匹配 ----------
+  // ---------- RAG 上下文匹配 ----------
 
-  // 页面加载时预取课程/课时/题目数据
-  async prefetchData() {
+  // 调用云函数匹配相关课程/课时/题目，返回增强 system prompt 字符串
+  async matchContext(text) {
     try {
-      const db = wx.cloud.database();
-      const results = await Promise.all([
-        db.collection('courses').limit(10).get(),
-        db.collection('lessons').limit(50).get(),
-        db.collection('quiz_questions').limit(20).get()
-      ]);
-      this.dbData = {
-        courses: results[0].data,
-        lessons: results[1].data,
-        quizzes: results[2].data
-      };
-      console.log('prefetch done:', this.dbData.courses.length, 'courses,',
-        this.dbData.lessons.length, 'lessons,', this.dbData.quizzes.length, 'quizzes');
+      const res = await wx.cloud.callFunction({
+        name: 'aiChat',
+        data: { action: 'matchContext', text: text }
+      });
+      if (res.result && res.result.code === 0) {
+        return res.result.systemPrompt || '';
+      }
+      return '';
     } catch (err) {
-      console.error('prefetch error:', err);
-      this.dbData = { courses: [], lessons: [], quizzes: [] };
+      console.error('matchContext error:', err);
+      return '';
     }
-  },
-
-  // 根据用户输入匹配相关课程/课时/题目，返回上下文字符串
-  // 匹配策略：检查数据字段值是否作为关键词出现在用户输入中
-  matchContext(text) {
-    if (!this.dbData) return '';
-    const lower = text.toLowerCase();
-    const parts = [];
-
-    // 辅助函数：检查字段值是否出现在用户输入中（至少2个字才匹配，避免单字误匹配）
-    function fieldInText(fieldVal) {
-      if (!fieldVal || fieldVal.length < 2) return false;
-      return lower.indexOf(fieldVal.toLowerCase()) >= 0;
-    }
-
-    // 匹配课程（检查课程标题/标签/章节是否被用户提到）
-    const mc = this.dbData.courses.filter(function(c) {
-      return fieldInText(c.tag) || fieldInText(c.chapter) ||
-             (c.title && c.title.length >= 2 && lower.indexOf(c.title.toLowerCase()) >= 0);
-    });
-    if (mc.length) {
-      parts.push('相关课程：' + mc.map(function(c) {
-        return c.title + '（' + c.chapter + '·' + c.tag + '，共' + c.totalLessons + '课时）';
-      }).join('、'));
-    }
-
-    // 匹配课时（检查课时标题关键词是否被用户提到）
-    const ml = this.dbData.lessons.filter(function(l) {
-      if (!l.title) return false;
-      // 去掉"第X课"前缀，提取核心关键词
-      var kw = l.title.replace(/^第\d+课\s*/, '');
-      return kw.length >= 2 && lower.indexOf(kw.toLowerCase()) >= 0;
-    });
-    if (ml.length) {
-      parts.push('相关课时：' + ml.map(function(l) { return l.title; }).join('、'));
-    }
-
-    // 匹配题目（检查题目主题/章节是否被用户提到）
-    const mq = this.dbData.quizzes.filter(function(q) {
-      return fieldInText(q.topic) || fieldInText(q.chapter);
-    });
-    if (mq.length) {
-      parts.push('相关练习题（共' + mq.length + '道）：\n' + mq.map(function(q, i) {
-        var opts = q.options.map(function(o) { return o.key + '.' + o.text; }).join('  ');
-        return (i + 1) + '. ' + q.stem + '\n   ' + opts + '\n   答案：' + q.answer + '，解析：' + q.explanation;
-      }).join('\n'));
-    }
-
-    if (parts.length === 0) return '';
-    return '\n\n以下是与本问题相关的课程内容数据，请参考：\n' + parts.join('\n');
   },
 
   // ---------- 消息发送 ----------
@@ -374,15 +334,15 @@ Page({
     const aiMsgIndex = this.data.messages.length + 1;
 
     this.setData({
-      messages: [...this.data.messages, userMsg, { role: 'ai', content: '', blocks: [] }],
+      messages: [...this.data.messages, userMsg, { role: 'ai', content: '', blocks: [], ts: 0 }],
       inputValue: '',
       isStreaming: true,
       scrollIntoView: 'msg-' + aiMsgIndex
     });
 
-    // 匹配上下文数据并注入到 system prompt
-    const contextData = this.matchContext(text);
-    const systemMsg = SYSTEM_PROMPT + contextData;
+    // RAG: 调用云函数匹配上下文，获取增强 system prompt
+    const contextData = await this.matchContext(text);
+    const systemMsg = SYSTEM_PROMPT + (contextData || '');
 
     // 构建对话历史（system + 最近N轮 + 当前消息）
     const recentHistory = this.data.chatHistory.slice(-MAX_HISTORY_ROUNDS * 2);
@@ -394,6 +354,9 @@ Page({
 
     let fullText = '';
     const self = this;
+    const token = { aborted: false };
+    this._activeToken = token;
+    this._lastUpdateTime = 0;
 
     try {
       // 模型提供商选择：
@@ -407,13 +370,20 @@ Page({
           messages
         },
         onText: function(delta) {
+          if (token.aborted) return;
           fullText += delta;
-          self.setData({
-            ['messages[' + aiMsgIndex + '].content']: fullText,
-            ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(fullText)
-          });
+          // 节流：仅每 150ms setData 一次 content，期间不调用 parseMarkdown
+          var t = Date.now();
+          if (t - self._lastUpdateTime > 150) {
+            self._lastUpdateTime = t;
+            self.setData({
+              ['messages[' + aiMsgIndex + '].content']: fullText
+            });
+          }
         },
         onFinish: function(finalText) {
+          if (token.aborted) return;
+          // onFinish 全量解析
           fullText = finalText || fullText;
           self.setData({
             ['messages[' + aiMsgIndex + '].content']: fullText,
@@ -422,8 +392,16 @@ Page({
         }
       });
 
-      // 流式完成 - 更新状态和历史
+      // 流式完成 - 全量解析并更新状态和历史
+      if (token.aborted) {
+        if (self._activeToken === token) {
+          self.setData({ isStreaming: false });
+        }
+        return;
+      }
       self.setData({
+        ['messages[' + aiMsgIndex + '].content']: fullText,
+        ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(fullText),
         ['messages[' + aiMsgIndex + '].ts']: Date.now(),
         isStreaming: false
       });
@@ -458,12 +436,39 @@ Page({
       const errorMsg = fullText
         ? fullText
         : '抱歉，回复出错了，请稍后重试~' + hint;
+      if (token.aborted) {
+        if (self._activeToken === token) {
+          self.setData({ isStreaming: false });
+        }
+        return;
+      }
       self.setData({
         ['messages[' + aiMsgIndex + '].content']: errorMsg,
         ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(errorMsg),
+        ['messages[' + aiMsgIndex + '].ts']: Date.now(),
         isStreaming: false
       });
     }
+  },
+
+  // 停止生成：设置取消标志位，onText 将不再处理新文本
+  onStopGenerate() {
+    if (this._activeToken) {
+      this._activeToken.aborted = true;
+    }
+    this.setData({ isStreaming: false });
+  },
+
+  // 点击 Markdown 链接：复制 URL 到剪贴板
+  onTapLink(e) {
+    const url = e.currentTarget.dataset.url;
+    if (!url) return;
+    wx.setClipboardData({
+      data: url,
+      success: function() {
+        wx.showToast({ title: '链接已复制', icon: 'success' });
+      }
+    });
   },
 
   sendSuggestion(e) {
@@ -471,5 +476,13 @@ Page({
     if (this.data.isStreaming) return;
     this.setData({ inputValue: text });
     this.sendMessage();
+  },
+
+  onShareAppMessage() {
+    return { title: 'Bio - 高中生物学习助手', path: '/pages/home/home' };
+  },
+
+  onShareTimeline() {
+    return { title: 'Bio - 高中生物学习助手' };
   }
 });

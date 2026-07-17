@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "成就中心",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
 }

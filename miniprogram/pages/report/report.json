@@ -1,4 +1,5 @@
 {
   "navigationBarTitleText": "学习报告",
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true
 }

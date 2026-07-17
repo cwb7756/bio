@@ -7,9 +7,26 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// 参数校验：字符串长度不超过10000，数组长度不超过100
+function validateParams(obj) {
+  for (const key in obj) {
+    const val = obj[key];
+    if (typeof val === 'string' && val.length > 10000) {
+      return { code: 400, msg: '参数 ' + key + ' 过长' };
+    }
+    if (Array.isArray(val) && val.length > 100) {
+      return { code: 400, msg: '参数 ' + key + ' 数量超限' };
+    }
+  }
+  return null;
+}
+
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
   const { textbook = '必修一' } = event;
+
+  const validErr = validateParams(event);
+  if (validErr) return validErr;
 
   try {
     // 构建查询条件："选择性必修" 匹配所有选择性必修课程
@@ -37,31 +54,51 @@ exports.main = async (event, context) => {
       .get();
     const useDemo = userProgressAll.length === 0;
 
-    // 为每个课程计算进度
-    const chapters = [];
-    for (const course of courses) {
-      // 从 lessons 集合获取总课时（兜底用 course.totalLessons）
-      const { data: lessons } = await db.collection('lessons')
-        .where({ courseId: course._id })
-        .get();
-      const totalLessons = lessons.length || course.totalLessons || 0;
+    // N+1 优化：收集所有 courseId，批量查询 lessons 和 study_progress
+    const courseIds = courses.map((c) => c._id);
 
-      // 统计已完成课时
+    // 批量查询所有课程的课时
+    const { data: allLessons } = await db.collection('lessons')
+      .where({ courseId: _.in(courseIds) })
+      .limit(1000)
+      .get();
+
+    // 按 courseId 分组统计课时数
+    const lessonsByCourse = {};
+    allLessons.forEach((l) => {
+      if (!lessonsByCourse[l.courseId]) lessonsByCourse[l.courseId] = 0;
+      lessonsByCourse[l.courseId]++;
+    });
+
+    // 批量查询用户学习进度（仅非 demo 时）
+    const progressByCourse = {};
+    if (!useDemo && OPENID) {
+      const { data: allProgress } = await db.collection('study_progress')
+        .where({ courseId: _.in(courseIds), _openid: OPENID, type: 'lesson' })
+        .limit(1000)
+        .get();
+      allProgress.forEach((p) => {
+        if (!progressByCourse[p.courseId]) progressByCourse[p.courseId] = 0;
+        progressByCourse[p.courseId]++;
+      });
+    }
+
+    // 为每个课程计算进度
+    const chapters = courses.map((course) => {
+      const totalLessons = lessonsByCourse[course._id] || course.totalLessons || 0;
+
       let completed;
       if (useDemo) {
         completed = course.demoCompleted || 0;
       } else {
-        const { data: progress } = await db.collection('study_progress')
-          .where({ courseId: course._id, _openid: OPENID, type: 'lesson' })
-          .get();
-        completed = progress.length;
+        completed = progressByCourse[course._id] || 0;
       }
 
       const progressPercent = totalLessons > 0
         ? Math.min(Math.round((completed / totalLessons) * 100), 100)
         : 0;
 
-      chapters.push({
+      return {
         _id: course._id,
         title: course.title,
         lessons: totalLessons,
@@ -70,8 +107,8 @@ exports.main = async (event, context) => {
         icon: course.icon || 'ic-microscope',
         tag: course.tag || '',
         level: course.level || ''
-      });
-    }
+      };
+    });
 
     // 锁逻辑：前一章节未完成（progress < 100）则后续锁定
     chapters.forEach((ch, i) => {
