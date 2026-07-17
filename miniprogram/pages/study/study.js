@@ -67,8 +67,15 @@ Page({
       wx.showToast({ title: '请先完成前置章节', icon: 'none' });
     } else {
       wx.navigateTo({
-        url: '/pages/knowledge/knowledge?courseId=' + ch._id + '&title=' + encodeURIComponent(ch.title)
+        url: '/pages/course/course?courseId=' + ch._id
       });
     }
+  },
+
+  // 知识地图：默认展示当前教材第一门课程
+  goMap() {
+    const first = this.data.chapters[0];
+    const courseId = first ? first._id : 'course_required_1';
+    wx.navigateTo({ url: '/pages/map/map?courseId=' + courseId });
   }
 });

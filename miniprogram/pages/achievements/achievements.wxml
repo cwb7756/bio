@@ -1,0 +1,68 @@
+<!--pages/achievements/achievements.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">成就中心</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+        <text>示例数据 · 完成学习任务即可解锁真实成就</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+      <block wx:else>
+        <!-- 总览 -->
+        <view class="overview-card">
+          <view class="overview-icon">
+            <view class="icon ic-trophy"></view>
+          </view>
+          <view class="overview-text">
+            <text class="overview-title">已解锁 {{unlockedCount}} / {{totalCount}}</text>
+            <view class="overview-bar-wrap">
+              <view class="overview-bar" style="width: {{totalCount > 0 ? unlockedCount / totalCount * 100 : 0}}%;"></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 成就网格 -->
+        <view class="ach-grid">
+          <view
+            wx:for="{{achievements}}"
+            wx:key="_id"
+            class="ach-card {{item.unlocked ? 'unlocked' : 'locked'}}"
+          >
+            <view class="ach-icon-wrap">
+              <view class="icon {{item.unlocked ? item.icon : 'ic-lock'}}"></view>
+            </view>
+            <text class="ach-name">{{item.name}}</text>
+            <text class="ach-desc">{{item.desc}}</text>
+            <view class="ach-progress" wx:if="{{!item.unlocked}}">
+              <view class="ach-bar-wrap">
+                <view class="ach-bar" style="width: {{item.percent}}%;"></view>
+              </view>
+              <text class="ach-pct">{{item.progress}}/{{item.target}}</text>
+            </view>
+            <view class="ach-done" wx:else>
+              <view class="icon ic-check-circle"></view>
+              <text>已解锁</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

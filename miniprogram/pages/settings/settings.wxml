@@ -1,0 +1,90 @@
+<!--pages/settings/settings.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">设置</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 通知 -->
+      <view class="sec-title">
+        <text class="u">通知</text>
+      </view>
+      <view class="set-group">
+        <view class="set-item">
+          <view class="set-info">
+            <text class="set-name">学习提醒</text>
+            <text class="set-desc">接收学习任务相关通知</text>
+          </view>
+          <switch checked="{{settings.notification}}" data-key="notification" bindchange="onSwitch" color="#5FB894" />
+        </view>
+        <view class="set-item">
+          <view class="set-info">
+            <text class="set-name">每日打卡提醒</text>
+            <text class="set-desc">晚上提醒你完成今日打卡</text>
+          </view>
+          <switch checked="{{settings.dailyReminder}}" data-key="dailyReminder" bindchange="onSwitch" color="#5FB894" />
+        </view>
+      </view>
+
+      <!-- 偏好 -->
+      <view class="sec-title">
+        <text class="u">偏好</text>
+      </view>
+      <view class="set-group">
+        <view class="set-item">
+          <view class="set-info">
+            <text class="set-name">音效</text>
+            <text class="set-desc">答题与互动音效反馈</text>
+          </view>
+          <switch checked="{{settings.sound}}" data-key="sound" bindchange="onSwitch" color="#5FB894" />
+        </view>
+        <view class="set-item">
+          <view class="set-info">
+            <text class="set-name">自动播放课程视频</text>
+            <text class="set-desc">进入课程详情自动跳转播放</text>
+          </view>
+          <switch checked="{{settings.autoPlay}}" data-key="autoPlay" bindchange="onSwitch" color="#5FB894" />
+        </view>
+      </view>
+
+      <!-- 通用 -->
+      <view class="sec-title">
+        <text class="u">通用</text>
+      </view>
+      <view class="set-group">
+        <view class="set-item" bindtap="clearCache">
+          <view class="set-info">
+            <text class="set-name">清除缓存</text>
+            <text class="set-desc">当前缓存 {{cacheSize}}</text>
+          </view>
+          <view class="icon ic-chevron-right set-arrow"></view>
+        </view>
+        <view class="set-item" bindtap="showAbout">
+          <view class="set-info">
+            <text class="set-name">关于我们</text>
+            <text class="set-desc">版本与产品信息</text>
+          </view>
+          <view class="icon ic-chevron-right set-arrow"></view>
+        </view>
+      </view>
+
+      <!-- 登录/退出 -->
+      <view class="logout-btn {{isLoggedIn ? '' : 'login'}}" bindtap="logout">
+        {{isLoggedIn ? '退出登录' : '去登录'}}
+      </view>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

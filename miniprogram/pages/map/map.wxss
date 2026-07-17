@@ -1,0 +1,236 @@
+/* pages/map/map.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.demo-tip {
+  border: 3rpx dashed var(--gray-line);
+  border-radius: 24rpx;
+  background: var(--hl);
+  color: var(--ink-soft);
+  font-size: 23rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.loading-tip {
+  text-align: center;
+  color: var(--gray);
+  font-size: 26rpx;
+  padding: 80rpx 0;
+}
+
+/* 总览 */
+.map-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+  padding: 28rpx;
+  margin-top: 12rpx;
+}
+
+.ms-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.ms-title {
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.ms-desc {
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+/* 进度环 */
+.ms-ring {
+  position: relative;
+  width: 110rpx;
+  height: 110rpx;
+  flex-shrink: 0;
+}
+
+.ring-bg,
+.ring-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.ring-bg {
+  background: var(--green-soft);
+}
+
+.ring-hole {
+  position: absolute;
+  inset: 16rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ring-num {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* 闯关地图 */
+.map-wrap {
+  position: relative;
+  margin-top: 32rpx;
+  padding: 20rpx 0;
+}
+
+.map-line {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 4rpx dashed #B9C6BD;
+}
+
+.map-node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  width: 50%;
+  padding: 26rpx 0;
+}
+
+.node-left {
+  flex-direction: row-reverse;
+  margin-right: 50%;
+  padding-right: 40rpx;
+  text-align: right;
+}
+
+.node-right {
+  margin-left: 50%;
+  padding-left: 40rpx;
+  text-align: left;
+}
+
+.node-circle {
+  flex: 0 0 76rpx;
+  height: 76rpx;
+  border-radius: 50%;
+  border: 4rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  z-index: 1;
+}
+
+.node-done {
+  background: var(--green-accent);
+}
+
+.node-current {
+  background: var(--green);
+  width: 96rpx;
+  height: 96rpx;
+  flex-basis: 96rpx;
+}
+
+.node-current-ring {
+  box-shadow: 0 0 0 8rpx rgba(95, 184, 148, .3);
+}
+
+.node-learning {
+  background: linear-gradient(90deg, var(--green-soft2) 30%, var(--paper) 30%);
+}
+
+.node-lock {
+  background: #EDF1EE;
+  border-color: var(--gray);
+}
+
+.node-check {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.node-lock {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.node-mastery-in {
+  font-size: 22rpx;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.node-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  min-width: 0;
+}
+
+.node-title {
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.node-title-lock {
+  color: var(--gray);
+}
+
+.node-sub {
+  font-size: 20rpx;
+  color: var(--gray);
+}
+
+.node-sub-current {
+  color: var(--green-deep);
+  font-weight: 700;
+}
+
+.node-tag {
+  position: absolute;
+  top: 8rpx;
+  font-size: 19rpx;
+  font-weight: 800;
+  background: var(--hl);
+  border: 2rpx solid var(--line);
+  border-radius: 16rpx;
+  padding: 2rpx 14rpx;
+}
+
+.node-left .node-tag {
+  right: 110rpx;
+}
+
+.node-right .node-tag {
+  left: 110rpx;
+}
+
+/* 底部操作栏 */
+.action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+}

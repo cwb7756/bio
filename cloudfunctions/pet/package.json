@@ -1,0 +1,9 @@
+{
+  "name": "pet",
+  "version": "1.0.0",
+  "description": "猫咪养成云函数 - 状态查询/喂食/抚摸互动",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

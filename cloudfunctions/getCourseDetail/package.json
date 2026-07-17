@@ -1,0 +1,9 @@
+{
+  "name": "getCourseDetail",
+  "version": "1.0.0",
+  "description": "课程详情云函数 - 课程信息 + 推荐视频 + 核心考点",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

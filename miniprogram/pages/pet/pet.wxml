@@ -1,0 +1,121 @@
+<!--pages/pet/pet.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">我的学习搭子</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+        <text>示例数据 · 登录后球球将记录你的真实陪伴</text>
+      </view>
+
+      <!-- 猫咪舞台 -->
+      <view class="pet-stage">
+        <view class="pet-lv">Lv.{{pet.level}}</view>
+        <view class="pet-days">已陪伴 {{pet.accompanyDays}} 天</view>
+        <image class="pet-img" src="{{catImage}}" mode="aspectFit"></image>
+        <view class="pet-name">{{pet.name}}</view>
+        <view class="pet-sign">一只爱睡觉的英短 · 亲密度 Lv.{{pet.intimacy}}</view>
+        <!-- 经验条 -->
+        <view class="xp-row">
+          <view class="icon ic-bolt xp-icon"></view>
+          <view class="xp-bar">
+            <view class="xp-fill" style="width: {{pet.xpMax > 0 ? pet.xp / pet.xpMax * 100 : 0}}%;"></view>
+          </view>
+          <text class="xp-num">{{pet.xp}}/{{pet.xpMax}}</text>
+        </view>
+      </view>
+
+      <!-- 三项状态 -->
+      <view class="meters">
+        <view class="meter">
+          <view class="m-ic m-ic-pink">
+            <view class="icon ic-heart"></view>
+          </view>
+          <text class="m-val">{{pet.mood}}%</text>
+          <text class="m-label">心情</text>
+          <view class="m-bar"><view class="m-fill" style="width: {{pet.mood}}%;"></view></view>
+        </view>
+        <view class="meter">
+          <view class="m-ic m-ic-orange">
+            <view class="icon ic-bowl"></view>
+          </view>
+          <text class="m-val">{{pet.fullness}}%</text>
+          <text class="m-label">饱食</text>
+          <view class="m-bar"><view class="m-fill m-fill-orange" style="width: {{pet.fullness}}%;"></view></view>
+        </view>
+        <view class="meter">
+          <view class="m-ic m-ic-yellow">
+            <view class="icon ic-star"></view>
+          </view>
+          <text class="m-val">Lv.{{pet.intimacy}}</text>
+          <text class="m-label">亲密</text>
+          <view class="m-bar"><view class="m-fill m-fill-green" style="width: {{pet.intimacy * 20}}%;"></view></view>
+        </view>
+      </view>
+
+      <!-- 小鱼干卡 -->
+      <view class="fish-card">
+        <view class="f-ic">
+          <view class="icon ic-fish"></view>
+        </view>
+        <view class="f-txt">
+          <text class="f-num">× {{pet.fish}}</text>
+          <text class="f-desc">今日已赚 +{{pet.todayEarned}} · 学习即可获得</text>
+        </view>
+        <view class="f-btn" bindtap="goStudy">去学习赚鱼干</view>
+      </view>
+
+      <!-- 互动 -->
+      <view class="interact">
+        <view class="ia-btn" data-action="feed" bindtap="interact">
+          <view class="ia-ic">
+            <view class="icon ic-bowl"></view>
+          </view>
+          <text class="ia-name">喂食</text>
+          <text class="ia-cost">-5 小鱼干</text>
+        </view>
+        <view class="ia-btn" data-action="pat" bindtap="interact">
+          <view class="ia-ic">
+            <view class="icon ic-heart"></view>
+          </view>
+          <text class="ia-name">抚摸</text>
+          <text class="ia-cost">心情 +5</text>
+        </view>
+        <view class="ia-btn lock" bindtap="playLocked">
+          <view class="ia-ic">
+            <view class="icon ic-lock"></view>
+          </view>
+          <text class="ia-name">玩耍</text>
+          <text class="ia-cost">Lv.6 解锁</text>
+        </view>
+      </view>
+
+      <!-- 成长日记 -->
+      <view class="sec-title">
+        <text class="u">成长日记</text>
+      </view>
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+      <block wx:else>
+        <view wx:for="{{diary}}" wx:key="_id" class="diary">
+          <text class="d-time">{{item.time}}</text>
+          <text class="d-text">{{item.text}}</text>
+        </view>
+        <view wx:if="{{diary.length === 0}}" class="empty-tip">还没有日记，和球球互动一下吧</view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

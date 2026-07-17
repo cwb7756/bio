@@ -192,66 +192,6 @@
   text-align: center;
 }
 
-/* ============ VIP 横幅 ============ */
-.vip-banner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 28rpx;
-  padding: 26rpx 28rpx;
-  border: 4rpx solid var(--line);
-  border-radius: 36rpx;
-  background: linear-gradient(135deg, #FFF9E6, var(--hl));
-  box-shadow: var(--sh);
-}
-
-.vip-left {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-}
-
-.vip-icon {
-  width: 48rpx;
-  height: 48rpx;
-}
-
-.vip-text {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-}
-
-.vip-title {
-  font-size: 30rpx;
-  font-weight: 800;
-}
-
-.vip-desc {
-  font-size: 22rpx;
-  color: var(--ink-soft);
-}
-
-.vip-go {
-  font-size: 26rpx;
-  font-weight: 700;
-  color: var(--ink);
-  background: var(--green);
-  border: 3rpx solid var(--line);
-  border-radius: 28rpx;
-  padding: 10rpx 24rpx;
-  box-shadow: var(--sh-sm);
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-
-.vip-go .icon {
-  width: 24rpx;
-  height: 24rpx;
-}
-
 /* ============ 菜单列表 ============ */
 .menu-list {
   margin-top: 28rpx;

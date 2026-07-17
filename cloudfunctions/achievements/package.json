@@ -1,0 +1,9 @@
+{
+  "name": "achievements",
+  "version": "1.0.0",
+  "description": "成就中心云函数 - 成就定义与用户解锁进度",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

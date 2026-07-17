@@ -1,0 +1,77 @@
+/* pages/settings/settings.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 设置分组 */
+.set-group {
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  overflow: hidden;
+}
+
+.set-item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 28rpx;
+  border-bottom: 2rpx dashed var(--gray-line);
+}
+
+.set-item:last-child {
+  border-bottom: none;
+}
+
+.set-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.set-name {
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.set-desc {
+  font-size: 23rpx;
+  color: var(--gray);
+}
+
+.set-arrow {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+/* 退出登录 */
+.logout-btn {
+  margin-top: 40rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #C66;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 26rpx 0;
+}
+
+.logout-btn.login {
+  color: var(--ink);
+  background: var(--green);
+}
+
+.logout-btn:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: none;
+}

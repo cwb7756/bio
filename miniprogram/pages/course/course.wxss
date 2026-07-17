@@ -1,0 +1,233 @@
+/* pages/course/course.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.course-tip {
+  padding: 80rpx 0;
+  text-align: center;
+  color: var(--gray);
+  font-size: 28rpx;
+}
+
+/* ============ 视频播放框 ============ */
+.player {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  overflow: hidden;
+  box-shadow: var(--sh);
+}
+
+.player-cover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.player-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, .55));
+}
+
+.player-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 110rpx;
+  height: 110rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .92);
+  border: 4rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh);
+}
+
+.player-play .icon {
+  width: 50rpx;
+  height: 50rpx;
+  margin-left: 8rpx; /* 三角视觉居中 */
+}
+
+.player-play:active {
+  transform: translate(-50%, -50%) scale(.92);
+}
+
+.player-fs {
+  position: absolute;
+  right: 18rpx;
+  bottom: 18rpx;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.player-fs .icon {
+  width: 38rpx;
+  height: 38rpx;
+}
+
+.player-title {
+  position: absolute;
+  left: 24rpx;
+  right: 100rpx;
+  bottom: 24rpx;
+  color: #fff;
+  font-size: 26rpx;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.player-meta {
+  margin-top: 14rpx;
+  font-size: 23rpx;
+  color: var(--gray);
+  padding: 0 8rpx;
+}
+
+/* ============ 推荐视频列表 ============ */
+.sec-sub {
+  margin-left: auto;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: var(--gray);
+}
+
+.video-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.video-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 28rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 20rpx 22rpx;
+}
+
+.video-card.on {
+  background: var(--green-soft);
+  border-color: var(--green-deep);
+}
+
+.vd-no {
+  flex: 0 0 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: var(--green);
+  border: 3rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 26rpx;
+}
+
+.video-card.on .vd-no {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.vd-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.vd-title {
+  font-size: 27rpx;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.vd-meta {
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+.vd-highlight {
+  font-size: 22rpx;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+.vd-play {
+  flex: 0 0 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--green);
+  border: 3rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vd-play .icon {
+  width: 30rpx;
+  height: 30rpx;
+  margin-left: 4rpx;
+}
+
+/* ============ 考点 chips ============ */
+.kp-scroll {
+  white-space: nowrap;
+  margin: 0 -36rpx;
+  padding: 0 36rpx;
+}
+
+.kp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-right: 16rpx;
+  padding: 14rpx 24rpx;
+  border: 3rpx solid var(--line);
+  border-radius: 40rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.kp-chip .icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.kp-chip:active {
+  background: var(--green);
+}

@@ -2,7 +2,7 @@
 const app = getApp();
 
 // tabBar 页面路径集合，跳转时需用 switchTab
-const TAB_PAGES = ['/pages/ai/ai'];
+const TAB_PAGES = ['/pages/ai/ai', '/pages/study/study'];
 
 Page({
   data: {
@@ -15,9 +15,9 @@ Page({
     features: [
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quiz/quiz' },
-      { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '' },
-      { icon: 'ic-close', name: '错题本', bg: 'g4', path: '' },
-      { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '' },
+      { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
+      { icon: 'ic-close', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
+      { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
       { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/ai/ai' }
     ],
     hotTopics: []

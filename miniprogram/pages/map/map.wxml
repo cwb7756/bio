@@ -1,0 +1,76 @@
+<!--pages/map/map.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">{{course ? course.chapter : ''}} · 知识地图</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+        <text>示例进度 · 完成课时后地图将按真实掌握度点亮</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+      <block wx:else>
+        <!-- 总览 -->
+        <view class="map-stat">
+          <view class="ms-txt">
+            <text class="ms-title">已点亮 {{doneCount}} / {{totalCount}} 个知识点</text>
+            <text class="ms-desc">每点亮 1 个 · 球球 +5 经验</text>
+          </view>
+          <view class="ms-ring">
+            <view class="ring-bg"></view>
+            <view class="ring-fill" style="background: conic-gradient(var(--green-accent) {{overallPercent}}%, var(--green-soft) {{overallPercent}}%);"></view>
+            <view class="ring-hole">
+              <text class="ring-num">{{overallPercent}}%</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 闯关地图 -->
+        <view class="map-wrap">
+          <view class="map-line"></view>
+          <view
+            wx:for="{{nodes}}"
+            wx:key="lessonId"
+            class="map-node {{index % 2 === 0 ? 'node-left' : 'node-right'}}"
+            data-node="{{item}}"
+            bindtap="tapNode"
+          >
+            <view class="node-circle node-{{item.status}} {{item.status === 'current' ? 'node-current-ring' : ''}}">
+              <view class="icon ic-check-white node-check" wx:if="{{item.status === 'done'}}"></view>
+              <view class="icon ic-lock node-lock" wx:elif="{{item.status === 'lock'}}"></view>
+              <text class="node-mastery-in" wx:else>{{item.mastery}}%</text>
+            </view>
+            <view class="node-label">
+              <text class="node-title {{item.status === 'lock' ? 'node-title-lock' : ''}}">{{item.title}}</text>
+              <text class="node-sub {{item.status === 'current' ? 'node-sub-current' : ''}}" wx:if="{{item.status !== 'lock'}}">
+                {{item.status === 'done' ? '已掌握' : item.status === 'current' ? '掌握度 ' + item.mastery + '% · 闯关中' : '掌握度 ' + item.mastery + '%'}}
+              </text>
+              <text class="node-sub" wx:else>未解锁</text>
+            </view>
+            <view class="node-tag" wx:if="{{item.status === 'current'}}">当前</view>
+          </view>
+        </view>
+      </block>
+
+      <view style="height: 140rpx;"></view>
+    </view>
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="action-bar" wx:if="{{!loading && currentLessonTitle}}">
+    <view class="btn" bindtap="startCurrent">开始当前关卡 · {{currentLessonTitle}}</view>
+  </view>
+</view>

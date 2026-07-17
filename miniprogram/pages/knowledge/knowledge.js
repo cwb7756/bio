@@ -2,36 +2,68 @@
 Page({
   data: {
     statusBarHeight: 20,
-    title: '细胞的结构',
+    courseId: '',
+    kpId: '',
+    course: null,
+    knowledgePoints: [],
     bookmarked: false,
-    knowledgePoints: [
-      {
-        icon: 'ic-dna',
-        badgeBg: 'o',
-        title: '细胞核',
-        desc: '细胞的"控制中心"，内含染色质（DNA+蛋白质），是遗传信息库，控制细胞的代谢与遗传。',
-        exam: '常考：核孔实现核质间大分子运输'
-      },
-      {
-        icon: 'ic-bolt',
-        badgeBg: 'y',
-        title: '线粒体',
-        desc: '有氧呼吸的主要场所，细胞的"动力车间"；内膜向内折叠成嵴，扩大附着酶的面积。',
-        exam: '常考：有氧呼吸第二、三阶段场所'
-      },
-      {
-        icon: 'ic-leaf',
-        badgeBg: '',
-        title: '叶绿体',
-        desc: '光合作用的场所，含叶绿素与类胡萝卜素；类囊体堆叠成基粒，是光反应的场所。',
-        exam: '常考：光反应 vs 暗反应 物质与能量变化'
-      }
-    ]
+    loading: true,
+    loadError: false
   },
 
-  onLoad() {
+  onLoad(options) {
     const sys = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sys.statusBarHeight });
+    this.setData({
+      statusBarHeight: sys.statusBarHeight,
+      courseId: (options && options.courseId) || '',
+      kpId: (options && options.kpId) || ''
+    });
+    this.loadDetail();
+  },
+
+  loadDetail() {
+    if (!this.data.courseId) {
+      this.setData({ loading: false, loadError: true });
+      return;
+    }
+    this.setData({ loading: true, loadError: false });
+    wx.cloud.callFunction({
+      name: 'getCourseDetail',
+      data: { courseId: this.data.courseId },
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          const { course, knowledgePoints } = res.result.data;
+          this.setData({ course, knowledgePoints, loading: false }, () => {
+            this.scrollToKp();
+          });
+        } else {
+          this.setData({ loading: false, loadError: true });
+        }
+      },
+      fail: (err) => {
+        console.error('getCourseDetail error:', err);
+        this.setData({ loading: false, loadError: true });
+      }
+    });
+  },
+
+  // kpId 锚点定位
+  scrollToKp() {
+    if (!this.data.kpId) return;
+    setTimeout(() => {
+      wx.pageScrollTo({
+        selector: '#kp-' + this.data.kpId,
+        duration: 300,
+        fail: () => {}
+      });
+    }, 100);
+  },
+
+  // 去看课程
+  goCourse() {
+    wx.navigateTo({
+      url: '/pages/course/course?courseId=' + this.data.courseId
+    });
   },
 
   goBack() {
@@ -52,9 +84,5 @@ Page({
 
   askAI() {
     wx.showToast({ title: 'AI老师讲解中...', icon: 'none' });
-  },
-
-  goCompare() {
-    wx.showToast({ title: '对比表即将上线', icon: 'none' });
   }
 });

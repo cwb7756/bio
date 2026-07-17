@@ -13,186 +13,74 @@
   color: var(--hl);
 }
 
-/* ============ 细胞图解 ============ */
-.cell-wrap {
+/* 加载提示 */
+.kp-tip {
+  padding: 80rpx 0;
+  text-align: center;
+  color: var(--gray);
+  font-size: 28rpx;
+}
+
+/* ============ 课程横幅卡 ============ */
+.course-banner {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
   border: 4rpx solid var(--line);
-  border-radius: 44rpx;
-  background: linear-gradient(160deg, var(--paper), var(--green-soft));
+  border-radius: 32rpx;
+  background: var(--paper);
   box-shadow: var(--sh);
   padding: 20rpx;
-  position: relative;
 }
 
-.float-tag {
-  position: absolute;
-  top: 20rpx;
-  right: 20rpx;
-  font-size: 24rpx;
-  background: var(--hl);
+.cb-cover {
+  flex: 0 0 160rpx;
+  width: 160rpx;
+  height: 100rpx;
+  border-radius: 20rpx;
   border: 3rpx solid var(--line);
-  border-radius: 24rpx;
-  padding: 2rpx 18rpx;
-  transform: rotate(3deg);
-  z-index: 5;
-  font-weight: 600;
+  background: var(--green-soft);
 }
 
-.cell-diagram {
-  position: relative;
-  width: 100%;
-  padding-bottom: 72%;
-  margin-top: 8rpx;
+.cb-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
 }
 
-/* 细胞壁 */
-.cell-wall {
-  position: absolute;
-  top: 3%;
-  left: 2%;
-  right: 2%;
-  bottom: 3%;
-  border: 4rpx solid var(--line);
-  border-radius: 60rpx;
-  background: #F4FBF6;
+.cb-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-/* 细胞膜 */
-.cell-membrane {
-  position: absolute;
-  top: 14rpx;
-  left: 14rpx;
-  right: 14rpx;
-  bottom: 14rpx;
-  border: 4rpx solid var(--green-accent);
-  border-radius: 48rpx;
-  background: #FFFFFF;
+.cb-meta {
+  font-size: 22rpx;
+  color: var(--gray);
 }
 
-/* 细胞核 */
-.organelle.nucleus {
-  position: absolute;
-  top: 30%;
-  left: 18%;
-  width: 124rpx;
-  height: 124rpx;
-  border-radius: 50%;
-  background: #D6EFE0;
-  border: 4rpx solid var(--line);
-}
-
-.nucleolus {
-  position: absolute;
-  top: 35%;
-  left: 42%;
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
+.cb-btn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   background: var(--green);
   border: 3rpx solid var(--line);
+  border-radius: 26rpx;
+  padding: 12rpx 20rpx;
+  font-size: 24rpx;
+  font-weight: 700;
+  box-shadow: var(--sh-sm);
 }
 
-.nuclear-pores {
-  position: absolute;
-  top: 8rpx;
-  left: 8rpx;
-  right: 8rpx;
-  bottom: 8rpx;
-  border-radius: 50%;
-  border: 3rpx dashed var(--ink);
+.cb-btn .icon {
+  width: 30rpx;
+  height: 30rpx;
 }
-
-/* 线粒体 */
-.organelle.mitochondria {
-  position: absolute;
-  top: 16%;
-  right: 14%;
-  width: 120rpx;
-  height: 66rpx;
-  border-radius: 50%;
-  background: #FBF3D8;
-  border: 4rpx solid var(--line);
-  overflow: hidden;
-}
-
-.mito-crest {
-  position: absolute;
-  top: 10%;
-  width: 4rpx;
-  height: 80%;
-  background: var(--ink);
-  border-radius: 2rpx;
-}
-
-/* 叶绿体 */
-.organelle.chloroplast {
-  position: absolute;
-  bottom: 18%;
-  right: 12%;
-  width: 132rpx;
-  height: 76rpx;
-  border-radius: 50%;
-  background: #BFE8CE;
-  border: 4rpx solid var(--line);
-  overflow: hidden;
-}
-
-.granum {
-  position: absolute;
-  width: 18rpx;
-  height: 28rpx;
-  border-radius: 50%;
-  background: var(--green-accent);
-  border: 2rpx solid var(--line);
-}
-
-.granum.g1 { top: 24rpx; left: 24rpx; }
-.granum.g2 { top: 20rpx; left: 56rpx; }
-.granum.g3 { top: 28rpx; left: 88rpx; }
-
-/* 液泡 */
-.organelle.vacuole {
-  position: absolute;
-  bottom: 22%;
-  left: 22%;
-  width: 200rpx;
-  height: 116rpx;
-  border-radius: 50%;
-  background: #EAF6F0;
-  border: 4rpx solid var(--line);
-}
-
-/* 细胞质颗粒 */
-.cytoplasm-dot {
-  position: absolute;
-  width: 10rpx;
-  height: 10rpx;
-  border-radius: 50%;
-  background: var(--ink);
-}
-
-.cytoplasm-dot.d1 { top: 28%; left: 48%; }
-.cytoplasm-dot.d2 { top: 42%; left: 58%; }
-.cytoplasm-dot.d3 { top: 52%; left: 44%; }
-.cytoplasm-dot.d4 { top: 48%; right: 32%; }
-
-/* 标签 */
-.cell-label {
-  position: absolute;
-  font-size: 22rpx;
-  font-weight: 600;
-  background: var(--paper);
-  border: 2rpx solid var(--line);
-  border-radius: 24rpx;
-  padding: 4rpx 16rpx;
-  white-space: nowrap;
-  z-index: 6;
-}
-
-.label-wall { top: -2%; left: 4%; background: var(--paper); }
-.label-nucleus { top: 14%; left: 8%; background: var(--green); }
-.label-mito { top: 0%; right: 10%; background: #FBF3D8; }
-.label-chloro { bottom: 0%; right: 6%; background: #BFE8CE; }
-.label-vac { bottom: 2%; left: 28%; background: var(--paper); }
 
 /* ============ 知识点卡片 ============ */
 .kp-list {
@@ -227,9 +115,6 @@
   height: 48rpx;
 }
 
-.kp-badge-o { background: var(--green); }
-.kp-badge-y { background: var(--hl); }
-
 .kp-content {
   flex: 1;
   display: flex;
@@ -246,24 +131,4 @@
   font-size: 24rpx;
   color: var(--ink-soft);
   line-height: 1.5;
-}
-
-.kp-exam {
-  display: inline-flex;
-  align-items: center;
-  gap: 6rpx;
-  font-size: 21rpx;
-  font-weight: 700;
-  color: #fff;
-  background: var(--green-deep);
-  border-radius: 16rpx;
-  padding: 4rpx 14rpx;
-  margin-top: 10rpx;
-  align-self: flex-start;
-  transform: rotate(-1deg);
-}
-
-.kp-exam .icon {
-  width: 24rpx;
-  height: 24rpx;
 }

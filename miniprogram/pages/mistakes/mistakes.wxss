@@ -1,0 +1,195 @@
+/* pages/mistakes/mistakes.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.nav-count {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+  border: 3rpx solid var(--line);
+  border-radius: 22rpx;
+  background: var(--green-soft);
+  padding: 8rpx 20rpx;
+}
+
+.demo-tip {
+  border: 3rpx dashed var(--gray-line);
+  border-radius: 24rpx;
+  background: var(--hl);
+  color: var(--ink-soft);
+  font-size: 23rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.loading-tip {
+  text-align: center;
+  color: var(--gray);
+  font-size: 26rpx;
+  padding: 80rpx 0;
+}
+
+/* 错题卡片 */
+.mk-card {
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 26rpx 28rpx;
+  margin-top: 22rpx;
+}
+
+.mk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18rpx;
+}
+
+.mk-chip {
+  font-size: 22rpx;
+}
+
+.mk-del {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mk-del .icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.mk-stem {
+  display: block;
+  font-size: 29rpx;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 20rpx;
+}
+
+/* 选项 */
+.mk-options {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.mk-opt {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  border: 3rpx solid var(--gray-line);
+  border-radius: 22rpx;
+  background: var(--paper2);
+  padding: 16rpx 20rpx;
+}
+
+.mk-opt.opt-right {
+  border-color: var(--green-deep);
+  background: var(--green-soft);
+}
+
+.mk-opt.opt-wrong {
+  border-color: #E88;
+  background: #FDF0F0;
+}
+
+.mk-key {
+  flex: 0 0 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 700;
+}
+
+.opt-right .mk-key {
+  background: var(--green);
+}
+
+.opt-wrong .mk-key {
+  background: #F6C9C9;
+}
+
+.mk-opt-text {
+  flex: 1;
+  font-size: 26rpx;
+}
+
+.mk-res {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+/* 解析 */
+.mk-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 20rpx;
+  padding-top: 18rpx;
+  border-top: 2rpx dashed var(--gray-line);
+}
+
+.mk-toggle {
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.mk-toggle-icon {
+  width: 26rpx;
+  height: 26rpx;
+  transition: transform .2s;
+}
+
+.mk-toggle-icon.rot {
+  transform: rotate(90deg);
+}
+
+.mk-explain {
+  margin-top: 16rpx;
+  border: 3rpx solid var(--line);
+  border-radius: 22rpx;
+  background: var(--green-soft);
+  padding: 20rpx 24rpx;
+  font-size: 25rpx;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+/* 空态 */
+.empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 100rpx 0;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.empty-desc {
+  font-size: 25rpx;
+  color: var(--gray);
+  margin-bottom: 16rpx;
+}

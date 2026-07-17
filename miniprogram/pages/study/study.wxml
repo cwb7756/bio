@@ -42,6 +42,18 @@
         </view>
       </view>
 
+      <!-- 知识地图入口 -->
+      <view class="map-entry" bindtap="goMap">
+        <view class="map-entry-left">
+          <view class="icon ic-target map-entry-icon"></view>
+          <view class="map-entry-text">
+            <text class="map-entry-title">知识地图</text>
+            <text class="map-entry-desc">闯关式点亮知识点</text>
+          </view>
+        </view>
+        <view class="icon ic-chevron-right map-entry-arrow"></view>
+      </view>
+
       <!-- 章节列表 -->
       <view class="sec-title">
         <text class="u">章节列表</text>

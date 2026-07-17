@@ -32,6 +32,56 @@
   margin-bottom: 28rpx;
 }
 
+/* 知识地图入口 */
+.map-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 24rpx 28rpx;
+  margin-top: 24rpx;
+}
+
+.map-entry:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: none;
+}
+
+.map-entry-left {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.map-entry-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.map-entry-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.map-entry-title {
+  font-size: 30rpx;
+  font-weight: 800;
+}
+
+.map-entry-desc {
+  font-size: 23rpx;
+  color: var(--gray);
+}
+
+.map-entry-arrow {
+  width: 32rpx;
+  height: 32rpx;
+}
+
 /* 学习概览 */
 .study-overview {
   display: flex;

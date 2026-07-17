@@ -16,6 +16,40 @@
         <text class="ai-header-status">● 在线 · 随时为你解答</text>
       </view>
     </view>
+    <view class="ai-header-actions">
+      <view class="ai-action-btn" bindtap="onToggleHistory" hover-class="ai-action-btn-hover">
+        <view class="icon ic-history"></view>
+      </view>
+      <view class="ai-action-btn" bindtap="onClearChat" hover-class="ai-action-btn-hover">
+        <view class="icon ic-eraser"></view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史会话抽屉 -->
+  <view wx:if="{{showHistory}}" class="history-mask" bindtap="onCloseHistory"></view>
+  <view class="history-panel {{showHistory ? 'show' : ''}}">
+    <view class="history-header">
+      <text class="history-title">历史对话</text>
+      <view class="history-new-btn" bindtap="onNewChat" hover-class="history-new-btn-hover">
+        <view class="icon ic-chat-plus"></view>
+        <text>新对话</text>
+      </view>
+    </view>
+    <scroll-view scroll-y="true" enhanced="true" show-scrollbar="{{false}}" class="history-list">
+      <view wx:if="{{sessions.length === 0}}" class="history-empty">暂无历史对话</view>
+      <view
+        wx:for="{{sessions}}"
+        wx:key="_id"
+        class="history-item {{item._id === sessionId ? 'active' : ''}}"
+        data-id="{{item._id}}"
+        bindtap="onTapSession"
+        hover-class="history-item-hover"
+      >
+        <text class="history-item-title">{{item.title}}</text>
+        <text class="history-item-time">{{item.timeText}}</text>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 聊天区域 -->
@@ -39,7 +73,7 @@
       class="msg-row msg-{{item.role}}"
     >
       <!-- AI 消息 -->
- <block wx:if="{{item.role === 'ai'}}">
+      <block wx:if="{{item.role === 'ai'}}">
         <view class="msg-avatar">
           <view class="icon ic-bot"></view>
         </view>
@@ -50,14 +84,48 @@
             <view class="typing-dot"></view>
             <view class="typing-dot"></view>
           </view>
-          <text wx:else class="msg-content">{{item.content}}</text>
+          <!-- Markdown 渲染 -->
+          <view wx:else class="msg-content md-body">
+            <block wx:for="{{item.blocks}}" wx:for-item="b" wx:key="index">
+              <view wx:if="{{b.type === 'h1'}}" class="md-h md-h1">
+                <template is="md-segs" data="{{segs: b.segments}}" />
+              </view>
+              <view wx:elif="{{b.type === 'h2'}}" class="md-h md-h2">
+                <template is="md-segs" data="{{segs: b.segments}}" />
+              </view>
+              <view wx:elif="{{b.type === 'h3'}}" class="md-h md-h3">
+                <template is="md-segs" data="{{segs: b.segments}}" />
+              </view>
+              <view wx:elif="{{b.type === 'li'}}" class="md-li">
+                <view class="md-li-dot"></view>
+                <view class="md-li-body">
+                  <template is="md-segs" data="{{segs: b.segments}}" />
+                </view>
+              </view>
+              <view wx:elif="{{b.type === 'oli'}}" class="md-li">
+                <text class="md-li-num">{{b.num}}.</text>
+                <view class="md-li-body">
+                  <template is="md-segs" data="{{segs: b.segments}}" />
+                </view>
+              </view>
+              <view wx:elif="{{b.type === 'quote'}}" class="md-quote">
+                <template is="md-segs" data="{{segs: b.segments}}" />
+              </view>
+              <view wx:elif="{{b.type === 'code'}}" class="md-code">
+                <text class="md-code-text" selectable="true">{{b.text}}</text>
+              </view>
+              <view wx:else class="md-p">
+                <template is="md-segs" data="{{segs: b.segments}}" />
+              </view>
+            </block>
+          </view>
         </view>
       </block>
 
       <!-- 用户消息 -->
- <block wx:else>
+      <block wx:else>
         <view class="msg-bubble msg-bubble-user">
-          <text class="msg-content">{{item.content}}</text>
+          <text class="msg-content" selectable="true">{{item.content}}</text>
         </view>
         <view class="msg-avatar msg-avatar-user">
           <view class="icon ic-student"></view>
@@ -103,3 +171,12 @@
     </view>
   </view>
 </view>
+
+<!-- 行内片段渲染模板：普通文本 / 加粗 / 行内代码 -->
+<template name="md-segs">
+  <block wx:for="{{segs}}" wx:for-item="seg" wx:key="index">
+    <text wx:if="{{seg.type === 'bold'}}" class="md-bold">{{seg.text}}</text>
+    <text wx:elif="{{seg.type === 'code'}}" class="md-inline-code">{{seg.text}}</text>
+    <text wx:else>{{seg.text}}</text>
+  </block>
+</template>

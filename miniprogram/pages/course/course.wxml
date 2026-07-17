@@ -1,0 +1,96 @@
+<!--pages/course/course.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">{{course.tag || '课程详情'}}</text>
+    <view style="width: 76rpx;"></view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="page-body" wx:if="{{loading}}">
+    <view class="page-pad">
+      <view class="course-tip"><text>加载中...</text></view>
+    </view>
+  </view>
+
+  <!-- 加载失败 -->
+  <view class="page-body" wx:elif="{{loadError}}">
+    <view class="page-pad">
+      <view class="course-tip" bindtap="loadDetail"><text>加载失败，点击重试</text></view>
+    </view>
+  </view>
+
+  <view class="page-body" wx:else>
+    <view class="page-pad">
+      <!-- 视频播放框 -->
+      <view class="player" style="background: {{course.coverColor || '#1E2621'}}">
+        <image class="player-cover" src="{{currentCover}}" mode="aspectFill"></image>
+        <view class="player-mask"></view>
+        <view class="player-play" bindtap="playCurrent">
+          <view class="icon ic-play"></view>
+        </view>
+        <view class="player-fs" bindtap="previewCover">
+          <view class="icon ic-fullscreen-white"></view>
+        </view>
+        <text class="player-title">{{currentVideo.title}}</text>
+      </view>
+      <view class="player-meta">
+        <text>{{currentVideo.up}} · 播放{{currentVideo.playCount}}<text wx:if="{{currentVideo.likeCount}}"> · 赞{{currentVideo.likeCount}}</text></text>
+      </view>
+
+      <!-- 推荐视频列表 -->
+      <view class="sec-title">
+        <text class="u">推荐视频</text>
+        <text class="sec-sub">点击播放将跳转B站</text>
+      </view>
+      <view class="video-list">
+        <view
+          wx:for="{{videos}}"
+          wx:key="_id"
+          class="video-card {{index === currentIndex ? 'on' : ''}}"
+          data-index="{{index}}"
+          bindtap="switchVideo"
+        >
+          <view class="vd-no">{{index + 1}}</view>
+          <view class="vd-info">
+            <text class="vd-title">{{item.title}}</text>
+            <text class="vd-meta">{{item.up}} · 播放{{item.playCount}}<text wx:if="{{item.likeCount}}"> · 赞{{item.likeCount}}</text></text>
+            <text class="vd-highlight">{{item.highlight}}</text>
+          </view>
+          <view class="vd-play">
+            <view class="icon ic-play"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 本册核心考点 -->
+      <view class="sec-title">
+        <text class="u">本册核心考点</text>
+        <view class="more" data-kpid="" bindtap="goKnowledge">
+          <text>全部考点</text>
+          <view class="icon ic-chevron-right more-icon"></view>
+        </view>
+      </view>
+      <scroll-view scroll-x enhanced show-scrollbar="{{false}}" class="kp-scroll">
+        <view
+          wx:for="{{knowledgePoints}}"
+          wx:key="_id"
+          class="kp-chip"
+          data-kpid="{{item._id}}"
+          bindtap="goKnowledge"
+        >
+          <view class="icon {{item.icon}}"></view>
+          <text>{{item.title}}</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

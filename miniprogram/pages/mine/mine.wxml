@@ -64,28 +64,13 @@
         </view>
       </view>
 
-      <!-- VIP 横幅 -->
-      <view class="vip-banner" bindtap="goVip">
-        <view class="vip-left">
-          <view class="icon ic-crown vip-icon"></view>
-          <view class="vip-text">
-            <text class="vip-title">开通 VIP 会员</text>
-            <text class="vip-desc">解锁全部课程 · 无限AI答疑 · 专属题库</text>
-          </view>
-        </view>
-        <view class="vip-go">
-          <text>立即开通</text>
-          <view class="icon ic-chevron-right"></view>
-        </view>
-      </view>
-
       <!-- 菜单列表 -->
       <view class="menu-list">
         <view
           wx:for="{{menuList}}"
           wx:key="name"
           class="menu-item"
-          data-name="{{item.name}}"
+          data-path="{{item.path}}"
           bindtap="goMenu"
         >
           <view class="menu-icon-wrap">

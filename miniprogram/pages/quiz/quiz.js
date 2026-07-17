@@ -42,8 +42,34 @@ Page({
     });
   },
 
+  // 收藏到错题本：调用 mistakes 云函数真实写入
   saveToMistakes() {
-    wx.showToast({ title: '已收藏到错题本', icon: 'none' });
+    const { question, options, selectedOption } = this.data;
+    const info = wx.getStorageSync('userInfo') || {};
+    const correctOpt = options.find((o) => o.correct);
+    wx.cloud.callFunction({
+      name: 'mistakes',
+      data: {
+        action: 'add',
+        userID: info.userID || '',
+        questionId: 'quiz_demo_1',
+        chapter: '必修二',
+        topic: '自由组合定律',
+        stem: question.stem,
+        options: options.map((o) => ({ key: o.key, text: o.text })),
+        answer: correctOpt ? correctOpt.key : '',
+        userAnswer: selectedOption >= 0 ? options[selectedOption].key : '',
+        explanation: this.data.aiAnswer
+      },
+      success: (res) => {
+        if (res.result && res.result.code === 0) {
+          wx.showToast({ title: '已收藏到错题本', icon: 'none' });
+        } else {
+          wx.showToast({ title: (res.result && res.result.msg) || '收藏失败', icon: 'none' });
+        }
+      },
+      fail: () => wx.showToast({ title: '网络异常', icon: 'none' })
+    });
   },
 
   nextQuestion() {

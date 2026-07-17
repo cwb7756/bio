@@ -1,0 +1,9 @@
+{
+  "name": "knowledgeMap",
+  "version": "1.0.0",
+  "description": "知识地图云函数 - 课程课时节点与掌握度",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

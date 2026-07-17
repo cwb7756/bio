@@ -1,0 +1,75 @@
+<!--pages/mistakes/mistakes.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">错题本</text>
+    <view class="nav-count" wx:if="{{!loading}}">{{mistakes.length}}题</view>
+    <view class="icon-btn" wx:else></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- demo 提示 -->
+      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+        <text>示例数据 · 刷题后答错的题目会自动收录到这里</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+      <block wx:else>
+        <!-- 错题卡片 -->
+        <view wx:for="{{mistakes}}" wx:key="_id" class="mk-card">
+          <view class="mk-head">
+            <view class="chip mk-chip">{{item.chapter}} · {{item.topic}}</view>
+            <view class="mk-del" data-id="{{item._id}}" catchtap="removeMistake" wx:if="{{!item.isDemo}}">
+              <view class="icon ic-close"></view>
+            </view>
+          </view>
+
+          <text class="mk-stem">{{item.stem}}</text>
+
+          <!-- 选项 -->
+          <view class="mk-options">
+            <view
+              wx:for="{{item.options}}"
+              wx:for-item="opt"
+              wx:key="key"
+              class="mk-opt {{opt.key === item.answer ? 'opt-right' : ''}} {{opt.key === item.userAnswer && opt.key !== item.answer ? 'opt-wrong' : ''}}"
+            >
+              <view class="mk-key">{{opt.key}}</view>
+              <text class="mk-opt-text">{{opt.text}}</text>
+              <view class="icon ic-check-circle mk-res" wx:if="{{opt.key === item.answer}}"></view>
+              <view class="icon ic-close-circle mk-res" wx:if="{{opt.key === item.userAnswer && opt.key !== item.answer}}"></view>
+            </view>
+          </view>
+
+          <!-- 解析 -->
+          <view class="mk-foot" data-id="{{item._id}}" bindtap="toggleExplain">
+            <text class="mk-toggle">{{expanded[item._id] ? '收起解析' : '查看解析'}}</text>
+            <view class="icon ic-chevron-right mk-toggle-icon {{expanded[item._id] ? 'rot' : ''}}"></view>
+          </view>
+          <view class="mk-explain" wx:if="{{expanded[item._id]}}">
+            <text>{{item.explanation}}</text>
+          </view>
+        </view>
+
+        <!-- 空态 -->
+        <view wx:if="{{mistakes.length === 0}}" class="empty-box">
+          <text class="empty-title">错题本空空如也</text>
+          <text class="empty-desc">去刷题，答错的题目会自动收录进来</text>
+          <view class="btn" bindtap="goQuiz">去刷题</view>
+        </view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

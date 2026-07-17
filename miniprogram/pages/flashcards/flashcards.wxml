@@ -1,0 +1,98 @@
+<!--pages/flashcards/flashcards.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">速记卡片</text>
+    <view class="icon-btn" bindtap="openAdd">
+      <view class="icon ic-plus nav-icon"></view>
+    </view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 章节筛选 -->
+      <scroll-view scroll-x class="chapter-scroll" enhanced show-scrollbar="{{false}}">
+        <view class="chapter-row">
+          <view
+            wx:for="{{chapters}}"
+            wx:key="*this"
+            class="chip {{activeChapter === index ? 'on' : ''}}"
+            data-index="{{index}}"
+            bindtap="switchChapter"
+          >{{item}}</view>
+        </view>
+      </scroll-view>
+
+      <!-- 加载态 -->
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+      <!-- 卡片列表 -->
+      <block wx:else>
+        <view
+          wx:for="{{cards}}"
+          wx:key="_id"
+          wx:if="{{activeChapter === 0 || item.chapter === chapters[activeChapter]}}"
+          class="fc-card"
+        >
+          <view class="fc-head">
+            <view class="fc-icon-wrap">
+              <view class="icon {{item.icon}}"></view>
+            </view>
+            <view class="fc-title-box">
+              <text class="fc-title">{{item.title}}</text>
+              <text class="fc-chapter">{{item.chapter}}{{item.mine ? ' · 我的' : ''}}</text>
+            </view>
+            <view
+              wx:if="{{item.mine}}"
+              class="fc-del"
+              data-id="{{item._id}}"
+              catchtap="removeCard"
+            >
+              <view class="icon ic-close"></view>
+            </view>
+          </view>
+          <text class="fc-content">{{item.content}}</text>
+        </view>
+
+        <view wx:if="{{cards.length === 0}}" class="empty-tip">
+          <text>还没有速记卡片，点右上角 + 新建一张吧</text>
+        </view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+
+  <!-- 新建卡片弹窗 -->
+  <view class="modal-mask" wx:if="{{showAdd}}" bindtap="closeAdd">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">新建速记卡</view>
+      <view class="modal-field">
+        <text class="modal-label">标题</text>
+        <input class="modal-input" placeholder="如：光合作用两个阶段" value="{{newTitle}}" bindinput="onTitleInput" maxlength="30" />
+      </view>
+      <view class="modal-field">
+        <text class="modal-label">内容</text>
+        <textarea class="modal-textarea" placeholder="记录考点精华..." value="{{newContent}}" bindinput="onContentInput" maxlength="500"></textarea>
+      </view>
+      <view class="modal-field">
+        <text class="modal-label">章节</text>
+        <picker class="modal-picker" range="{{pickerChapters}}" bindchange="onChapterPick">
+          <view class="picker-value">{{newChapter}}<view class="icon ic-chevron-right picker-icon"></view></view>
+        </picker>
+      </view>
+      <view class="modal-btns">
+        <view class="btn ghost" bindtap="closeAdd">取消</view>
+        <view class="btn" bindtap="submitAdd">{{submitting ? '提交中...' : '保存'}}</view>
+      </view>
+    </view>
+  </view>
+</view>

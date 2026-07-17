@@ -1,0 +1,74 @@
+<!--pages/report/report.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">学习报告</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+        <text>示例数据 · 开始学习后将展示你的真实数据</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+      <block wx:else>
+        <!-- 核心指标 -->
+        <view class="stats-grid">
+          <view wx:for="{{stats}}" wx:key="label" class="stat-card">
+            <view class="stat-icon-wrap">
+              <view class="icon {{item.icon}}"></view>
+            </view>
+            <view class="stat-num-row">
+              <text class="stat-num">{{item.num}}</text>
+              <text class="stat-unit">{{item.unit}}</text>
+            </view>
+            <text class="stat-label">{{item.label}}</text>
+          </view>
+        </view>
+
+        <!-- 本周学习分布 -->
+        <view class="sec-title">
+          <text class="u">本周学习分布</text>
+        </view>
+        <view class="week-card">
+          <view class="week-chart">
+            <view wx:for="{{week}}" wx:key="label" class="week-col">
+              <text class="week-count" wx:if="{{item.count > 0}}">{{item.count}}</text>
+              <view class="week-bar-wrap">
+                <view class="week-bar" style="height: {{item.count / weekMax * 180}}rpx;"></view>
+              </view>
+              <text class="week-label">{{item.label}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 章节掌握度 -->
+        <view class="sec-title">
+          <text class="u">章节掌握度</text>
+        </view>
+        <view class="chapter-card">
+          <view wx:for="{{chapters}}" wx:key="chapter" class="chapter-row">
+            <text class="chapter-name">{{item.chapter}}</text>
+            <view class="chapter-bar-wrap">
+              <view class="chapter-bar {{item.mastery >= 80 ? 'high' : item.mastery >= 40 ? 'mid' : ''}}" style="width: {{item.mastery}}%;"></view>
+            </view>
+            <text class="chapter-pct">{{item.mastery}}%</text>
+          </view>
+        </view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

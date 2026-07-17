@@ -10,89 +10,59 @@
     <view class="icon-btn" bindtap="goBack">
       <view class="icon ic-back nav-icon"></view>
     </view>
-    <text class="nav-t">{{title}}</text>
+    <text class="nav-t">{{course.tag || '核心考点'}}</text>
     <view class="icon-btn" bindtap="toggleBookmark">
       <view class="icon nav-icon {{bookmarked ? 'ic-star-fill star-on' : 'ic-star'}}"></view>
     </view>
   </view>
 
-  <view class="page-body" style="padding-bottom: 0;">
+  <!-- 加载中 -->
+  <view class="page-body" wx:if="{{loading}}">
     <view class="page-pad">
-      <!-- 手绘细胞插画 -->
-      <view class="cell-wrap">
-        <view class="float-tag">必修① 分子与细胞</view>
-        <view class="cell-diagram">
-          <!-- 细胞壁 -->
-          <view class="cell-wall">
-            <!-- 细胞膜内层 -->
-            <view class="cell-membrane">
-              <!-- 细胞核 -->
-              <view class="organelle nucleus">
-                <view class="nucleolus"></view>
-                <view class="nuclear-pores"></view>
-              </view>
-              <!-- 线粒体 -->
-              <view class="organelle mitochondria">
-                <view class="mito-crest"></view>
-                <view class="mito-crest" style="left: 16rpx;"></view>
-                <view class="mito-crest" style="left: 32rpx;"></view>
-              </view>
-              <!-- 叶绿体 -->
-              <view class="organelle chloroplast">
-                <view class="granum g1"></view>
-                <view class="granum g2"></view>
-                <view class="granum g3"></view>
-              </view>
-              <!-- 液泡 -->
-              <view class="organelle vacuole"></view>
-              <!-- 细胞质颗粒 -->
-              <view class="cytoplasm-dot d1"></view>
-              <view class="cytoplasm-dot d2"></view>
-              <view class="cytoplasm-dot d3"></view>
-              <view class="cytoplasm-dot d4"></view>
-            </view>
-          </view>
-          <!-- 标签 -->
-          <view class="cell-label label-wall">
-            <text>细胞壁</text>
-          </view>
-          <view class="cell-label label-nucleus">
-            <text>细胞核</text>
-          </view>
-          <view class="cell-label label-mito">
-            <text>线粒体</text>
-          </view>
-          <view class="cell-label label-chloro">
-            <text>叶绿体</text>
-          </view>
-          <view class="cell-label label-vac">
-            <text>液泡</text>
-          </view>
+      <view class="kp-tip"><text>加载中...</text></view>
+    </view>
+  </view>
+
+  <!-- 加载失败 -->
+  <view class="page-body" wx:elif="{{loadError}}">
+    <view class="page-pad">
+      <view class="kp-tip" bindtap="loadDetail"><text>加载失败，点击重试</text></view>
+    </view>
+  </view>
+
+  <view class="page-body" wx:else style="padding-bottom: 0;">
+    <view class="page-pad">
+      <!-- 课程横幅卡：去看课程 -->
+      <view class="course-banner" bindtap="goCourse">
+        <image class="cb-cover" src="{{course.image}}" mode="aspectFill"></image>
+        <view class="cb-info">
+          <text class="cb-title">{{course.title}}</text>
+          <text class="cb-meta">{{course.chapter}} · {{course.tag}}</text>
+        </view>
+        <view class="cb-btn">
+          <view class="icon ic-video"></view>
+          <text>去看课程</text>
         </view>
       </view>
 
-      <!-- 核心细胞器 -->
+      <!-- 核心考点 -->
       <view class="sec-title">
-        <text class="u">核心细胞器</text>
-        <view class="more" bindtap="goCompare"><text>对比表</text><view class="icon ic-chevron-right more-icon"></view></view>
+        <text class="u">核心考点</text>
       </view>
 
       <view class="kp-list">
         <view
           wx:for="{{knowledgePoints}}"
-          wx:key="title"
+          wx:key="_id"
+          id="kp-{{item._id}}"
           class="kp-card"
         >
-          <view class="kp-badge kp-badge-{{item.badgeBg}}">
+          <view class="kp-badge">
             <view class="icon {{item.icon}}"></view>
           </view>
           <view class="kp-content">
             <text class="kp-title">{{item.title}}</text>
             <text class="kp-desc">{{item.desc}}</text>
-            <view class="kp-exam">
-              <view class="icon ic-target-white"></view>
-              <text>{{item.exam}}</text>
-            </view>
           </view>
         </view>
       </view>

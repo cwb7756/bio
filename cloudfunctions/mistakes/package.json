@@ -1,0 +1,9 @@
+{
+  "name": "mistakes",
+  "version": "1.0.0",
+  "description": "错题本云函数 - 列表/收藏/删除",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

@@ -1,0 +1,179 @@
+/* pages/flashcards/flashcards.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 章节筛选 */
+.chapter-scroll {
+  white-space: nowrap;
+  margin: 0 -36rpx;
+  padding: 0 36rpx;
+}
+
+.chapter-row {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 0 16rpx;
+}
+
+.loading-tip,
+.empty-tip {
+  text-align: center;
+  color: var(--gray);
+  font-size: 26rpx;
+  padding: 80rpx 0;
+}
+
+/* 卡片 */
+.fc-card {
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 26rpx 28rpx;
+  margin-top: 22rpx;
+}
+
+.fc-head {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-bottom: 16rpx;
+}
+
+.fc-icon-wrap {
+  flex: 0 0 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  border: 3rpx solid var(--line);
+  background: var(--green-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-icon-wrap .icon {
+  width: 38rpx;
+  height: 38rpx;
+}
+
+.fc-title-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.fc-title {
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.fc-chapter {
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+.fc-del {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fc-del .icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.fc-content {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  line-height: 1.7;
+}
+
+/* 弹窗 */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 38, 33, .45);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48rpx;
+}
+
+.modal {
+  width: 100%;
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+  padding: 36rpx;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  margin-bottom: 28rpx;
+}
+
+.modal-field {
+  margin-bottom: 22rpx;
+}
+
+.modal-label {
+  display: block;
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--ink-soft);
+  margin-bottom: 10rpx;
+}
+
+.modal-input,
+.modal-textarea {
+  width: 100%;
+  border: 3rpx solid var(--line);
+  border-radius: 22rpx;
+  background: var(--paper2);
+  padding: 18rpx 22rpx;
+  font-size: 27rpx;
+}
+
+.modal-textarea {
+  height: 180rpx;
+}
+
+.picker-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 3rpx solid var(--line);
+  border-radius: 22rpx;
+  background: var(--paper2);
+  padding: 18rpx 22rpx;
+  font-size: 27rpx;
+}
+
+.picker-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.modal-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 32rpx;
+}
+
+.modal-btns .btn {
+  flex: 1;
+}

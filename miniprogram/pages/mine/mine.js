@@ -24,12 +24,12 @@ Page({
       { icon: 'ic-star', name: '错题终结', desc: '错题正确率90%' }
     ],
     menuList: [
-      { icon: 'ic-close', name: '我的错题本', desc: '12道待复习', badge: '12' },
-      { icon: 'ic-folder', name: '速记卡片', desc: '35张已收藏', badge: '' },
-      { icon: 'ic-chart', name: '学习报告', desc: '查看学习数据', badge: '' },
-      { icon: 'ic-trophy', name: '成就中心', desc: '8/24 已解锁', badge: '' },
-      { icon: 'ic-crown', name: 'VIP会员', desc: '解锁全部功能', badge: 'HOT' },
-      { icon: 'ic-settings', name: '设置', desc: '通知、隐私等', badge: '' }
+      { icon: 'ic-close', name: '我的错题本', desc: '错题回顾与复习', badge: '', path: '/pages/mistakes/mistakes' },
+      { icon: 'ic-folder', name: '速记卡片', desc: '考点速记随身看', badge: '', path: '/pages/flashcards/flashcards' },
+      { icon: 'ic-chart', name: '学习报告', desc: '查看学习数据', badge: '', path: '/pages/report/report' },
+      { icon: 'ic-trophy', name: '成就中心', desc: '查看已解锁成就', badge: '', path: '/pages/achievements/achievements' },
+      { icon: 'ic-star', name: '我的猫咪', desc: '球球在等你互动', badge: '', path: '/pages/pet/pet' },
+      { icon: 'ic-settings', name: '设置', desc: '通知、隐私等', badge: '', path: '/pages/settings/settings' }
     ]
   },
 
@@ -93,15 +93,9 @@ Page({
   },
 
   goMenu(e) {
-    const name = e.currentTarget.dataset.name;
-    if (name === '我的错题本') {
-      wx.navigateTo({ url: '/pages/quiz/quiz' });
-    } else {
-      wx.showToast({ title: '功能开发中...', icon: 'none' });
+    const path = e.currentTarget.dataset.path;
+    if (path) {
+      wx.navigateTo({ url: path });
     }
-  },
-
-  goVip() {
-    wx.showToast({ title: 'VIP功能即将上线', icon: 'none' });
   }
 });

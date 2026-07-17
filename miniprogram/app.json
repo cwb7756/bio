@@ -2,11 +2,19 @@
   "pages": [
     "pages/home/home",
     "pages/study/study",
+    "pages/course/course",
     "pages/ai/ai",
     "pages/mine/mine",
     "pages/knowledge/knowledge",
     "pages/quiz/quiz",
-    "pages/login/login"
+    "pages/login/login",
+    "pages/flashcards/flashcards",
+    "pages/mistakes/mistakes",
+    "pages/report/report",
+    "pages/achievements/achievements",
+    "pages/settings/settings",
+    "pages/pet/pet",
+    "pages/map/map"
   ],
   "window": {
     "backgroundColor": "#F3F8F3",
