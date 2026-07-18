@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: docs
-title: 项目文档与交互原型（审计/课程视频方案/手绘风原型）
-scope:
-    - docs/
-    - prototype/
-source_files: []
-depends_on: []
-related_to: []

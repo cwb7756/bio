@@ -3,11 +3,11 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-18T05:40:05Z"
+exported_at: "2026-07-18T09:39:05Z"
 modules:
     "":
-        dir_name: 宠物学习类微信小程序全栈工程
-        title: 宠物学习类微信小程序全栈工程
+        dir_name: 宠物学习小程序全栈仓库
+        title: 宠物学习小程序全栈仓库
         scope:
             - .gitignore
             - project.config.json
@@ -20,8 +20,8 @@ modules:
         depends_on: []
         related_to: []
     cloudfunctions:
-        dir_name: 微信云函数（小程序后端）
-        title: 微信云函数（小程序后端）
+        dir_name: 微信云开发后端函数集（按业务域拆分）
+        title: 微信云开发后端函数集（按业务域拆分）
         scope:
             - cloudfunctions/
         source_files: []
@@ -40,8 +40,8 @@ modules:
         depends_on: []
         related_to: []
     miniprogram:
-        dir_name: 宠物学习类微信小程序客户端
-        title: 宠物学习类微信小程序客户端
+        dir_name: 宠物学习小程序前端
+        title: 宠物学习小程序前端
         scope:
             - miniprogram/
         source_files: []

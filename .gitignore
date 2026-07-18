@@ -60,6 +60,10 @@ lerna-debug.log*
 *~
 *.sublime-project
 *.sublime-workspace
+.claude
+.agents
+.qoder
+
 
 # ---------------------------------------------
 # 操作系统文件 (OS Files)
