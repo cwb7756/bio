@@ -18,7 +18,9 @@ Page({
       overallPercent: 0
     },
     loading: true,
-    needLogin: false
+    needLogin: false,
+    // 学习概览卡片猫咪装饰图（每次进入随机一张趴姿猫）
+    catImage: ''
   },
 
   onLoad() {
@@ -43,6 +45,9 @@ Page({
       return;
     }
     this.setData({ needLogin: false });
+    // 每次进入随机一张趴姿猫咪（cat-lying-1~5）
+    const catIdx = Math.floor(Math.random() * 5) + 1;
+    this.setData({ catImage: '/images/cat-lying-' + catIdx + '.png' });
     this.loadCourseList();
   },
 
@@ -114,13 +119,9 @@ Page({
   goChapter(e) {
     const idx = e.currentTarget.dataset.index;
     const ch = this.data.chapters[idx];
-    if (ch.color === 'lock') {
-      wx.showToast({ title: '请先完成前置章节', icon: 'none' });
-    } else {
-      wx.navigateTo({
-        url: '/pages/course/course?courseId=' + ch._id
-      });
-    }
+    wx.navigateTo({
+      url: '/pages/course/course?courseId=' + ch._id
+    });
   },
 
   // 知识地图：默认展示当前教材第一门课程

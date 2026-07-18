@@ -14,7 +14,8 @@
           <text class="greeting-title">今天也要加油鸭</text>
         </view>
         <view class="icon-btn avatar-btn">
-          <view class="icon ic-student avatar-icon"></view>
+          <image wx:if="{{userAvatar}}" class="avatar-img" src="{{userAvatar}}" mode="aspectFill"></image>
+          <view wx:else class="icon ic-student avatar-icon"></view>
         </view>
       </view>
 
@@ -53,7 +54,7 @@
           <view class="icon ic-play"></view>
         </view>
         <view class="continue-empty-text">
-          <text class="continue-empty-title">开始你的第一节生物课</text>
+          <text class="continue-empty-title">{{isLoggedIn ? '开始你的第一节生物课' : '请登录'}}</text>
           <text class="continue-empty-desc">探索细胞、遗传与生态的奥秘</text>
         </view>
         <view class="continue-go">

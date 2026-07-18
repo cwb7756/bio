@@ -2,7 +2,7 @@
 const app = getApp();
 
 // tabBar 页面路径集合，跳转时需用 switchTab
-const TAB_PAGES = ['/pages/ai/ai', '/pages/study/study'];
+const TAB_PAGES = ['/pages/aiHub/aiHub', '/pages/study/study'];
 
 Page({
   data: {
@@ -10,15 +10,17 @@ Page({
     searchValue: '',
     catImage: '',
     userName: '同学',
+    userAvatar: '',
     loading: true,
     continueLearning: null,
+    isLoggedIn: false,
     features: [
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quizEntry/quizEntry' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
-      { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/ai/ai' }
+      { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/aiHub/aiHub' }
     ],
     hotTopics: []
   },
@@ -43,10 +45,12 @@ Page({
     // 先用本地缓存快速回显用户名；未登录重置为默认称呼
     const info = wx.getStorageSync('userInfo');
     if (info && info.nickname) {
-      this.setData({ userName: info.nickname });
+      this.setData({ userName: info.nickname, userAvatar: info.avatar || '' });
     } else {
-      this.setData({ userName: '同学' });
+      this.setData({ userName: '同学', userAvatar: '' });
     }
+    // 同步登录态，驱动"开始第一节课 / 请登录"文案切换
+    this.setData({ isLoggedIn: !!app.globalData.isLoggedIn });
     // 拉取最新云端数据
     this.loadHomeData();
     // 同步猫咪等级样式（与猫咪页面一致）
@@ -100,6 +104,7 @@ Page({
 
           if (user && loggedIn) {
             updateData.userName = user.nickname || '同学';
+            updateData.userAvatar = user.avatar || '';
             // 同步更新本地缓存
             const cached = wx.getStorageSync('userInfo') || {};
             wx.setStorageSync('userInfo', { ...cached, ...user });
@@ -139,8 +144,12 @@ Page({
     }
   },
 
-  // 继续学习：study 是 tab 页，用 globalData 传递 courseId 后 switchTab
+  // 继续学习：未登录跳登录页；已登录跳 study tab 页，用 globalData 传递 courseId
   continueStudy() {
+    if (!app.globalData.isLoggedIn) {
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
     const cl = this.data.continueLearning;
     if (cl && cl.courseId) {
       app.globalData.pendingCourseId = cl.courseId;

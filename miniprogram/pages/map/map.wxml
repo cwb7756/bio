@@ -48,19 +48,14 @@
             data-node="{{item}}"
             bindtap="tapNode"
           >
-            <view class="node-circle node-{{item.status}} {{item.status === 'current' ? 'node-current-ring' : ''}}">
+            <view class="node-circle node-{{item.status}}">
               <view class="icon ic-check-white node-check" wx:if="{{item.status === 'done'}}"></view>
-              <view class="icon ic-lock node-lock" wx:elif="{{item.status === 'lock'}}"></view>
               <text class="node-mastery-in" wx:else>{{item.mastery}}%</text>
             </view>
             <view class="node-label">
-              <text class="node-title {{item.status === 'lock' ? 'node-title-lock' : ''}}">{{item.title}}</text>
-              <text class="node-sub {{item.status === 'current' ? 'node-sub-current' : ''}}" wx:if="{{item.status !== 'lock'}}">
-                {{item.status === 'done' ? '已掌握' : item.status === 'current' ? '掌握度 ' + item.mastery + '% · 闯关中' : '掌握度 ' + item.mastery + '%'}}
-              </text>
-              <text class="node-sub" wx:else>未解锁</text>
+              <text class="node-title">{{item.title}}</text>
+              <text class="node-sub">{{item.status === 'done' ? '已掌握' : '掌握度 ' + item.mastery + '%'}}</text>
             </view>
-            <view class="node-tag" wx:if="{{item.status === 'current'}}">当前</view>
           </view>
         </view>
       </block>
@@ -69,8 +64,4 @@
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
-  <view class="action-bar" wx:if="{{!loading && currentLessonTitle}}">
-    <view class="btn" bindtap="startCurrent">开始当前关卡 · {{currentLessonTitle}}</view>
-  </view>
 </view>

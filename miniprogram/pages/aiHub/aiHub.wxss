@@ -1,0 +1,105 @@
+/* pages/aiHub/aiHub.wxss */
+.page-header {
+  margin: 8rpx 4rpx 36rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.page-title {
+  font-size: 48rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.page-subtitle {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+}
+
+/* 功能入口卡片 */
+.hub-card {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 36rpx 32rpx;
+  margin-bottom: 28rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 40rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+  transition: transform .12s, box-shadow .12s;
+}
+
+.hub-card-hover {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.hub-card-icon {
+  width: 104rpx;
+  height: 104rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-sm);
+  flex-shrink: 0;
+}
+
+.hub-card-icon .icon {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+.hub-icon-classroom {
+  background: var(--green-soft);
+}
+
+.hub-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.hub-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.hub-card-title {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.hub-card-badge {
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+  background: var(--green-soft);
+  border: 2rpx solid var(--green-accent);
+  border-radius: 20rpx;
+  padding: 2rpx 14rpx;
+}
+
+.hub-card-desc {
+  font-size: 25rpx;
+  color: var(--gray);
+  font-weight: 600;
+}
+
+.hub-card-arrow {
+  width: 36rpx;
+  height: 36rpx;
+  flex-shrink: 0;
+}
+
+/* 未上线入口弱化展示 */
+.hub-card-disabled {
+  opacity: 0.75;
+}

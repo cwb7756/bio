@@ -3,6 +3,7 @@
     "pages/home/home",
     "pages/study/study",
     "pages/course/course",
+    "pages/aiHub/aiHub",
     "pages/ai/ai",
     "pages/mine/mine",
     "pages/knowledge/knowledge",
@@ -43,8 +44,8 @@
         "text": "学习"
       },
       {
-        "pagePath": "pages/ai/ai",
-        "text": "AI答疑"
+        "pagePath": "pages/aiHub/aiHub",
+        "text": "AI"
       },
       {
         "pagePath": "pages/mine/mine",

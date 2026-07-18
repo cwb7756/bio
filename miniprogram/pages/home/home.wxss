@@ -45,6 +45,12 @@
   height: 44rpx;
 }
 
+.avatar-btn .avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
 /* 搜索框 */
 .search-wrap {
   position: relative;

@@ -111,18 +111,9 @@ exports.main = async (event, context) => {
       };
     });
 
-    // 锁逻辑：前一章节未完成（progress < 100）则后续锁定
-    chapters.forEach((ch, i) => {
-      if (i === 0) {
-        ch.color = ch.progress === 100 ? 'done' : 'green';
-      } else {
-        const prevDone = chapters[i - 1].progress === 100;
-        if (!prevDone) {
-          ch.color = 'lock';
-        } else {
-          ch.color = ch.progress === 100 ? 'done' : 'green';
-        }
-      }
+    // 无解锁限制：章节状态仅区分已完成/进行中
+    chapters.forEach((ch) => {
+      ch.color = ch.progress === 100 ? 'done' : 'green';
     });
 
     // 概览统计

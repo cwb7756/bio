@@ -11,7 +11,6 @@ Page({
     doneCount: 0,
     totalCount: 0,
     overallPercent: 0,
-    currentLessonTitle: '',
     // 进度环
     ringDash: 0
   },
@@ -55,7 +54,6 @@ Page({
             doneCount: d.doneCount,
             totalCount: d.totalCount,
             overallPercent: d.overallPercent,
-            currentLessonTitle: d.currentLessonTitle,
             isDemo: d.isDemo,
             ringDash,
             loading: false
@@ -77,23 +75,9 @@ Page({
     wx.navigateBack();
   },
 
-  // 点击节点
+  // 点击节点：无解锁限制，任何节点均可跳转课程页
   tapNode(e) {
     const node = e.currentTarget.dataset.node;
-    if (node.status === 'locked' || node.status === 'lock') {
-      wx.showToast({ title: '先完成前面的关卡吧', icon: 'none' });
-      return;
-    }
     wx.navigateTo({ url: '/pages/course/course?courseId=' + node.courseId });
-  },
-
-  // 开始当前关卡 → 跳课程页
-  startCurrent() {
-    const node = this.data.nodes.find((n) => n.status === 'current');
-    if (node) {
-      wx.navigateTo({ url: '/pages/course/course?courseId=' + node.courseId });
-    } else {
-      wx.showToast({ title: '暂无进行中的关卡', icon: 'none' });
-    }
   }
 });

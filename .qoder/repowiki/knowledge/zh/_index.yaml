@@ -3,11 +3,11 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-18T09:39:05Z"
+exported_at: "2026-07-18T10:08:04Z"
 modules:
     "":
-        dir_name: 宠物学习小程序全栈仓库
-        title: 宠物学习小程序全栈仓库
+        dir_name: 宠物学习小程序全栈工程
+        title: 宠物学习小程序全栈工程
         scope:
             - .gitignore
             - project.config.json

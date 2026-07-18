@@ -1,0 +1,44 @@
+<!--pages/aiHub/aiHub.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 标题 -->
+      <view class="page-header">
+        <text class="page-title">AI 学习助手</text>
+        <text class="page-subtitle">你的随身生物学习搭档</text>
+      </view>
+
+      <!-- AI老师入口 -->
+      <view class="hub-card" bindtap="goTeacher" hover-class="hub-card-hover">
+        <view class="hub-card-icon hub-icon-teacher">
+          <view class="icon ic-bot"></view>
+        </view>
+        <view class="hub-card-text">
+          <text class="hub-card-title">AI老师</text>
+          <text class="hub-card-desc">一对一生物答疑，随问随答</text>
+        </view>
+        <view class="icon ic-arrow-right hub-card-arrow"></view>
+      </view>
+
+      <!-- AI课堂入口（后期开发） -->
+      <view class="hub-card hub-card-disabled" bindtap="goClassroom" hover-class="hub-card-hover">
+        <view class="hub-card-icon hub-icon-classroom">
+          <view class="icon ic-video"></view>
+        </view>
+        <view class="hub-card-text">
+          <view class="hub-card-title-row">
+            <text class="hub-card-title">AI课堂</text>
+            <text class="hub-card-badge">敬请期待</text>
+          </view>
+          <text class="hub-card-desc">AI互动课堂，后期上线</text>
+        </view>
+        <view class="icon ic-lock hub-card-arrow"></view>
+      </view>
+    </view>
+  </view>
+</view>

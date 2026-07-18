@@ -145,34 +145,14 @@
   background: var(--green-accent);
 }
 
-.node-current {
-  background: var(--green);
-  width: 96rpx;
-  height: 96rpx;
-  flex-basis: 96rpx;
-}
-
-.node-current-ring {
-  box-shadow: 0 0 0 8rpx rgba(95, 184, 148, .3);
-}
-
-.node-learning {
-  background: linear-gradient(90deg, var(--green-soft2) 30%, var(--paper) 30%);
-}
-
-.node-lock {
-  background: #EDF1EE;
-  border-color: var(--gray);
+/* 未学习节点：纸面底色中性呈现，可自由点击 */
+.node-todo {
+  background: var(--paper);
 }
 
 .node-check {
   width: 36rpx;
   height: 36rpx;
-}
-
-.node-lock {
-  width: 30rpx;
-  height: 30rpx;
 }
 
 .node-mastery-in {
@@ -193,44 +173,7 @@
   font-weight: 700;
 }
 
-.node-title-lock {
-  color: var(--gray);
-}
-
 .node-sub {
   font-size: 20rpx;
   color: var(--gray);
-}
-
-.node-sub-current {
-  color: var(--green-deep);
-  font-weight: 700;
-}
-
-.node-tag {
-  position: absolute;
-  top: 8rpx;
-  font-size: 19rpx;
-  font-weight: 800;
-  background: var(--hl);
-  border: 2rpx solid var(--line);
-  border-radius: 16rpx;
-  padding: 2rpx 14rpx;
-}
-
-.node-left .node-tag {
-  right: 110rpx;
-}
-
-.node-right .node-tag {
-  left: 110rpx;
-}
-
-/* 底部操作栏 */
-.action-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
 }

@@ -215,6 +215,7 @@ Page({
     ],
     messages: [welcomeMsg()],
     chatHistory: [],
+    userAvatar: '',       // 当前登录用户头像（云文件 fileID 或网络 URL），空则显示默认图标
     // 会话管理
     sessionId: '',        // 当前会话 _id，空串表示未保存的新会话
     sessions: [],         // 会话列表 [{_id, title, updatedAt, timeText}]
@@ -223,7 +224,11 @@ Page({
 
   onLoad(options) {
     const sys = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sys.statusBarHeight });
+    const info = wx.getStorageSync('userInfo');
+    this.setData({
+      statusBarHeight: sys.statusBarHeight,
+      userAvatar: (info && info.avatar) || ''
+    });
     // 预填问题（从知识点页面 askAI 跳转传来）
     if (options && options.question) {
       const question = decodeURIComponent(options.question);
@@ -235,9 +240,12 @@ Page({
     }
   },
 
-  onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
+  // 返回上一页；页面栈为空时兜底回 AI 入口页
+  onBack() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: '/pages/aiHub/aiHub' });
     }
   },
 

@@ -24,6 +24,7 @@
       <block wx:else>
       <!-- 学习概览 -->
       <view class="study-overview">
+        <image class="overview-cat" src="{{catImage}}" mode="aspectFit"></image>
         <view class="overview-item">
           <text class="overview-num">{{overview.completedLessons}}</text>
           <text class="overview-label">已学课时</text>
@@ -79,9 +80,6 @@
             <view class="icon {{item.icon}} ch-icon"></view>
             <view class="ch-badge" wx:if="{{item.color === 'done'}}">
               <view class="icon ic-check-white"></view>
-            </view>
-            <view class="ch-badge ch-badge-lock" wx:if="{{item.color === 'lock'}}">
-              <view class="icon ic-lock-white"></view>
             </view>
           </view>
           <view class="ch-info">

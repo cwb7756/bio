@@ -7,6 +7,9 @@
 
   <!-- 头部 -->
   <view class="ai-header">
+    <view class="ai-back-btn" bindtap="onBack" hover-class="ai-action-btn-hover">
+      <view class="icon ic-back"></view>
+    </view>
     <view class="ai-header-info">
       <view class="ai-header-avatar">
         <view class="icon ic-bot"></view>
@@ -139,7 +142,8 @@
           <text class="msg-content" selectable="true">{{item.content}}</text>
         </view>
         <view class="msg-avatar msg-avatar-user">
-          <view class="icon ic-student"></view>
+          <image wx:if="{{userAvatar}}" class="msg-avatar-img" src="{{userAvatar}}" mode="aspectFill"></image>
+          <view wx:else class="icon ic-student"></view>
         </view>
       </block>
     </view>

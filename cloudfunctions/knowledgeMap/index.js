@@ -54,18 +54,13 @@ exports.main = async (event) => {
       completedIndexes = progress.map((p) => p.itemIndex);
     }
 
-    // 4. 组装节点（真实数据：已完成课时 mastery=100，下一个未完成为当前关卡，其余锁定）
-    let currentAssigned = false;
+    // 4. 组装节点（无解锁限制：已学 done / 未学 todo，看了哪些就点亮哪些）
     const nodes = lessons.map((l, i) => {
       const done = completedIndexes.includes(l.index || i + 1) || completedIndexes.includes(i);
       if (done) {
         return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 100, status: 'done' };
       }
-      if (!currentAssigned) {
-        currentAssigned = true;
-        return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'current' };
-      }
-      return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'lock' };
+      return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'todo' };
     });
 
     // 5. 总览
@@ -74,8 +69,6 @@ exports.main = async (event) => {
     const overallPercent = totalCount > 0
       ? Math.round(nodes.reduce((s, n) => s + n.mastery, 0) / totalCount)
       : 0;
-    const currentNode = nodes.find((n) => n.status === 'current') || nodes.find((n) => n.status === 'learning') || null;
-
     return {
       code: 0,
       data: {
@@ -89,8 +82,7 @@ exports.main = async (event) => {
         nodes,
         doneCount,
         totalCount,
-        overallPercent,
-        currentLessonTitle: currentNode ? currentNode.title : ''
+        overallPercent
       }
     };
   } catch (err) {
