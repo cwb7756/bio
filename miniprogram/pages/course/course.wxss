@@ -202,6 +202,32 @@
   margin-left: 4rpx;
 }
 
+/* 已学课时态 */
+.video-card.done {
+  background: var(--green-soft);
+}
+
+.video-card.done .vd-no {
+  background: var(--green-deep);
+  color: #fff;
+}
+
+.vd-done {
+  flex: 0 0 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 3rpx solid var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vd-done .icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
 /* ============ 考点 chips ============ */
 .kp-scroll {
   white-space: nowrap;

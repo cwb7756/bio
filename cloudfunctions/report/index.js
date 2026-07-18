@@ -9,6 +9,15 @@ const _ = db.command;
 
 const CHAPTERS = ['必修一', '必修二', '选择性必修一', '选择性必修二', '选择性必修三'];
 
+// study_progress 身份兼容条件：旧数据用 userID，新数据用 _openid
+function progressCond(openid, userID, extra) {
+  const conds = [Object.assign({ _openid: openid }, extra)];
+  if (userID) {
+    conds.push(Object.assign({ userID: userID }, extra));
+  }
+  return conds.length > 1 ? _.or(conds) : conds[0];
+}
+
 // 参数校验：字符串长度不超过10000，数组长度不超过100
 function validateParams(obj) {
   for (const key in obj) {
@@ -64,9 +73,12 @@ exports.main = async (event) => {
       return { code: 0, data: demoReport() };
     }
 
+    // 旧数据使用 userID 字段，查询需兼容两种身份
+    const userID = (user && user.userID) || '';
+
     // 2. 检查是否有学习记录（count 替代全量 get）
     const { total: recordCount } = await db.collection('study_progress')
-      .where({ _openid: OPENID })
+      .where(progressCond(OPENID, userID, {}))
       .count();
 
     if (recordCount === 0) {
@@ -83,7 +95,7 @@ exports.main = async (event) => {
 
       // 刷题统计：$match → $group
       const quizAgg = await db.collection('study_progress').aggregate()
-        .match({ _openid: OPENID, type: 'quiz' })
+        .match(progressCond(OPENID, userID, { type: 'quiz' }))
         .group({
           _id: null,
           total: $.sum(1),
@@ -97,7 +109,7 @@ exports.main = async (event) => {
 
       // 章节掌握度：按 chapter + type 分组统计
       const chapterAgg = await db.collection('study_progress').aggregate()
-        .match({ _openid: OPENID })
+        .match(progressCond(OPENID, userID, {}))
         .group({
           _id: { chapter: '$chapter', type: '$type' },
           total: $.sum(1),
@@ -122,7 +134,7 @@ exports.main = async (event) => {
       console.warn('report aggregate fallback:', aggErr.message);
       // 退回 _.in() 批量查询 + 内存统计
       const { data: records } = await db.collection('study_progress')
-        .where({ _openid: OPENID })
+        .where(progressCond(OPENID, userID, {}))
         .limit(1000)
         .get();
 
@@ -155,7 +167,7 @@ exports.main = async (event) => {
       const end = start + 86400000;
       weekPromises.push(
         db.collection('study_progress')
-          .where({ _openid: OPENID, updatedAt: _.gte(start).and(_.lt(end)) })
+          .where(progressCond(OPENID, userID, { updatedAt: _.gte(start).and(_.lt(end)) }))
           .count()
           .then(({ total }) => ({ label: weekLabels[new Date(start).getDay()], count: total }))
       );

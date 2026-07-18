@@ -46,26 +46,28 @@
         <text>{{currentVideo.up}} · 播放{{currentVideo.playCount}}<text wx:if="{{currentVideo.likeCount}}"> · 赞{{currentVideo.likeCount}}</text></text>
       </view>
 
-      <!-- 推荐视频列表 -->
+      <!-- 课时学习列表 -->
       <view class="sec-title">
-        <text class="u">推荐视频</text>
-        <text class="sec-sub">点击播放将跳转B站</text>
+        <text class="u">课时学习</text>
+        <text class="sec-sub">点击课时跳转B站，看完记得回来确认</text>
       </view>
       <view class="video-list">
         <view
-          wx:for="{{videos}}"
+          wx:for="{{lessons}}"
           wx:key="_id"
-          class="video-card {{index === currentIndex ? 'on' : ''}}"
+          class="video-card {{index === currentLessonIndex ? 'on' : ''}} {{item.learned ? 'done' : ''}}"
           data-index="{{index}}"
-          bindtap="switchVideo"
+          bindtap="switchLesson"
         >
-          <view class="vd-no">{{index + 1}}</view>
+          <view class="vd-no">{{item.no}}</view>
           <view class="vd-info">
             <text class="vd-title">{{item.title}}</text>
-            <text class="vd-meta">{{item.up}} · 播放{{item.playCount}}<text wx:if="{{item.likeCount}}"> · 赞{{item.likeCount}}</text></text>
-            <text class="vd-highlight">{{item.highlight}}</text>
+            <text class="vd-meta">约{{item.durationMinutes}}分钟</text>
           </view>
-          <view class="vd-play">
+          <view class="vd-done" wx:if="{{item.learned}}">
+            <view class="icon ic-check"></view>
+          </view>
+          <view class="vd-play" wx:else>
             <view class="icon ic-play"></view>
           </view>
         </view>

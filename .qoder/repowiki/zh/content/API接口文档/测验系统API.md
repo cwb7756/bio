@@ -6,10 +6,17 @@
 - [cloudfunctions/quiz/config.json](file://cloudfunctions/quiz/config.json)
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [miniprogram/pages/quizSummary/quizSummary.js](file://miniprogram/pages/quizSummary/quizSummary.js)
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 - [cloudfunctions/knowledgeMap/index.js](file://cloudfunctions/knowledgeMap/index.js)
 </cite>
+
+## 更新摘要
+**变更内容**   
+- 新增测验入口系统支持，增强了测验API的后端功能
+- 更新了云函数架构以支持新的测验流程管理
+- 完善了测验状态管理和会话控制机制
 
 ## 目录
 1. [简介](#简介)
@@ -24,16 +31,19 @@
 10. [附录](#附录)
 
 ## 简介
-本文件面向开发者与产品人员，系统化梳理“测验系统”的云端能力与小程序端交互流程，覆盖题目获取、答案提交、成绩计算、统计分析等关键接口；并给出智能出题（随机抽题、难度匹配、知识点覆盖）、答题状态管理、时间控制、防作弊机制、批量答题、即时反馈、错题标记、学习分析与个性化推荐等高级能力的接口约定与使用示例。文档以仓库中实际存在的云函数与页面为依据进行归纳与抽象，便于快速对接与扩展。
+本文件面向开发者与产品人员，系统化梳理"测验系统"的云端能力与小程序端交互流程，覆盖题目获取、答案提交、成绩计算、统计分析等关键接口；并给出智能出题（随机抽题、难度匹配、知识点覆盖）、答题状态管理、时间控制、防作弊机制、批量答题、即时反馈、错题标记、学习分析与个性化推荐等高级能力的接口约定与使用示例。文档以仓库中实际存在的云函数与页面为依据进行归纳与抽象，便于快速对接与扩展。
+
+**更新** 本次更新重点反映了测验API功能的增强，特别是cloudfunctions/quiz/index.js中新增的49行代码，为新的测验入口系统和相关测验功能提供了后端支持。
 
 ## 项目结构
-本项目采用“小程序前端 + 云函数后端”的常见分层：
+本项目采用"小程序前端 + 云函数后端"的常见分层：
 - 小程序端负责用户交互、答题状态管理、计时器与本地缓存、错误提示与结果展示。
 - 云函数提供题目抽取、答案校验、成绩统计、错题记录、知识图谱与报告生成等能力。
 
 ```mermaid
 graph TB
 subgraph "小程序端"
+QE["quizEntry 页面<br/>测验入口"]
 Q["quiz 页面<br/>答题主流程"]
 QS["quizSummary 页面<br/>结果与复盘"]
 end
@@ -43,6 +53,7 @@ MK["mistakes 云函数<br/>错题管理"]
 RP["report 云函数<br/>报告/统计"]
 KM["knowledgeMap 云函数<br/>知识图谱/推荐"]
 end
+QE --> QZ
 Q --> QZ
 QS --> QZ
 QS --> MK
@@ -50,7 +61,8 @@ QS --> RP
 QS --> KM
 ```
 
-图表来源
+**图表来源**
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [miniprogram/pages/quizSummary/quizSummary.js](file://miniprogram/pages/quizSummary/quizSummary.js)
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
@@ -58,11 +70,12 @@ QS --> KM
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 - [cloudfunctions/knowledgeMap/index.js](file://cloudfunctions/knowledgeMap/index.js)
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/quiz/config.json](file://cloudfunctions/quiz/config.json)
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [miniprogram/pages/quizSummary/quizSummary.js](file://miniprogram/pages/quizSummary/quizSummary.js)
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 - [cloudfunctions/knowledgeMap/index.js](file://cloudfunctions/knowledgeMap/index.js)
@@ -70,6 +83,7 @@ QS --> KM
 ## 核心组件
 - 题目抽取与作答服务（quiz 云函数）
   - 职责：按策略随机抽题、难度与知识点约束、提交答案、即时判分、生成试卷快照、返回统计摘要。
+  - **更新** 新增了测验入口系统的后端支持，增强了测验流程管理能力。
 - 错题管理（mistakes 云函数）
   - 职责：记录错题、去重、按知识点/难度聚合、支持导出与复习列表构建。
 - 报告与统计（report 云函数）
@@ -77,7 +91,7 @@ QS --> KM
 - 知识图谱与推荐（knowledgeMap 云函数）
   - 职责：维护知识点关系、薄弱点识别、个性化推荐题目或练习路径。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
@@ -89,12 +103,16 @@ QS --> KM
 ```mermaid
 sequenceDiagram
 participant U as "用户"
+participant QE as "quizEntry 页面"
 participant P as "小程序 quiz 页面"
 participant QF as "quiz 云函数"
 participant MF as "mistakes 云函数"
 participant RF as "report 云函数"
 participant KF as "knowledgeMap 云函数"
-U->>P : 开始测验
+U->>QE : 进入测验入口
+QE->>QF : 初始化测验会话
+QF-->>QE : 返回测验配置
+QE->>P : 跳转答题页面
 P->>QF : 请求抽题(含难度/知识点/数量)
 QF-->>P : 返回题目集合与元信息
 loop 逐题作答
@@ -109,7 +127,8 @@ P->>RF : 拉取统计/报告
 P->>KF : 拉取知识图谱/推荐
 ```
 
-图表来源
+**图表来源**
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
@@ -124,7 +143,7 @@ P->>KF : 拉取知识图谱/推荐
 - 幂等性：提交类接口建议携带唯一会话ID，避免重复提交导致重复计分。
 - 超时与重试：网络异常时前端应做指数退避重试；云函数需对长耗时操作设置合理超时。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/quiz/config.json](file://cloudfunctions/quiz/config.json)
 
@@ -147,10 +166,10 @@ P->>KF : 拉取知识图谱/推荐
   - 知识点覆盖：确保每个指定知识点至少出现一次，再填充剩余名额。
   - 去重：结合 excludeIds 与历史作答记录避免重复。
 - 使用示例
-  - 场景：为初学者生成10道中等难度的单选题，覆盖“细胞结构”和“遗传基础”。
+  - 场景：为初学者生成10道中等难度的单选题，覆盖"细胞结构"和"遗传基础"。
   - 步骤：构造入参 -> 调用接口 -> 渲染题目 -> 启动计时器。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 
 ### 2) 提交答案（即时反馈）
@@ -171,9 +190,9 @@ P->>KF : 拉取知识图谱/推荐
   - 校验答案格式与合法性，拒绝非法或越界提交。
   - 同一题目多次提交仅保留最后一次有效提交。
 - 使用示例
-  - 场景：用户在第3题选择答案后，立即收到“正确/错误+解析”，并可继续下一题。
+  - 场景：用户在第3题选择答案后，立即收到"正确/错误+解析"，并可继续下一题。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 
 ### 3) 结束测验与成绩计算
@@ -193,9 +212,9 @@ P->>KF : 拉取知识图谱/推荐
   - 扣分：支持答错扣分或空题不扣分策略。
   - 封顶：总分上限与单项上限。
 - 使用示例
-  - 场景：用户点击“交卷”，前端等待后端返回成绩与解析，跳转结果页。
+  - 场景：用户点击"交卷"，前端等待后端返回成绩与解析，跳转结果页。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 
 ### 4) 错题管理与复习
@@ -208,9 +227,9 @@ P->>KF : 拉取知识图谱/推荐
   - mistakes: 错题列表
   - stats: 错题统计（总数、近N日新增、薄弱知识点TopN）
 - 使用示例
-  - 场景：从结果页一键将本次错题加入“错题本”，并按知识点分组显示。
+  - 场景：从结果页一键将本次错题加入"错题本"，并按知识点分组显示。
 
-章节来源
+**章节来源**
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 
 ### 5) 报告与统计分析
@@ -224,25 +243,25 @@ P->>KF : 拉取知识图谱/推荐
   - trends: 趋势数据
   - insights: 洞察与建议
 - 使用示例
-  - 场景：在“我的学习”页面查看近30天的正确率曲线与薄弱知识点。
+  - 场景：在"我的学习"页面查看近30天的正确率曲线与薄弱知识点。
 
-章节来源
+**章节来源**
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 
 ### 6) 知识图谱与个性化推荐
 - 功能：基于知识图谱与历史表现，推荐下一步学习内容与题目。
 - 输入参数（示例字段）
   - userId: 用户ID
-  - focus: 关注领域（如“遗传学”）
+  - focus: 关注领域（如"遗传学"）
   - mode: 模式（巩固/拓展/冲刺）
 - 输出字段（示例字段）
   - recommendedQuestions: 推荐题目
   - learningPath: 学习路径（知识点序列）
   - rationale: 推荐理由
 - 使用示例
-  - 场景：系统检测到“细胞分裂”薄弱，推送相关微课与针对性练习题。
+  - 场景：系统检测到"细胞分裂"薄弱，推送相关微课与针对性练习题。
 
-章节来源
+**章节来源**
 - [cloudfunctions/knowledgeMap/index.js](file://cloudfunctions/knowledgeMap/index.js)
 
 ### 7) 批量答题与进度恢复
@@ -257,7 +276,7 @@ P->>KF : 拉取知识图谱/推荐
 - 使用示例
   - 场景：离线环境下先缓存答案，联网后批量提交；或中途退出后重新进入继续作答。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 
 ### 8) 时间控制与防作弊
@@ -272,13 +291,32 @@ P->>KF : 拉取知识图谱/推荐
 - 使用示例
   - 场景：检测到频繁切屏，弹出警示；达到上限则提前收卷并标注异常。
 
-章节来源
+**章节来源**
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
+
+### 9) 测验入口管理（新增）
+- 功能：提供统一的测验入口管理，支持测验创建、配置验证、会话初始化等功能。
+- 输入参数（示例字段）
+  - quizType: 测验类型（练习/考试/模拟）
+  - config: 测验配置（时长、题目数量、难度分布）
+  - userId: 用户标识
+- 输出字段（示例字段）
+  - quizId: 测验ID
+  - startTime: 开始时间
+  - duration: 测验时长
+  - status: 初始状态
+- 使用示例
+  - 场景：用户从首页进入测验入口，选择测验类型和配置后，系统创建测验会话并跳转到答题页面。
+
+**章节来源**
+- [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 
 ## 依赖分析
 - 模块耦合
   - quiz 云函数为核心，被 quiz 与 quizSummary 页面共同调用。
+  - **更新** 新增了 quizEntry 页面作为测验入口，增强了测验流程的完整性。
   - mistakes、report、knowledgeMap 作为支撑服务，在结果页与个人中心被调用。
 - 外部依赖
   - 数据库/存储：用于持久化题目、作答记录、错题与报告。
@@ -288,14 +326,16 @@ P->>KF : 拉取知识图谱/推荐
 
 ```mermaid
 graph LR
-QJS["quiz 页面"] --> QF["quiz 云函数"]
+QEJS["quizEntry 页面"] --> QF["quiz 云函数"]
+QJS["quiz 页面"] --> QF
 QSJS["quizSummary 页面"] --> QF
 QSJS --> MF["mistakes 云函数"]
 QSJS --> RF["report 云函数"]
 QSJS --> KF["knowledgeMap 云函数"]
 ```
 
-图表来源
+**图表来源**
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
 - [miniprogram/pages/quizSummary/quizSummary.js](file://miniprogram/pages/quizSummary/quizSummary.js)
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
@@ -303,7 +343,7 @@ QSJS --> KF["knowledgeMap 云函数"]
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 - [cloudfunctions/knowledgeMap/index.js](file://cloudfunctions/knowledgeMap/index.js)
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
@@ -323,14 +363,13 @@ QSJS --> KF["knowledgeMap 云函数"]
   - 长耗时操作异步化，前端轮询或回调通知。
   - 非关键功能（如推荐）失败时降级为默认策略。
 
-[本节为通用指导，无需特定文件引用]
-
 ## 故障排查指南
 - 常见问题
   - 抽题结果为空：检查难度/知识点过滤条件是否过于严格；确认题库中存在匹配题目。
   - 提交判分不一致：核对答案格式、评分规则版本与会话一致性。
   - 错题未入库：确认错题写入权限与幂等键；检查去重逻辑。
   - 报告数据缺失：确认统计任务执行成功与数据源完整性。
+  - **更新** 测验入口初始化失败：检查测验配置参数和用户权限。
 - 定位方法
   - 开启调试日志：在云函数中打印关键入参与中间结果。
   - 前端埋点：记录请求/响应、错误码与耗时。
@@ -339,15 +378,13 @@ QSJS --> KF["knowledgeMap 云函数"]
   - 断网续传：本地缓存答案，网络恢复后批量补交。
   - 幂等重试：对提交类接口实现幂等键与重试机制。
 
-章节来源
+**章节来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 - [cloudfunctions/mistakes/index.js](file://cloudfunctions/mistakes/index.js)
 - [cloudfunctions/report/index.js](file://cloudfunctions/report/index.js)
 
 ## 结论
-本测验系统以“抽题-作答-判分-统计-推荐”为主线，形成闭环的学习体验。通过智能出题、即时反馈、错题管理与学习报告，帮助学习者高效查漏补缺；借助知识图谱与个性化推荐，进一步提升学习效率。建议在后续迭代中持续完善防作弊、性能优化与数据分析能力，为用户提供更稳定、安全、个性化的学习服务。
-
-[本节为总结性内容，无需特定文件引用]
+本测验系统以"抽题-作答-判分-统计-推荐"为主线，形成闭环的学习体验。通过智能出题、即时反馈、错题管理与学习报告，帮助学习者高效查漏补缺；借助知识图谱与个性化推荐，进一步提升学习效率。**更新** 本次增强的测验入口系统进一步提升了用户体验，使测验流程更加完整和流畅。建议在后续迭代中持续完善防作弊、性能优化与数据分析能力，为用户提供更稳定、安全、个性化的学习服务。
 
 ## 附录
 
@@ -366,7 +403,7 @@ Validate --> |通过| Return["返回题目与元信息"]
 Adjust --> RandomPick
 ```
 
-图表来源
+**图表来源**
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
 
 ### B. 答题状态机
@@ -383,6 +420,25 @@ stateDiagram-v2
 结果页 --> [*]
 ```
 
-图表来源
+**图表来源**
 - [miniprogram/pages/quiz/quiz.js](file://miniprogram/pages/quiz/quiz.js)
+- [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)
+
+### C. 测验入口流程图（新增）
+```mermaid
+flowchart TD
+UserEnter["用户进入测验入口"] --> SelectType["选择测验类型"]
+SelectType --> ConfigQuiz["配置测验参数"]
+ConfigQuiz --> ValidateConfig["验证配置有效性"]
+ValidateConfig --> |无效| ShowError["显示错误提示"]
+ValidateConfig --> |有效| CreateSession["创建测验会话"]
+CreateSession --> InitQuiz["初始化测验数据"]
+InitQuiz --> StartQuiz["开始测验"]
+ShowError --> Retry["重新配置"]
+Retry --> ConfigQuiz
+StartQuiz --> QuizPage["跳转答题页面"]
+```
+
+**图表来源**
+- [miniprogram/pages/quizEntry/quizEntry.js](file://miniprogram/pages/quizEntry/quizEntry.js)
 - [cloudfunctions/quiz/index.js](file://cloudfunctions/quiz/index.js)

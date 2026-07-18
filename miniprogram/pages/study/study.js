@@ -4,8 +4,6 @@ const app = getApp();
 Page({
   data: {
     statusBarHeight: 20,
-    activeTab: 0,
-    tabs: ['必修一', '必修二', '选择性必修'],
     chapters: [],
     overview: {
       completedLessons: 0,
@@ -53,14 +51,13 @@ Page({
     wx.navigateTo({ url: '/pages/login/login' });
   },
 
-  // 调用 getCourseList 云函数获取课程列表
+  // 调用 getCourseList 云函数获取全部课程章节
   loadCourseList() {
     this.setData({ loading: true });
-    const textbook = this.data.tabs[this.data.activeTab];
 
     wx.cloud.callFunction({
       name: 'getCourseList',
-      data: { textbook },
+      data: { textbook: '全部' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
           this.setData({
@@ -112,11 +109,6 @@ Page({
         // 静默降级，保持静态文案
       }
     });
-  },
-
-  switchTab(e) {
-    this.setData({ activeTab: e.currentTarget.dataset.index });
-    this.loadCourseList();
   },
 
   goChapter(e) {

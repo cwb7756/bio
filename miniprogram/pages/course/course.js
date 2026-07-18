@@ -6,10 +6,13 @@ Page({
     course: null,
     videos: [],
     knowledgePoints: [],
-    currentIndex: 0,
+    lessons: [],
+    learnedLessonIds: [],
+    currentLessonIndex: 0,
     currentVideo: null,
     currentCover: '',
     courseCompleted: false,
+    pendingLesson: null,
     loading: true,
     loadError: false
   },
@@ -34,15 +37,34 @@ Page({
       data: { courseId: this.data.courseId },
       success: (res) => {
         if (res.result && res.result.code === 0) {
-          const { course, videos, knowledgePoints, courseCompleted } = res.result.data;
+          const { course, videos, knowledgePoints, lessons, learnedLessonIds, courseCompleted } = res.result.data;
+          // 课时列表附加已学状态
+          const learnedSet = {};
+          (learnedLessonIds || []).forEach((id) => { learnedSet[id] = true; });
+          const lessonList = (lessons || []).map((l, i) => ({
+            ...l,
+            no: l.index || i + 1,
+            learned: !!learnedSet[l._id]
+          }));
+          // 默认选中第一个未学课时
+          let currentLessonIndex = 0;
+          for (let i = 0; i < lessonList.length; i++) {
+            if (!lessonList[i].learned) {
+              currentLessonIndex = i;
+              break;
+            }
+          }
+          const currentVideo = this.pickVideoForLesson(lessonList[currentLessonIndex], videos);
           this.setData({
             course,
             videos,
             knowledgePoints,
+            lessons: lessonList,
+            learnedLessonIds: learnedLessonIds || [],
             courseCompleted: !!courseCompleted,
-            currentIndex: 0,
-            currentVideo: videos[0] || null,
-            currentCover: this.pickCover(course, videos, 0),
+            currentLessonIndex,
+            currentVideo,
+            currentCover: this.pickCover(course, currentVideo),
             loading: false
           });
         } else {
@@ -57,17 +79,30 @@ Page({
   },
 
   // 当前视频封面，兜底课程封面
-  pickCover(course, videos, index) {
-    const v = videos[index];
-    return (v && v.cover) || (course && course.image) || '';
+  pickCover(course, video) {
+    return (video && video.cover) || (course && course.image) || '';
   },
 
-  switchVideo(e) {
+  // 课时关联视频：取 lesson.videoIds[0] 在课程视频列表中匹配，兜底第一个视频
+  pickVideoForLesson(lesson, videos) {
+    if (!videos || videos.length === 0) return null;
+    const vid = lesson && lesson.videoIds && lesson.videoIds[0];
+    if (vid) {
+      const found = videos.find((v) => v._id === vid);
+      if (found) return found;
+    }
+    return videos[0];
+  },
+
+  // 点击课时：切换播放器到该课时关联视频
+  switchLesson(e) {
     const index = e.currentTarget.dataset.index;
+    const lesson = this.data.lessons[index];
+    const video = this.pickVideoForLesson(lesson, this.data.videos);
     this.setData({
-      currentIndex: index,
-      currentVideo: this.data.videos[index],
-      currentCover: this.pickCover(this.data.course, this.data.videos, index)
+      currentLessonIndex: index,
+      currentVideo: video,
+      currentCover: this.pickCover(this.data.course, video)
     });
   },
 
@@ -82,6 +117,13 @@ Page({
       wx.showToast({ title: '暂无视频源', icon: 'none' });
       return;
     }
+    // 记录待确认课时，从 B 站返回后询问是否看完
+    const lesson = this.data.lessons[this.data.currentLessonIndex];
+    if (lesson && !lesson.learned) {
+      this.setData({
+        pendingLesson: { lessonId: lesson._id, title: lesson.title, ts: Date.now() }
+      });
+    }
     wx.navigateToMiniProgram({
       appId: 'wx7564fd5313d24844',
       path: 'pages/video/video?avid=' + v.aid,
@@ -92,6 +134,75 @@ Page({
             wx.showToast({ title: '链接已复制，请前往B站观看', icon: 'none' });
           }
         });
+      }
+    });
+  },
+
+  // 从 B 站返回：离开超过 15 秒则询问是否看完当前课时
+  onShow() {
+    const p = this.data.pendingLesson;
+    if (!p) return;
+    this.setData({ pendingLesson: null });
+    if (Date.now() - p.ts < 15000) {
+      wx.showToast({ title: '时间小于15秒要认真哦', icon: 'none' });
+      return;
+    }
+    wx.showModal({
+      title: '完成学习',
+      content: '看完《' + p.title + '》了吗？确认后记录学习进度并奖励小鱼干',
+      confirmText: '看完了',
+      cancelText: '还没有',
+      success: (res) => {
+        if (res.confirm) this.completeLesson(p.lessonId);
+      }
+    });
+  },
+
+  // 标记单个课时为已学：写 study_progress + 宠物/时长/打卡联动
+  completeLesson(lessonId) {
+    wx.showLoading({ title: '记录中...' });
+    wx.cloud.callFunction({
+      name: 'getCourseDetail',
+      data: { action: 'completeLesson', courseId: this.data.courseId, lessonId },
+      success: (r) => {
+        wx.hideLoading();
+        if (r.result && r.result.code === 0) {
+          const d = r.result.data;
+          if (d.already) {
+            wx.showToast({ title: '该课时已记录过', icon: 'none' });
+            return;
+          }
+          const lessons = this.data.lessons.map((l) =>
+            l._id === lessonId ? { ...l, learned: true } : l
+          );
+          this.setData({
+            lessons,
+            learnedLessonIds: this.data.learnedLessonIds.concat([lessonId]),
+            courseCompleted: !!d.courseCompleted
+          });
+          wx.showToast({ title: '+' + d.fishReward + ' 小鱼干', icon: 'none' });
+          this.refreshAchievements();
+        } else {
+          wx.showToast({ title: (r.result && r.result.msg) || '记录失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        wx.hideLoading();
+        wx.showToast({ title: '网络异常', icon: 'none' });
+      }
+    });
+  },
+
+  // 静默刷新成就，有新解锁则提示
+  refreshAchievements() {
+    wx.cloud.callFunction({
+      name: 'achievements',
+      data: { action: 'refresh' },
+      success: (r) => {
+        const list = r.result && r.result.newlyUnlocked;
+        if (list && list.length > 0) {
+          wx.showToast({ title: '解锁成就：' + list[0].name, icon: 'none' });
+        }
       }
     });
   },
@@ -129,8 +240,10 @@ Page({
           success: (r) => {
             wx.hideLoading();
             if (r.result && r.result.code === 0) {
-              this.setData({ courseCompleted: true });
+              const lessons = this.data.lessons.map((l) => ({ ...l, learned: true }));
+              this.setData({ courseCompleted: true, lessons });
               wx.showToast({ title: '已记录学习进度', icon: 'success' });
+              this.refreshAchievements();
             } else {
               wx.showToast({ title: (r.result && r.result.msg) || '记录失败', icon: 'none' });
             }

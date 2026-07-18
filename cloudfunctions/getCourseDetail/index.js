@@ -175,7 +175,7 @@ async function getDetail(event, OPENID) {
 
   const courseCompleted = totalLessons > 0 && learnedLessonIds.length >= totalLessons;
 
-  return { code: 0, data: { course, videos, knowledgePoints, learnedLessonIds, totalLessons, courseCompleted } };
+  return { code: 0, data: { course, videos, knowledgePoints, lessons, learnedLessonIds, totalLessons, courseCompleted } };
 }
 
 // 完成课程学习：将该课程所有课时写入 study_progress（type='lesson'）

@@ -23,25 +23,26 @@ function validateParams(obj) {
 
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
-  const { textbook = '必修一' } = event;
+  const { textbook = '全部' } = event;
 
   const validErr = validateParams(event);
   if (validErr) return validErr;
 
   try {
-    // 构建查询条件："选择性必修" 匹配所有选择性必修课程
-    let chapterCondition;
-    if (textbook === '选择性必修') {
-      chapterCondition = db.RegExp({ regexp: '^选择性必修', options: 'i' });
-    } else {
-      chapterCondition = textbook;
+    // 构建查询条件："选择性必修" 匹配所有选择性必修课程；"全部" 不加教材条件
+    let query = db.collection('courses');
+    if (textbook && textbook !== '全部') {
+      let chapterCondition;
+      if (textbook === '选择性必修') {
+        chapterCondition = db.RegExp({ regexp: '^选择性必修', options: 'i' });
+      } else {
+        chapterCondition = textbook;
+      }
+      query = query.where({ chapter: chapterCondition });
     }
 
-    // 查询该教材下所有课程，按 sort 排序
-    const { data: courses } = await db.collection('courses')
-      .where({ chapter: chapterCondition })
-      .orderBy('sort', 'asc')
-      .get();
+    // 查询课程，按 sort 排序
+    const { data: courses } = await query.orderBy('sort', 'asc').get();
 
     if (courses.length === 0) {
       return { code: 0, data: { chapters: [], overview: { completedLessons: 0, totalLessons: 0, completionRate: 0 } } };

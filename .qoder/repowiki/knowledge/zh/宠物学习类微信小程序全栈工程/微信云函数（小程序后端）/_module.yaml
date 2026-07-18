@@ -1,10 +1,9 @@
 schema_version: 1
 module_path: cloudfunctions
-title: 微信小程序云函数集合（业务 API 层）
+title: 微信云函数（小程序后端）
 scope:
     - cloudfunctions/
 source_files: []
 depends_on: []
 related_to:
     - path: miniprogram
-    - path: miniprogram/app_shell

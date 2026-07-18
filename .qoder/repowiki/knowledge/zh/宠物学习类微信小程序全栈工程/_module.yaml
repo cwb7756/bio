@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: 宠物学习微信小程序（云开发全栈工程）
+title: 宠物学习类微信小程序全栈工程
 scope:
     - .gitignore
     - project.config.json

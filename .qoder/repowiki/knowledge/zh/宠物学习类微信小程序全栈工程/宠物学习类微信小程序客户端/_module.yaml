@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: miniprogram
-title: 微信小程序前端应用
+title: 宠物学习类微信小程序客户端
 scope:
     - miniprogram/
 source_files: []
