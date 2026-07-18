@@ -1,4 +1,6 @@
 // pages/map/map.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -23,6 +25,14 @@ Page({
   },
 
   onShow() {
+    // 登录拦截：知识地图展示用户学习进度，未登录则提示并跳转登录页
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录后查看知识地图', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
     this.loadMap();
   },
 

@@ -7,6 +7,53 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 var db = cloud.database();
 
+// 教材分册排序顺序
+var CHAPTER_ORDER = ['必修一', '必修二', '选择性必修一', '选择性必修二', '选择性必修三'];
+
+// categories: 聚合题目分类结构（按教材分册 + 考点两级）
+// → { code: 0, data: { chapters: [{ name, count, topics: [{ name, count }] }], topics: [{ name, chapter, count }] } }
+// 仅投影 chapter/topic 字段全量拉取，JS 端分组聚合（数据量小，规避聚合 API 兼容性问题）
+async function getCategories() {
+  var { data } = await db.collection('quiz_questions')
+    .field({ chapter: true, topic: true })
+    .limit(1000)
+    .get();
+
+  var chapterMap = {};
+  data.forEach(function (q) {
+    var ch = q.chapter || '未分类';
+    var tp = q.topic || '未分类';
+    if (!chapterMap[ch]) chapterMap[ch] = { name: ch, count: 0, topics: {} };
+    chapterMap[ch].count++;
+    if (!chapterMap[ch].topics[tp]) chapterMap[ch].topics[tp] = 0;
+    chapterMap[ch].topics[tp]++;
+  });
+
+  // 构建章节数组（含嵌套考点），按教材顺序排序
+  var chapters = Object.keys(chapterMap).map(function (chName) {
+    var ch = chapterMap[chName];
+    var topics = Object.keys(ch.topics).map(function (tpName) {
+      return { name: tpName, count: ch.topics[tpName] };
+    });
+    return { name: ch.name, count: ch.count, topics: topics };
+  });
+  chapters.sort(function (a, b) {
+    var ia = CHAPTER_ORDER.indexOf(a.name);
+    var ib = CHAPTER_ORDER.indexOf(b.name);
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  });
+
+  // 扁平考点列表（含所属章节）
+  var topics = [];
+  chapters.forEach(function (ch) {
+    ch.topics.forEach(function (tp) {
+      topics.push({ name: tp.name, chapter: ch.name, count: tp.count });
+    });
+  });
+
+  return { code: 0, data: { chapters: chapters, topics: topics } };
+}
+
 // list: 查询题目列表
 // → { code: 0, questions: [{ questionId, stem, options, type, chapter, topic }] }
 // chapter/topic 可选过滤条件（为空则不筛选），仅返回不含答案的字段，limit 50
@@ -86,6 +133,8 @@ exports.main = async (event, context) => {
         return await listQuestions(event);
       case 'submit':
         return await submitAnswer(event);
+      case 'categories':
+        return await getCategories();
       default:
         return { code: -1, msg: '未知的操作类型' };
     }

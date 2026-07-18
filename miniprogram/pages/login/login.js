@@ -8,7 +8,6 @@ Page({
     email: '',
     password: '',
     confirmPassword: '',
-    agreed: false,
     loading: false
   },
 
@@ -43,17 +42,9 @@ Page({
     this.setData({ confirmPassword: e.detail.value });
   },
 
-  toggleAgreement() {
-    this.setData({ agreed: !this.data.agreed });
-  },
-
   // ---- 微信一键登录（直接调用云函数，openid 由云端获取，不依赖 getUserProfile）----
   handleWeChatLogin() {
     if (this.data.loading) return;
-    if (!this.data.agreed) {
-      wx.showToast({ title: '请先同意用户协议', icon: 'none' });
-      return;
-    }
     this.setData({ loading: true });
     this._callLoginCloud('wxLogin', {});
   },
@@ -61,7 +52,7 @@ Page({
   // ---- 邮箱登录/注册提交 ----
   handleEmailSubmit() {
     if (this.data.loading) return;
-    const { authMode, email, password, confirmPassword, agreed } = this.data;
+    const { authMode, email, password, confirmPassword } = this.data;
 
     if (!email) {
       wx.showToast({ title: '请输入邮箱', icon: 'none' });
@@ -83,11 +74,6 @@ Page({
       wx.showToast({ title: '两次密码不一致', icon: 'none' });
       return;
     }
-    if (!agreed) {
-      wx.showToast({ title: '请先同意用户协议', icon: 'none' });
-      return;
-    }
-
     this.setData({ loading: true });
     const action = authMode === 'register' ? 'emailRegister' : 'emailLogin';
     this._callLoginCloud(action, { email, password });

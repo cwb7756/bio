@@ -192,6 +192,35 @@
   text-align: center;
 }
 
+.ach-count {
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--gray);
+  margin-left: 4rpx;
+}
+
+.achievement-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  padding: 36rpx 0;
+  border: 4rpx dashed var(--gray-line);
+  border-radius: 28rpx;
+  background: var(--paper);
+}
+
+.empty-icon {
+  width: 48rpx;
+  height: 48rpx;
+  opacity: .4;
+}
+
+.empty-text {
+  font-size: 24rpx;
+  color: var(--gray);
+}
+
 /* ============ 菜单列表 ============ */
 .menu-list {
   margin-top: 28rpx;

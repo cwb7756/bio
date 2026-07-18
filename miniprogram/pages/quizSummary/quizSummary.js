@@ -18,10 +18,19 @@ Page({
     const sys = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sys.statusBarHeight });
 
+    // 登录拦截：总结页可一键收藏错题（用户数据），未登录则提示并跳转登录页
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
+
     const s = app.globalData.quizSummary;
     if (!s || !s.details || s.details.length === 0) {
       wx.showToast({ title: '总结数据缺失', icon: 'none' });
-      setTimeout(() => wx.redirectTo({ url: '/pages/quiz/quiz' }), 800);
+      setTimeout(() => wx.redirectTo({ url: '/pages/quizEntry/quizEntry' }), 800);
       return;
     }
 
@@ -133,12 +142,9 @@ Page({
     });
   },
 
-  // 再来一组（沿用原模式/章节）
+  // 再来一组：回到刷题前置页重新选择分类
   retry() {
-    const s = this.data.summary;
-    let url = '/pages/quiz/quiz?mode=' + (s.mode || 'random');
-    if (s.chapter) url += '&chapter=' + encodeURIComponent(s.chapter);
-    wx.redirectTo({ url });
+    wx.redirectTo({ url: '/pages/quizEntry/quizEntry' });
   },
 
   // 返回首页

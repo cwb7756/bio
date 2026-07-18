@@ -86,17 +86,9 @@
       />
     </view>
 
-    <!-- 用户协议 -->
-    <view class="agreement-row" bindtap="toggleAgreement">
-      <view class="icon {{agreed ? 'ic-check-circle' : 'ic-check-circle-un'}}"></view>
-      <text class="agreement-text">
-        我已阅读并同意<text class="agreement-link">《用户协议》</text>和<text class="agreement-link">《隐私政策》</text>
-      </text>
-    </view>
-
     <!-- 邮箱登录/注册按钮 -->
     <view
-      class="btn ghost email-login-btn {{(!email || !password || !agreed || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
+      class="btn ghost email-login-btn {{(!email || !password || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
       bindtap="handleEmailSubmit"
     >
       <text>{{authMode === 'register' ? '注册并登录' : '邮箱登录'}}</text>

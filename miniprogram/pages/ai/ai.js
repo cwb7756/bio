@@ -1,4 +1,5 @@
 // pages/ai/ai.js
+const app = getApp();
 const { parseMarkdown } = require('../../utils/markdown.js');
 
 // 系统提示词 - 定义AI生物老师角色（基于上下文数据回答）
@@ -13,6 +14,160 @@ const SYSTEM_PROMPT = `你是一位专业的高中生物老师，擅长用简洁
 - 使用 Markdown 格式组织回答：要点用无序列表（- 开头），步骤用有序列表（1. 开头），重要概念用 **加粗**，小节标题用 ## 开头
 - 涉及实验过程时描述关键步骤
 - 鼓励学生思考，不要直接给出所有答案`;
+
+// 工具调用界面标签映射
+const TOOL_LABELS = {
+  search_courses_lessons: '搜索课程',
+  query_progress: '查询进度',
+  query_mistakes: '查询错题',
+  get_quiz: '获取题目',
+  generate_quiz: '出题'
+};
+
+// 构建工具调用配置（Function Calling）
+// 需传入 page 实例 self 与当前 AI 消息索引 aiMsgIndex，
+// 以便工具执行时实时更新该消息的工具调用状态框（calling → done）
+// 提供商必须为 cloudbase（hunyuan-v3 免费体验版不支持工具调用）
+function buildAITools(self, aiMsgIndex) {
+  // 设置当前消息的工具调用状态，status: 'calling' | 'done'
+  function setTool(name, status) {
+    self.setData({
+      ['messages[' + aiMsgIndex + '].toolCall']: {
+        name: name,
+        label: TOOL_LABELS[name] || name,
+        status: status
+      }
+    });
+  }
+  return {
+    autoExecute: true,
+    maxStep: 5,
+    list: [
+      {
+        name: 'search_courses_lessons',
+        description: '搜索课程和课时信息。当用户询问某个知识点、课程或章节相关内容时调用，返回匹配的课程和课时列表。',
+        parameters: {
+          type: 'object',
+          properties: {
+            keyword: { type: 'string', description: '搜索关键词，如知识点名称、课程名或章节名' }
+          },
+          required: ['keyword']
+        },
+        fn: function (args) {
+          var keyword = (args && args.keyword) || '';
+          setTool('search_courses_lessons', 'calling');
+          return wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'toolQuery', tool: 'search_courses_lessons', keyword: keyword }
+          }).then(function (res) {
+            setTool('search_courses_lessons', 'done');
+            return JSON.stringify(res.result || {});
+          }).catch(function (err) {
+            setTool('search_courses_lessons', 'done');
+            throw err;
+          });
+        }
+      },
+      {
+        name: 'query_progress',
+        description: '查询当前登录用户的学习进度，包括已学课时数、总课时数、完成百分比、最近学习的章节。',
+        parameters: { type: 'object', properties: {} },
+        fn: function () {
+          setTool('query_progress', 'calling');
+          return wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'toolQuery', tool: 'query_progress' }
+          }).then(function (res) {
+            setTool('query_progress', 'done');
+            return JSON.stringify(res.result || {});
+          }).catch(function (err) {
+            setTool('query_progress', 'done');
+            throw err;
+          });
+        }
+      },
+      {
+        name: 'query_mistakes',
+        description: '查询当前用户的错题本，返回最近的错题列表（含用户作答、正确答案和解析）。',
+        parameters: {
+          type: 'object',
+          properties: {
+            limit: { type: 'number', description: '返回错题数量，默认5，最多20' }
+          }
+        },
+        fn: function (args) {
+          var limit = (args && args.limit) || 5;
+          setTool('query_mistakes', 'calling');
+          return wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'toolQuery', tool: 'query_mistakes', limit: limit }
+          }).then(function (res) {
+            setTool('query_mistakes', 'done');
+            return JSON.stringify(res.result || {});
+          }).catch(function (err) {
+            setTool('query_mistakes', 'done');
+            throw err;
+          });
+        }
+      },
+      {
+        name: 'get_quiz',
+        description: '按章节或考点获取练习题（含答案与解析），供讲解分析题目使用。',
+        parameters: {
+          type: 'object',
+          properties: {
+            chapter: { type: 'string', description: '章节名称，如"必修一"' },
+            topic: { type: 'string', description: '考点名称' },
+            limit: { type: 'number', description: '题目数量，默认3，最多10' }
+          }
+        },
+        fn: function (args) {
+          args = args || {};
+          setTool('get_quiz', 'calling');
+          return wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'toolQuery', tool: 'get_quiz', chapter: args.chapter || '', topic: args.topic || '', limit: args.limit || 3 }
+          }).then(function (res) {
+            setTool('get_quiz', 'done');
+            return JSON.stringify(res.result || {});
+          }).catch(function (err) {
+            setTool('get_quiz', 'done');
+            throw err;
+          });
+        }
+      },
+      {
+        name: 'generate_quiz',
+        description: '根据知识点为学生出练习题（从题库随机抽取）。当学生说"出题""做题""练一练"时调用。',
+        parameters: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string', description: '考点/知识点名称' },
+            chapter: { type: 'string', description: '所属章节' },
+            count: { type: 'number', description: '出题数量，默认3，最多10' }
+          }
+        },
+        fn: function (args) {
+          args = args || {};
+          setTool('generate_quiz', 'calling');
+          return wx.cloud.callFunction({
+            name: 'aiChat',
+            data: { action: 'toolQuery', tool: 'generate_quiz', topic: args.topic || '', chapter: args.chapter || '', count: args.count || 3 }
+          }).then(function (res) {
+            setTool('generate_quiz', 'done');
+            return JSON.stringify(res.result || {});
+          }).catch(function (err) {
+            setTool('generate_quiz', 'done');
+            throw err;
+          });
+        }
+      }
+    ],
+    onToolEvent: function (e) {
+      console.log('[AI tool]', e);
+    }
+  };
+}
 
 // 最大保留的对话轮数（避免token超限）
 const MAX_HISTORY_ROUNDS = 10;
@@ -94,6 +249,11 @@ Page({
 
   // 加载会话列表；openLatest=true 时自动打开最近会话（仅页面首载）
   async loadSessions(openLatest) {
+    // 会话列表为用户数据：未登录不加载
+    if (!app.globalData.isLoggedIn) {
+      this.setData({ sessions: [] });
+      return;
+    }
     try {
       const res = await wx.cloud.callFunction({
         name: 'aiChat',
@@ -132,7 +292,8 @@ Page({
           role: m.role,
           content: m.content,
           ts: m.ts,
-          blocks: m.role === 'ai' ? parseMarkdown(m.content) : null
+          blocks: m.role === 'ai' ? parseMarkdown(m.content) : null,
+          toolCall: null
         };
       });
       // 重建模型对话上下文（ai -> assistant）
@@ -249,11 +410,11 @@ Page({
   async summarizeTitle(question) {
     const fallback = question.slice(0, 15);
     try {
-      const model = wx.cloud.extend.AI.createModel('hunyuan-v3');
+      const model = wx.cloud.extend.AI.createModel('cloudbase');
       let title = '';
       await model.streamText({
         data: {
-          model: 'hy3-preview',
+          model: 'hy3',
           messages: [
             { role: 'system', content: '你是标题生成器。根据用户的问题生成一个10个字以内的简短主题标题，只输出标题本身，不要标点符号和任何解释。' },
             { role: 'user', content: question }
@@ -322,6 +483,15 @@ Page({
     const text = this.data.inputValue.trim();
     if (!text || this.data.isStreaming) return;
 
+    // 登录拦截：AI 会话会持久化为用户数据，未登录提示并跳转登录页
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录后再提问', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
+
     // 检查AI能力是否可用
     if (!wx.cloud || !wx.cloud.extend || !wx.cloud.extend.AI) {
       wx.showToast({ title: '当前基础库版本不支持AI能力，需≥3.15.1', icon: 'none', duration: 3000 });
@@ -334,7 +504,7 @@ Page({
     const aiMsgIndex = this.data.messages.length + 1;
 
     this.setData({
-      messages: [...this.data.messages, userMsg, { role: 'ai', content: '', blocks: [], ts: 0 }],
+      messages: [...this.data.messages, userMsg, { role: 'ai', content: '', blocks: [], ts: 0, toolCall: null }],
       inputValue: '',
       isStreaming: true,
       scrollIntoView: 'msg-' + aiMsgIndex
@@ -359,26 +529,30 @@ Page({
     this._lastUpdateTime = 0;
 
     try {
-      // 模型提供商选择：
-      // 'hunyuan-v3' - 仅供体验的模型（免费），支持 hy3-preview
-      // 'cloudbase'  - 云开发售卖的模型（需开通资源包/配置API Key），支持 deepseek-v4-flash 等
-      const model = wx.cloud.extend.AI.createModel('hunyuan-v3');
+      // 模型提供商：cloudbase（支持 Function Calling 工具调用）
+      // hy3 为混元模型，需在云开发控制台→AI+→大模型页面开通
+      const model = wx.cloud.extend.AI.createModel('cloudbase');
 
       await model.streamText({
         data: {
-          model: 'hy3-preview',
+          model: 'hy3',
           messages
         },
+        tools: buildAITools(self, aiMsgIndex),
         onText: function(delta) {
           if (token.aborted) return;
+          var wasEmpty = !fullText;
           fullText += delta;
           // 节流：仅每 150ms setData 一次 content，期间不调用 parseMarkdown
           var t = Date.now();
           if (t - self._lastUpdateTime > 150) {
             self._lastUpdateTime = t;
-            self.setData({
-              ['messages[' + aiMsgIndex + '].content']: fullText
-            });
+            var update = { ['messages[' + aiMsgIndex + '].content']: fullText };
+            // 文本首次开始输出时，隐藏工具调用框
+            if (wasEmpty) {
+              update['messages[' + aiMsgIndex + '].toolCall'] = null;
+            }
+            self.setData(update);
           }
         },
         onFinish: function(finalText) {
@@ -387,7 +561,8 @@ Page({
           fullText = finalText || fullText;
           self.setData({
             ['messages[' + aiMsgIndex + '].content']: fullText,
-            ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(fullText)
+            ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(fullText),
+            ['messages[' + aiMsgIndex + '].toolCall']: null
           });
         }
       });
@@ -403,6 +578,7 @@ Page({
         ['messages[' + aiMsgIndex + '].content']: fullText,
         ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(fullText),
         ['messages[' + aiMsgIndex + '].ts']: Date.now(),
+        ['messages[' + aiMsgIndex + '].toolCall']: null,
         isStreaming: false
       });
 
@@ -429,7 +605,7 @@ Page({
       const errStr = String(err && (err.errMsg || err.message) || '');
       let hint = '';
       if (errStr.includes('403')) {
-        hint = '\n\n（403权限不足：请到云开发控制台→AI+模块→大模型页面，配置API Key或开通资源包）';
+        hint = '\n\n（403权限不足：工具调用需使用 cloudbase 提供商的 hy3 模型，请到云开发控制台→AI+→大模型页面开通）';
       } else if (errStr.includes('429')) {
         hint = '\n\n（429请求过多：免费额度可能已用尽，请稍后重试或配置API Key）';
       }
@@ -446,6 +622,7 @@ Page({
         ['messages[' + aiMsgIndex + '].content']: errorMsg,
         ['messages[' + aiMsgIndex + '].blocks']: parseMarkdown(errorMsg),
         ['messages[' + aiMsgIndex + '].ts']: Date.now(),
+        ['messages[' + aiMsgIndex + '].toolCall']: null,
         isStreaming: false
       });
     }

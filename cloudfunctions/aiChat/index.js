@@ -215,6 +215,155 @@ async function matchContext(event) {
   return { code: 0, systemPrompt: systemPrompt };
 }
 
+// ---------- 工具调用数据查询 ----------
+// 供 AI 大模型工具调用（Function Calling）使用的数据查询入口
+// event.tool 指定工具名，其余字段为该工具的参数
+// 需要 OPENID 的工具由云函数自动注入，前端无需传入
+
+async function toolQuery(event, openid) {
+  var tool = event.tool;
+  switch (tool) {
+    case 'search_courses_lessons':
+      return await toolSearchCoursesLessons(event.keyword || '');
+    case 'query_progress':
+      return await toolQueryProgress(openid);
+    case 'query_mistakes':
+      return await toolQueryMistakes(openid, event.limit);
+    case 'get_quiz':
+      return await toolGetQuiz(event.chapter || '', event.topic || '', event.limit);
+    case 'generate_quiz':
+      return await toolGenerateQuiz(event.topic || '', event.chapter || '', event.count);
+    default:
+      return { code: -1, msg: '未知工具: ' + tool };
+  }
+}
+
+// 搜索课程/课时：按关键词匹配课程标题/标签/章节与课时标题
+// 全量拉取后客户端过滤（数据量小，规避 RegExp/_.or 兼容问题）
+async function toolSearchCoursesLessons(keyword) {
+  if (!keyword || keyword.length < 2) {
+    return { code: 400, msg: '关键词至少2个字' };
+  }
+  var lower = String(keyword).toLowerCase();
+  var results = await Promise.all([
+    db.collection('courses').limit(20).get(),
+    db.collection('lessons').limit(100).get()
+  ]);
+  var courses = results[0].data.filter(function (c) {
+    var hay = ((c.title || '') + ' ' + (c.tag || '') + ' ' + (c.chapter || '')).toLowerCase();
+    return hay.indexOf(lower) >= 0;
+  });
+  var lessons = results[1].data.filter(function (l) {
+    return (l.title || '').toLowerCase().indexOf(lower) >= 0;
+  });
+  return {
+    code: 0,
+    courses: courses.map(function (c) {
+      return { title: c.title, tag: c.tag, chapter: c.chapter, level: c.level, totalLessons: c.totalLessons };
+    }),
+    lessons: lessons.map(function (l) {
+      return { title: l.title, courseId: l.courseId };
+    })
+  };
+}
+
+// 查询当前用户学习进度
+async function toolQueryProgress(openid) {
+  if (!openid) return { code: 401, msg: '未登录' };
+  var progressRes = await db.collection('study_progress')
+    .where({ _openid: openid }).count();
+  var completedCount = progressRes.total;
+  var lessonsRes = await db.collection('lessons').count();
+  var totalLessons = lessonsRes.total;
+  var { data: latest } = await db.collection('study_progress')
+    .where({ _openid: openid })
+    .orderBy('updatedAt', 'desc')
+    .limit(1).get();
+  var recentChapter = latest.length ? latest[0].chapter : '';
+  var progress = totalLessons > 0 ? Math.min(Math.round(completedCount / totalLessons * 100), 100) : 0;
+  return {
+    code: 0,
+    completedLessons: completedCount,
+    totalLessons: totalLessons,
+    progress: progress,
+    recentChapter: recentChapter
+  };
+}
+
+// 查询当前用户错题本（返回含答案解析，供AI讲解）
+async function toolQueryMistakes(openid, limit) {
+  if (!openid) return { code: 401, msg: '未登录' };
+  var n = Math.min(20, Math.max(1, parseInt(limit, 10) || 5));
+  var { data } = await db.collection('mistakes')
+    .where({ _openid: openid })
+    .orderBy('createdAt', 'desc')
+    .limit(n).get();
+  return {
+    code: 0,
+    total: data.length,
+    list: data.map(function (m) {
+      return {
+        stem: m.stem,
+        chapter: m.chapter,
+        topic: m.topic,
+        userAnswer: m.userAnswer,
+        answer: m.answer,
+        explanation: m.explanation
+      };
+    })
+  };
+}
+
+// 获取练习题（含答案解析，供AI讲解分析）
+async function toolGetQuiz(chapter, topic, limit) {
+  var where = {};
+  if (chapter) where.chapter = chapter;
+  if (topic) where.topic = topic;
+  var n = Math.min(10, Math.max(1, parseInt(limit, 10) || 3));
+  var { data } = await db.collection('quiz_questions').where(where).limit(n).get();
+  return {
+    code: 0,
+    list: data.map(function (q) {
+      return {
+        stem: q.stem,
+        options: q.options,
+        answer: q.answer,
+        explanation: q.explanation,
+        chapter: q.chapter,
+        topic: q.topic
+      };
+    })
+  };
+}
+
+// 随机出题：从题库随机抽取题目供学生练习
+async function toolGenerateQuiz(topic, chapter, count) {
+  var where = {};
+  if (chapter) where.chapter = chapter;
+  if (topic) where.topic = topic;
+  var n = Math.min(10, Math.max(1, parseInt(count, 10) || 3));
+  var { data } = await db.collection('quiz_questions').where(where).limit(50).get();
+  // Fisher-Yates 随机打乱后取前 n 道
+  for (var i = data.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = data[i]; data[i] = data[j]; data[j] = tmp;
+  }
+  var picked = data.slice(0, n);
+  return {
+    code: 0,
+    list: picked.map(function (q) {
+      return {
+        stem: q.stem,
+        options: q.options,
+        answer: q.answer,
+        explanation: q.explanation,
+        chapter: q.chapter,
+        topic: q.topic
+      };
+    })
+  };
+}
+
 // ---------- 云函数入口 ----------
 
 exports.main = async (event, context) => {
@@ -241,6 +390,8 @@ exports.main = async (event, context) => {
         return await updateTitle(event, OPENID);
       case 'matchContext':
         return await matchContext(event);
+      case 'toolQuery':
+        return await toolQuery(event, OPENID);
       default:
         return { code: -1, msg: '未知的操作类型' };
     }

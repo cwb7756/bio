@@ -13,6 +13,15 @@
         <text class="page-subtitle">按章节系统学习，逐个突破</text>
       </view>
 
+      <!-- 未登录引导：学习进度为用户数据，登录后展示 -->
+      <view wx:if="{{needLogin}}" class="login-guide">
+        <image class="lg-cat" src="/images/cat-study.png" mode="aspectFit"></image>
+        <text class="lg-title">登录后查看你的学习进度</text>
+        <text class="lg-desc">课程进度、章节解锁与学习概览\n登录后即可同步展示</text>
+        <view class="btn deep lg-btn" bindtap="goLogin">去登录</view>
+      </view>
+
+      <block wx:else>
       <!-- 学段切换 -->
       <view class="segment-wrap">
         <image class="seg-cat" src="/images/cat-study.png" mode="aspectFit"></image>
@@ -51,10 +60,14 @@
           <view class="icon ic-target map-entry-icon"></view>
           <view class="map-entry-text">
             <text class="map-entry-title">知识地图</text>
-            <text class="map-entry-desc">闯关式点亮知识点</text>
+            <text class="map-entry-desc" wx:if="{{mapOverview.loaded}}">已点亮 {{mapOverview.doneCount}}/{{mapOverview.totalCount}} 个知识点</text>
+            <text class="map-entry-desc" wx:else>闯关式点亮知识点</text>
           </view>
         </view>
-        <view class="icon ic-chevron-right map-entry-arrow"></view>
+        <view class="map-entry-right">
+          <text class="map-entry-percent" wx:if="{{mapOverview.loaded}}">{{mapOverview.overallPercent}}%</text>
+          <view class="icon ic-chevron-right map-entry-arrow"></view>
+        </view>
       </view>
 
       <!-- 章节列表 -->
@@ -97,6 +110,7 @@
           </view>
         </view>
       </view>
+      </block>
     </view>
   </view>
 </view>

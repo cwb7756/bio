@@ -42,7 +42,7 @@
         <view class="continue-title">{{continueLearning.title}}</view>
         <view class="continue-meta">{{continueLearning.meta}}</view>
         <view class="progress-bar">
-          <view class="progress-fill" style="width: {{continueLearning.progress}}%;"></view>
+          <view class="progress-fill" style="width: {{continueLearning.progressText}};"></view>
         </view>
         <view class="continue-go">
           <view class="icon ic-play go-icon"></view>

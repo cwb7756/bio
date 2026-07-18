@@ -18,6 +18,8 @@ Page({
       { num: '--', label: '学习时长', unit: 'h' }
     ],
     achievements: [],
+    unlockedCount: 0,
+    totalAchievements: 0,
     menuList: [
       { icon: 'ic-close', name: '我的错题本', desc: '错题回顾与复习', badge: '', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-folder', name: '速记卡片', desc: '考点速记随身看', badge: '', path: '/pages/flashcards/flashcards' },
@@ -38,8 +40,22 @@ Page({
       this.getTabBar().setData({ selected: 3 });
     }
     this.refreshUser();
-    this.loadStats();
-    this.loadAchievements();
+    // 统计与成就为用户数据：仅登录后加载，未登录保持占位
+    if (app.globalData.isLoggedIn) {
+      this.loadStats();
+      this.loadAchievements();
+    } else {
+      this.setData({
+        stats: [
+          { num: '--', label: '连续学习', unit: '天' },
+          { num: '--', label: '刷题数', unit: '题' },
+          { num: '--', label: '学习时长', unit: 'h' }
+        ],
+        achievements: [],
+        unlockedCount: 0,
+        totalAchievements: 0
+      });
+    }
   },
 
   // 读取登录态并刷新用户信息
@@ -86,24 +102,39 @@ Page({
     });
   },
 
-  // 加载已解锁成就列表
+  // 加载成就数据（调用 refresh 自动计算并更新进度，仅展示已解锁的前3个）
   loadAchievements() {
     wx.cloud.callFunction({
       name: 'achievements',
-      data: { action: 'list' },
+      data: { action: 'refresh' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
-          var list = res.result.list || (res.result.data && res.result.data.achievements) || [];
-          this.setData({ achievements: list });
+          var list = res.result.list || [];
+          var unlocked = list.filter(function (a) { return a.unlocked; }).slice(0, 3);
+          this.setData({
+            achievements: unlocked,
+            unlockedCount: res.result.unlockedCount || 0,
+            totalAchievements: res.result.total || list.length || 0
+          });
         } else {
-          this.setData({ achievements: [] });
+          this.setData({ achievements: [], unlockedCount: 0, totalAchievements: 0 });
         }
       },
       fail: (err) => {
         console.error('achievements cloud function error:', err);
-        this.setData({ achievements: [] });
+        this.setData({ achievements: [], unlockedCount: 0, totalAchievements: 0 });
       }
     });
+  },
+
+  // 跳转成就中心
+  goAchievements() {
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      wx.navigateTo({ url: '/pages/login/login' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/achievements/achievements' });
   },
 
   // 点击用户卡片：已登录跳编辑资料页，未登录跳登录页

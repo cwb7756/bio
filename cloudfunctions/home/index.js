@@ -4,6 +4,16 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
+
+// study_progress 身份兼容条件：旧数据用 userID，新数据用 _openid
+function progressCond(openid, userID, extra) {
+  const conds = [Object.assign({ _openid: openid }, extra)];
+  if (userID) {
+    conds.push(Object.assign({ userID: userID }, extra));
+  }
+  return conds.length > 1 ? _.or(conds) : conds[0];
+}
 
 // 参数校验：字符串长度不超过10000，数组长度不超过100
 function validateParams(obj) {
@@ -35,21 +45,21 @@ async function getUserInfo(openid) {
   return {
     nickname: user.nickname || '同学',
     avatar: user.avatar || '',
-    grade: user.grade || ''
+    grade: user.grade || '',
+    userID: user.userID || ''
   };
 }
 
 /**
  * 获取继续学习卡片数据
- * 1. 查 study_progress 最近一条记录 → 得到 chapter
- * 2. 查 courses by chapter → 得到课程信息
- * 3. 查 lessons by courseId → 得到总课时
- * 4. 统计该 chapter 下 study_progress 总数 → 计算进度
+ * 1. 查 study_progress 最近一条 type='lesson' 记录 → 得到 courseId
+ * 2. 查 courses by courseId → 得到课程信息
+ * 3. 统计该课程总课时数与已完成课时数 → 计算进度
  */
-async function getContinueLearning(openid) {
-  // 取最近一条学习记录（仅用 _openid）
+async function getContinueLearning(openid, userID) {
+  // 取最近一条课时学习记录（兼容 _openid / userID）
   const { data: latestList } = await db.collection('study_progress')
-    .where({ _openid: openid })
+    .where(progressCond(openid, userID, { type: 'lesson' }))
     .orderBy('updatedAt', 'desc')
     .limit(1)
     .get();
@@ -57,27 +67,27 @@ async function getContinueLearning(openid) {
   if (latestList.length === 0) return null;
 
   const latest = latestList[0];
-  const chapter = latest.chapter;
+  const courseId = latest.courseId;
+  if (!courseId) return null;
 
   // 查课程信息
   const { data: courseList } = await db.collection('courses')
-    .where({ chapter })
+    .where({ _id: courseId })
+    .limit(1)
     .get();
 
   if (courseList.length === 0) return null;
 
   const course = courseList[0];
 
-  // 查该课程的总课时数
-  const { data: lessons } = await db.collection('lessons')
-    .where({ courseId: course._id })
-    .get();
+  // 该课程总课时数
+  const { total: totalLessons } = await db.collection('lessons')
+    .where({ courseId })
+    .count();
 
-  const totalLessons = lessons.length;
-
-  // 统计该用户的学习记录总数（count 替代全量 get + length）
+  // 该课程已完成课时数（仅 type='lesson'，身份兼容）
   const { total: completedCount } = await db.collection('study_progress')
-    .where({ _openid: openid })
+    .where(progressCond(openid, userID, { courseId, type: 'lesson' }))
     .count();
 
   const progress = totalLessons > 0
@@ -87,7 +97,7 @@ async function getContinueLearning(openid) {
   return {
     tag: '继续学习',
     title: course.title,
-    meta: chapter + ' · ' + course.tag + ' · 已学 ' + progress + '%',
+    meta: course.chapter + ' · ' + course.tag + ' · 已学 ' + progress + '%',
     progress: progress,
     courseId: course._id
   };
@@ -131,7 +141,7 @@ exports.main = async (event, context) => {
     // 继续学习依赖用户信息
     let continueLearning = null;
     if (userInfo) {
-      continueLearning = await getContinueLearning(OPENID);
+      continueLearning = await getContinueLearning(OPENID, userInfo.userID);
     }
 
     return {

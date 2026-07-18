@@ -203,7 +203,7 @@
 
 /* 骨架占位 */
 .skeleton-block {
-  background: linear-gradient(90deg, var(--line) 25%, rgba(255,255,255,0.6) 50%, var(--line) 75%);
+  background: linear-gradient(90deg, var(--green-soft) 25%, var(--green-soft2) 50%, var(--green-soft) 75%);
   background-size: 200% 100%;
   animation: skeleton-pulse 1.2s ease-in-out infinite;
   border-radius: 32rpx;

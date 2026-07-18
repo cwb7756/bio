@@ -298,6 +298,76 @@
   }
 }
 
+/* ---- 工具调用框 ---- */
+.tool-call-box {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  padding: 14rpx 20rpx;
+  margin-bottom: 14rpx;
+  border: 3rpx solid var(--green-soft);
+  border-radius: 16rpx;
+  background: var(--paper2);
+}
+
+.tool-call-box.done {
+  border-color: var(--gray-line);
+  opacity: 0.7;
+}
+
+.tool-call-icon {
+  flex-shrink: 0;
+  width: 30rpx;
+  height: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tool-call-spinner {
+  width: 26rpx;
+  height: 26rpx;
+  border: 4rpx solid var(--green-soft);
+  border-top-color: var(--green-deep);
+  border-radius: 50%;
+  animation: tool-spin 0.8s linear infinite;
+}
+
+@keyframes tool-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tool-call-check {
+  width: 26rpx;
+  height: 26rpx;
+  border-radius: 50%;
+  background: var(--green);
+  position: relative;
+}
+
+.tool-call-check::after {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 4rpx;
+  width: 8rpx;
+  height: 13rpx;
+  border: solid var(--paper);
+  border-width: 0 3rpx 3rpx 0;
+  transform: rotate(45deg);
+}
+
+.tool-call-label {
+  font-size: 25rpx;
+  font-weight: 600;
+  color: var(--green-deep);
+}
+
+.tool-call-box.done .tool-call-label {
+  color: var(--gray);
+  font-weight: 500;
+}
+
 /* ---- 历史会话抽屉 ---- */
 .history-mask {
   position: fixed;

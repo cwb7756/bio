@@ -91,6 +91,12 @@
           <text>{{item.title}}</text>
         </view>
       </scroll-view>
+
+      <!-- 完成学习 -->
+      <view class="complete-bar {{courseCompleted ? 'complete-bar-done' : ''}}" bindtap="completeCourse">
+        <view class="icon {{courseCompleted ? 'ic-check-white' : 'ic-target'}} complete-icon"></view>
+        <text class="complete-txt">{{courseCompleted ? '已学完本课程' : '标记为已学完'}}</text>
+      </view>
     </view>
   </view>
 </view>

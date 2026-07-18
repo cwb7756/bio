@@ -93,6 +93,18 @@
   color: var(--gray);
 }
 
+.map-entry-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.map-entry-percent {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
 .map-entry-arrow {
   width: 32rpx;
   height: 32rpx;
@@ -265,4 +277,36 @@
 .ch-arrow .icon {
   width: 32rpx;
   height: 32rpx;
+}
+
+/* 未登录引导空状态 */
+.login-guide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 60rpx 60rpx;
+  gap: 16rpx;
+}
+
+.lg-cat {
+  width: 220rpx;
+  height: 220rpx;
+}
+
+.lg-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+
+.lg-desc {
+  font-size: 26rpx;
+  color: var(--ink-soft);
+  text-align: center;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.lg-btn {
+  margin-top: 28rpx;
 }

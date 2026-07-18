@@ -8,9 +8,7 @@ Page({
     isDemo: false,
     achievements: [],
     unlockedCount: 0,
-    totalCount: 0,
-    skip: 0,
-    limit: 50
+    totalCount: 0
   },
 
   onLoad() {
@@ -24,32 +22,43 @@ Page({
       wx.navigateTo({ url: '/pages/login/login' });
       return;
     }
-    this.setData({ skip: 0, achievements: [] });
-    this.loadAchievements(false);
+    this.loadAchievements();
   },
 
-  // 调用 achievements 云函数获取成就列表
-  loadAchievements(append, done) {
+  // 调用 achievements 云函数刷新并获取成就列表
+  loadAchievements(done) {
     this.setData({ loading: true });
     wx.cloud.callFunction({
       name: 'achievements',
-      data: { action: 'list', skip: this.data.skip, limit: this.data.limit },
+      data: { action: 'refresh' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
-          var list = res.result.list || (res.result.data && res.result.data.achievements) || [];
-          var total = res.result.total !== undefined ? res.result.total : (res.result.data && res.result.data.totalCount) || list.length;
-          var isDemo = res.result.isDemo !== undefined ? res.result.isDemo : (res.result.data && res.result.data.isDemo) || false;
-          var unlockedCount = res.result.unlockedCount !== undefined ? res.result.unlockedCount : (res.result.data && res.result.data.unlockedCount !== undefined ? res.result.data.unlockedCount : list.filter(function(a) { return a.unlocked; }).length);
+          var list = res.result.list || [];
+          var total = res.result.total !== undefined ? res.result.total : list.length;
+          var isDemo = res.result.isDemo !== undefined ? res.result.isDemo : false;
+          var unlockedCount = res.result.unlockedCount !== undefined ? res.result.unlockedCount : list.filter(function(a) { return a.unlocked; }).length;
+          var newlyUnlocked = res.result.newlyUnlocked || [];
+
           this.setData({
-            achievements: append ? this.data.achievements.concat(list) : list,
+            achievements: list,
             totalCount: total,
             unlockedCount: unlockedCount,
             isDemo: isDemo,
             loading: false
           });
+
+          // 新解锁成就提示
+          if (newlyUnlocked.length > 0) {
+            var names = newlyUnlocked.map(function(a) { return a.name; }).join('、');
+            wx.showToast({
+              title: '解锁成就：' + names,
+              icon: 'none',
+              duration: 3000
+            });
+          }
         } else {
           this.setData({ loading: false });
-          wx.showToast({ title: '加载失败', icon: 'none' });
+          wx.showToast({ title: res.result.msg || '加载失败', icon: 'none' });
         }
         if (done) done();
       },
@@ -63,18 +72,13 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.setData({ skip: 0, achievements: [] });
-    this.loadAchievements(false, () => {
+    this.loadAchievements(() => {
       wx.stopPullDownRefresh();
     });
   },
 
   onReachBottom() {
-    if (this.data.loading) return;
-    if (this.data.achievements.length < this.data.totalCount) {
-      this.setData({ skip: this.data.skip + this.data.limit });
-      this.loadAchievements(true);
-    }
+    // refresh 已返回全部成就，无需分页加载
   },
 
   goBack() {

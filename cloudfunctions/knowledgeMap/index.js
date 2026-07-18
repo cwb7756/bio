@@ -1,12 +1,9 @@
 // 云函数 knowledgeMap - 知识地图（闯关式点亮）
-// 返回课程课时节点 + 掌握度；用户无学习记录时返回 demo 示例进度
+// 返回课程课时节点 + 掌握度；按用户真实学习记录组装，无记录时全部为未开始状态
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
-
-// demo 节点掌握度（新用户示例）：前3课已掌握，第4课闯关中，第5课学习中，其余锁定
-const DEMO_MASTERIES = [95, 88, 82, 45, 12];
 
 // 参数校验：字符串长度不超过10000，数组长度不超过100
 function validateParams(obj) {
@@ -49,53 +46,27 @@ exports.main = async (event) => {
 
     // 3. 用户该课程学习记录（仅用 _openid）
     let completedIndexes = [];
-    let isDemo = true;
     if (OPENID) {
       const { data: progress } = await db.collection('study_progress')
         .where({ _openid: OPENID, courseId, type: 'lesson' })
         .limit(100)
         .get();
-      if (progress.length > 0) {
-        isDemo = false;
-        completedIndexes = progress.map((p) => p.itemIndex);
-      }
+      completedIndexes = progress.map((p) => p.itemIndex);
     }
 
-    // 4. 组装节点
-    let nodes = [];
-    if (isDemo) {
-      // demo：前 N 课按示例掌握度，其余锁定
-      nodes = lessons.map((l, i) => {
-        let mastery = 0;
-        let status = 'lock';
-        if (i < DEMO_MASTERIES.length) {
-          mastery = DEMO_MASTERIES[i];
-          status = mastery >= 80 ? 'done' : (i === 3 ? 'current' : 'learning');
-        }
-        return {
-          lessonId: l._id,
-          courseId: courseId,
-          index: l.index || i + 1,
-          title: l.title,
-          mastery,
-          status
-        };
-      });
-    } else {
-      // 真实：已完成课时 100；下一个未完成课时为当前关卡；再往后锁定
-      let currentAssigned = false;
-      nodes = lessons.map((l, i) => {
-        const done = completedIndexes.includes(l.index || i + 1) || completedIndexes.includes(i);
-        if (done) {
-          return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 100, status: 'done' };
-        }
-        if (!currentAssigned) {
-          currentAssigned = true;
-          return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'current' };
-        }
-        return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'lock' };
-      });
-    }
+    // 4. 组装节点（真实数据：已完成课时 mastery=100，下一个未完成为当前关卡，其余锁定）
+    let currentAssigned = false;
+    const nodes = lessons.map((l, i) => {
+      const done = completedIndexes.includes(l.index || i + 1) || completedIndexes.includes(i);
+      if (done) {
+        return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 100, status: 'done' };
+      }
+      if (!currentAssigned) {
+        currentAssigned = true;
+        return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'current' };
+      }
+      return { lessonId: l._id, courseId: courseId, index: l.index || i + 1, title: l.title, mastery: 0, status: 'lock' };
+    });
 
     // 5. 总览
     const doneCount = nodes.filter((n) => n.status === 'done').length;
@@ -108,7 +79,7 @@ exports.main = async (event) => {
     return {
       code: 0,
       data: {
-        isDemo,
+        isDemo: false,
         course: {
           _id: course._id,
           title: course.title,

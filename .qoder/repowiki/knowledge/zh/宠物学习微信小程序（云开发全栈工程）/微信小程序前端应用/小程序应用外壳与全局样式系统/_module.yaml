@@ -1,0 +1,12 @@
+schema_version: 1
+module_path: miniprogram/app_shell
+title: 小程序应用外壳与全局样式系统
+scope:
+    - miniprogram/app.js
+    - miniprogram/app.json
+    - miniprogram/app.wxss
+    - miniprogram/sitemap.json
+source_files: []
+depends_on: []
+related_to:
+    - path: cloudfunctions

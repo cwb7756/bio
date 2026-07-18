@@ -37,7 +37,8 @@ Page({
     this.topic = decodeURIComponent(options.topic || '');
 
     let navTitle = '刷题';
-    if (this.chapter) navTitle = this.chapter + ' · 刷题';
+    if (this.topic) navTitle = this.topic + ' · 刷题';
+    else if (this.chapter) navTitle = this.chapter + ' · 刷题';
 
     this.setData({ navTitle });
     this.loadQuestions(this.chapter, this.topic);

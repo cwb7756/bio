@@ -9,6 +9,7 @@ Page({
     currentIndex: 0,
     currentVideo: null,
     currentCover: '',
+    courseCompleted: false,
     loading: true,
     loadError: false
   },
@@ -33,11 +34,12 @@ Page({
       data: { courseId: this.data.courseId },
       success: (res) => {
         if (res.result && res.result.code === 0) {
-          const { course, videos, knowledgePoints } = res.result.data;
+          const { course, videos, knowledgePoints, courseCompleted } = res.result.data;
           this.setData({
             course,
             videos,
             knowledgePoints,
+            courseCompleted: !!courseCompleted,
             currentIndex: 0,
             currentVideo: videos[0] || null,
             currentCover: this.pickCover(course, videos, 0),
@@ -106,6 +108,40 @@ Page({
     let url = '/pages/knowledge/knowledge?courseId=' + this.data.courseId;
     if (kpId) url += '&kpId=' + kpId;
     wx.navigateTo({ url });
+  },
+
+  // 标记课程为已学完：写入 study_progress，知识地图将同步点亮
+  completeCourse() {
+    if (this.data.courseCompleted) {
+      wx.showToast({ title: '已学完', icon: 'none' });
+      return;
+    }
+    wx.showModal({
+      title: '完成学习',
+      content: '确认已学完本课程所有课时？',
+      confirmText: '已学完',
+      success: (res) => {
+        if (!res.confirm) return;
+        wx.showLoading({ title: '记录中...' });
+        wx.cloud.callFunction({
+          name: 'getCourseDetail',
+          data: { action: 'completeCourse', courseId: this.data.courseId },
+          success: (r) => {
+            wx.hideLoading();
+            if (r.result && r.result.code === 0) {
+              this.setData({ courseCompleted: true });
+              wx.showToast({ title: '已记录学习进度', icon: 'success' });
+            } else {
+              wx.showToast({ title: (r.result && r.result.msg) || '记录失败', icon: 'none' });
+            }
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: '网络异常', icon: 'none' });
+          }
+        });
+      }
+    });
   },
 
   goBack() {

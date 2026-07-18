@@ -14,7 +14,7 @@ Page({
     continueLearning: null,
     features: [
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
-      { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quiz/quiz' },
+      { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quizEntry/quizEntry' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
@@ -40,10 +40,12 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
-    // 先用本地缓存快速回显用户名
+    // 先用本地缓存快速回显用户名；未登录重置为默认称呼
     const info = wx.getStorageSync('userInfo');
     if (info && info.nickname) {
       this.setData({ userName: info.nickname });
+    } else {
+      this.setData({ userName: '同学' });
     }
     // 拉取最新云端数据
     this.loadHomeData();
@@ -83,13 +85,20 @@ Page({
         if (res.result && res.result.code === 0) {
           const { user, continueLearning, hotTopics } = res.result.data;
 
+          // 用户数据（昵称 / 继续学习）仅登录态下应用；
+          // 未登录时云端可能仍通过 openid 返回 users 记录，需前端门控，避免退出登录后数据复活
+          const loggedIn = app.globalData.isLoggedIn;
+          // 进度条宽度在 JS 侧拼成完整字符串，避免 WXML 内联样式里 }}% 触发编辑器 CSS 校验误报
+          const cl = loggedIn && continueLearning
+            ? Object.assign({}, continueLearning, { progressText: continueLearning.progress + '%' })
+            : null;
           const updateData = {
-            continueLearning,
+            continueLearning: cl,
             hotTopics,
             loading: false
           };
 
-          if (user) {
+          if (user && loggedIn) {
             updateData.userName = user.nickname || '同学';
             // 同步更新本地缓存
             const cached = wx.getStorageSync('userInfo') || {};

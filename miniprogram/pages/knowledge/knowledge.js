@@ -1,4 +1,6 @@
 // pages/knowledge/knowledge.js
+const app = getApp();
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -15,7 +17,8 @@ Page({
     const sys = wx.getSystemInfoSync();
     this.setData({
       statusBarHeight: sys.statusBarHeight,
-      courseId: (options && options.courseId) || '',
+      // 兜底默认课程，与 map 页面保持一致；避免从首页"知识图解"入口进入时因缺 courseId 直接显示加载失败
+      courseId: (options && options.courseId) || 'course_required_1',
       kpId: (options && options.kpId) || ''
     });
     this.loadDetail();
@@ -89,6 +92,14 @@ Page({
   },
 
   addToCards() {
+    // 登录拦截：闪卡为用户数据，未登录提示并跳转登录页
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录后再添加闪卡', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
     const kp = this.data.knowledgePoints[0];
     const kpTitle = kp ? kp.title : (this.data.course ? this.data.course.title : '');
     const kpContent = kp ? kp.desc : '';

@@ -46,14 +46,15 @@
       </view>
 
       <!-- 成就展示 -->
-      <view class="sec-title">
+      <view class="sec-title" bindtap="goAchievements">
         <text class="u">我的成就</text>
+        <text class="ach-count" wx:if="{{isLoggedIn && totalAchievements > 0}}">{{unlockedCount}}/{{totalAchievements}}</text>
         <view class="more"><text>全部</text><view class="icon ic-chevron-right more-icon"></view></view>
       </view>
-      <view class="achievement-row">
+      <view class="achievement-row" wx:if="{{achievements.length > 0}}">
         <view
           wx:for="{{achievements}}"
-          wx:key="name"
+          wx:key="_id"
           class="achievement-item"
         >
           <view class="achievement-icon">
@@ -62,6 +63,10 @@
           <text class="achievement-name">{{item.name}}</text>
           <text class="achievement-desc">{{item.desc}}</text>
         </view>
+      </view>
+      <view class="achievement-empty" wx:elif="{{isLoggedIn}}">
+        <view class="icon ic-trophy empty-icon"></view>
+        <text class="empty-text">完成学习任务即可解锁成就</text>
       </view>
 
       <!-- 菜单列表 -->

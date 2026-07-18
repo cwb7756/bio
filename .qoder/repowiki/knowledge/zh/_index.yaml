@@ -1,0 +1,66 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-07-18T02:50:25Z"
+modules:
+    "":
+        dir_name: 宠物学习微信小程序（云开发全栈工程）
+        title: 宠物学习微信小程序（云开发全栈工程）
+        scope:
+            - .gitignore
+            - project.config.json
+            - README.md
+        source_files: []
+        children:
+            - cloudfunctions
+            - docs
+            - miniprogram
+        depends_on: []
+        related_to: []
+    cloudfunctions:
+        dir_name: 微信小程序云函数集合（业务 API 层）
+        title: 微信小程序云函数集合（业务 API 层）
+        scope:
+            - cloudfunctions/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: miniprogram
+            - path: miniprogram/app_shell
+    docs:
+        dir_name: 项目文档与交互原型（审计_课程视频方案_手绘风原型）
+        title: 项目文档与交互原型（审计/课程视频方案/手绘风原型）
+        scope:
+            - docs/
+            - prototype/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    miniprogram:
+        dir_name: 微信小程序前端应用
+        title: 微信小程序前端应用
+        scope:
+            - miniprogram/
+        source_files: []
+        children:
+            - miniprogram/app_shell
+        depends_on: []
+        related_to:
+            - path: cloudfunctions
+    miniprogram/app_shell:
+        dir_name: 小程序应用外壳与全局样式系统
+        title: 小程序应用外壳与全局样式系统
+        scope:
+            - miniprogram/app.js
+            - miniprogram/app.json
+            - miniprogram/app.wxss
+            - miniprogram/sitemap.json
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: cloudfunctions

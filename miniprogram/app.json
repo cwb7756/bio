@@ -6,6 +6,7 @@
     "pages/ai/ai",
     "pages/mine/mine",
     "pages/knowledge/knowledge",
+    "pages/quizEntry/quizEntry",
     "pages/quiz/quiz",
     "pages/quizSummary/quizSummary",
     "pages/login/login",

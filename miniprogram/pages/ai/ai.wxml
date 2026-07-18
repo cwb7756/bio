@@ -78,8 +78,16 @@
           <view class="icon ic-bot"></view>
         </view>
         <view class="msg-bubble msg-bubble-ai {{!item.content && isStreaming ? 'streaming' : ''}}">
-          <!-- 流式加载指示（AI消息为空且正在流式时） -->
-          <view wx:if="{{!item.content && isStreaming}}" class="typing-indicator">
+          <!-- 工具调用框（模型调用工具时显示） -->
+          <view wx:if="{{item.toolCall}}" class="tool-call-box {{item.toolCall.status}}">
+            <view class="tool-call-icon">
+              <view wx:if="{{item.toolCall.status === 'calling'}}" class="tool-call-spinner"></view>
+              <view wx:else class="tool-call-check"></view>
+            </view>
+            <text class="tool-call-label">{{item.toolCall.status === 'calling' ? item.toolCall.label + '...' : '已' + item.toolCall.label}}</text>
+          </view>
+          <!-- 流式加载指示（AI消息为空且正在流式且无工具调用时） -->
+          <view wx:elif="{{!item.content && isStreaming}}" class="typing-indicator">
             <view class="typing-dot"></view>
             <view class="typing-dot"></view>
             <view class="typing-dot"></view>

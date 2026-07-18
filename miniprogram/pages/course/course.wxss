@@ -231,3 +231,42 @@
 .kp-chip:active {
   background: var(--green);
 }
+
+/* 完成学习按钮 */
+.complete-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 26rpx;
+  margin-top: 36rpx;
+}
+
+.complete-bar:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: none;
+}
+
+.complete-bar-done {
+  background: var(--green-soft);
+  border-color: var(--green);
+}
+
+.complete-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.complete-txt {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.complete-bar-done .complete-txt {
+  color: var(--green-deep);
+}

@@ -113,7 +113,7 @@ Page({
 
   // 去刷题
   goQuiz() {
-    wx.navigateTo({ url: '/pages/quiz/quiz' });
+    wx.navigateTo({ url: '/pages/quizEntry/quizEntry' });
   },
 
   onShareAppMessage() {

@@ -186,31 +186,6 @@
   font-size: 28rpx;
 }
 
-/* ---- 用户协议 ---- */
-.agreement-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  padding: 0 8rpx;
-}
-
-.agreement-row .icon {
-  width: 36rpx;
-  height: 36rpx;
-  flex-shrink: 0;
-}
-
-.agreement-text {
-  font-size: 24rpx;
-  color: var(--ink-soft);
-  line-height: 1.6;
-}
-
-.agreement-link {
-  color: var(--green-deep);
-  font-weight: 600;
-}
-
 /* ---- 邮箱登录按钮 ---- */
 .email-login-btn {
   width: 100%;
