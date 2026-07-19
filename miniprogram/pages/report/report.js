@@ -5,7 +5,7 @@ Page({
   data: {
     statusBarHeight: 20,
     loading: true,
-    isDemo: false,
+    hasData: false,
     stats: [],
     week: [],
     weekMax: 1,
@@ -38,7 +38,7 @@ Page({
           const weekMax = Math.max(1, ...d.week.map((w) => w.count));
           this.setData({
             loading: false,
-            isDemo: d.isDemo,
+            hasData: !!d.hasData,
             stats: [
               { num: String(d.streakDays), label: '连续打卡', unit: '天', icon: 'ic-fire' },
               { num: String(d.quizTotal), label: '刷题总数', unit: '题', icon: 'ic-pen' },
@@ -72,6 +72,11 @@ Page({
 
   goBack() {
     wx.navigateBack();
+  },
+
+  // 空状态引导：跳转学习 tab
+  goStudy() {
+    wx.switchTab({ url: '/pages/study/study' });
   },
 
   onShareAppMessage() {

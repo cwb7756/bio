@@ -1,0 +1,250 @@
+<!--pages/aiClassroom/aiClassroom.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 顶栏 -->
+  <view class="cl-navbar">
+    <view class="icon-btn" bindtap="onNavBack" hover-class="cl-btn-hover">
+      <view class="icon ic-back"></view>
+    </view>
+    <text class="cl-nav-title">{{phase === 'playing' ? coursewareTitle : 'AI课堂'}}</text>
+    <view wx:if="{{phase === 'playing'}}" class="cl-page-badge">{{current + 1}}/{{scenes.length}}</view>
+    <view wx:else class="cl-nav-placeholder"></view>
+  </view>
+
+  <!-- ===== input 态 ===== -->
+  <scroll-view wx:if="{{phase === 'input'}}" scroll-y class="cl-body">
+    <view class="page-pad">
+      <view class="page-header">
+        <text class="page-title">AI课堂</text>
+        <text class="page-subtitle">输入问题，AI老师为你生成有声课件</text>
+      </view>
+
+      <!-- 输入卡片 -->
+      <view class="cl-input-card">
+        <textarea class="cl-textarea" value="{{inputValue}}" bindinput="onInput" placeholder="例如：什么是光合作用？" auto-height maxlength="200" />
+        <view class="cl-input-actions">
+          <text class="cl-input-count">{{inputValue.length}}/200</text>
+          <view class="btn deep cl-gen-btn" bindtap="onStartOutline">生成课件</view>
+        </view>
+      </view>
+
+      <!-- 推荐主题 -->
+      <view class="cl-sugg">
+        <view class="chip cl-sugg-chip" wx:for="{{suggestions}}" wx:key="*this" data-text="{{item}}" bindtap="onTapSuggestion">{{item}}</view>
+      </view>
+
+      <!-- 历史课件 -->
+      <block wx:if="{{historyList.length}}">
+        <view class="sec-title"><text class="u">历史课件</text></view>
+        <view class="cl-history-item" wx:for="{{historyList}}" wx:key="_id" data-id="{{item._id}}" bindtap="onTapHistory" bindlongpress="onLongPressHistory" hover-class="cl-history-hover">
+          <view class="icon ic-history cl-history-icon"></view>
+          <view class="cl-history-text">
+            <text class="cl-history-title">{{item.title}}</text>
+            <text class="cl-history-meta">{{item.sceneCount}}节 · {{item.timeText}}</text>
+          </view>
+          <view class="icon ic-chevron-right"></view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- ===== outline 态 ===== -->
+  <scroll-view wx:if="{{phase === 'outline'}}" scroll-y class="cl-body">
+    <view class="page-pad">
+      <view class="page-header">
+        <text class="page-title">课件大纲</text>
+        <text class="page-subtitle">确认或调整章节，然后开始生成</text>
+      </view>
+
+      <view wx:if="{{outlineLoading}}" class="cl-loading">
+        <view class="icon ic-bot cl-loading-icon"></view>
+        <text class="cl-loading-text">AI老师正在备课，生成大纲中…</text>
+      </view>
+
+      <block wx:else>
+        <view class="cl-outline-title">{{outlineTitle}}</view>
+        <view class="cl-sec-card" wx:for="{{sections}}" wx:key="index">
+          <view class="cl-sec-index">{{index + 1}}</view>
+          <view class="cl-sec-main">
+            <input class="cl-sec-input" value="{{item.title}}" data-index="{{index}}" bindinput="onEditSection" maxlength="20" />
+            <view class="cl-sec-meta">
+              <text class="cl-sec-type cl-type-{{item.sceneType}}">{{typeLabels[item.sceneType]}}</text>
+              <text class="cl-sec-goal">{{item.goal}}</text>
+            </view>
+          </view>
+          <view class="cl-sec-del" data-index="{{index}}" bindtap="onDeleteSection">
+            <view class="icon ic-close"></view>
+          </view>
+        </view>
+
+        <view class="cl-outline-actions">
+          <view class="btn ghost" bindtap="onStartOutline">重新生成</view>
+          <view class="btn deep" bindtap="onConfirmOutline">开始生成课件</view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- ===== generating 态 ===== -->
+  <view wx:if="{{phase === 'generating'}}" class="cl-body cl-center-body">
+    <view class="cl-gen-card">
+      <view class="icon ic-bot cl-gen-icon"></view>
+      <text class="cl-gen-title">AI老师正在制作课件</text>
+      <text class="cl-gen-progress-text">正在生成 第{{genCurrent}}节 / 共{{genTotal}}节</text>
+      <view class="cl-progress">
+        <view class="cl-progress-bar" style="width: {{genProgress}};"></view>
+      </view>
+      <view class="cl-gen-list" wx:if="{{genDoneList.length}}">
+        <view class="cl-gen-item" wx:for="{{genDoneList}}" wx:key="index">
+          <view class="icon ic-check-circle cl-gen-check"></view>
+          <text class="cl-gen-item-title">{{item.title}}</text>
+          <text class="cl-sec-type cl-type-{{item.sceneType}}">{{typeLabels[item.sceneType]}}</text>
+        </view>
+      </view>
+      <view class="cl-gen-actions">
+        <view class="btn ghost" bindtap="onAbortGenerate">取消</view>
+        <view wx:if="{{genDoneList.length}}" class="btn deep" bindtap="onPlayPartial">先播已完成 {{genDoneList.length}} 节</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== playing 态 ===== -->
+  <block wx:if="{{phase === 'playing'}}">
+    <scroll-view scroll-y class="cl-stage" enhanced show-scrollbar="{{false}}">
+      <block wx:if="{{currentScene}}">
+
+        <!-- cover 封面 -->
+        <view wx:if="{{currentScene.type === 'cover'}}" class="cl-cover">
+          <view class="cl-cover-badge">AI 课件</view>
+          <text class="cl-cover-title">{{currentScene.title}}</text>
+          <text class="cl-cover-sub">{{currentScene.subtitle}}</text>
+        </view>
+
+        <!-- concept 概念页 -->
+        <view wx:if="{{currentScene.type === 'concept'}}" class="cl-scene">
+          <text class="cl-scene-title">{{currentScene.title}}</text>
+          <block wx:for="{{currentScene.blocks}}" wx:for-item="b" wx:key="index">
+            <text wx:if="{{b.kind === 'paragraph'}}" class="cl-para">{{b.text}}</text>
+            <view wx:if="{{b.kind === 'bullets'}}" class="cl-bullets">
+              <view class="cl-bullet" wx:for="{{b.items}}" wx:for-item="it" wx:key="*this">
+                <view class="cl-bullet-dot"></view>
+                <text class="cl-bullet-text">{{it}}</text>
+              </view>
+            </view>
+            <view wx:if="{{b.kind === 'steps'}}" class="cl-steps">
+              <view class="cl-step" wx:for="{{b.items}}" wx:for-item="it" wx:key="*this">
+                <view class="cl-step-num">{{index + 1}}</view>
+                <text class="cl-step-text">{{it}}</text>
+              </view>
+            </view>
+            <view wx:if="{{b.kind === 'keypoint'}}" class="cl-keypoint">
+              <text class="cl-keypoint-label">{{b.label}}</text>
+              <text class="cl-keypoint-text">{{b.text}}</text>
+            </view>
+            <view wx:if="{{b.kind === 'compare'}}" class="cl-compare">
+              <view class="cl-compare-col">
+                <text class="cl-compare-head">{{b.left.title}}</text>
+                <text class="cl-compare-item" wx:for="{{b.left.items}}" wx:for-item="it" wx:key="*this">{{it}}</text>
+              </view>
+              <view class="cl-compare-col">
+                <text class="cl-compare-head">{{b.right.title}}</text>
+                <text class="cl-compare-item" wx:for="{{b.right.items}}" wx:for-item="it" wx:key="*this">{{it}}</text>
+              </view>
+            </view>
+            <view wx:if="{{b.kind === 'table'}}" class="cl-table">
+              <view class="cl-table-row cl-table-head">
+                <text class="cl-table-cell" wx:for="{{b.head}}" wx:for-item="h" wx:key="*this">{{h}}</text>
+              </view>
+              <view class="cl-table-row" wx:for="{{b.rows}}" wx:for-item="row" wx:key="index">
+                <text class="cl-table-cell" wx:for="{{row}}" wx:for-item="cell" wx:key="*this">{{cell}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+
+        <!-- diagram 图解页 -->
+        <view wx:if="{{currentScene.type === 'diagram'}}" class="cl-scene">
+          <text class="cl-scene-title">{{currentScene.title}}</text>
+          <view class="cl-diagram">
+            <view class="cl-diagram-img" style="background-image: url(&quot;{{currentScene.svgUri}}&quot;)"></view>
+            <text wx:if="{{currentScene.caption}}" class="cl-diagram-caption">{{currentScene.caption}}</text>
+          </view>
+        </view>
+
+        <!-- sim 分帧动画页 -->
+        <view wx:if="{{currentScene.type === 'sim'}}" class="cl-scene">
+          <text class="cl-scene-title">{{currentScene.title}}</text>
+          <view class="cl-sim">
+            <view class="cl-sim-frame" style="background-image: url(&quot;{{currentFrame.svgUri}}&quot;)"></view>
+            <view class="cl-sim-caption-row">
+              <text class="cl-sim-caption">{{currentFrame.caption}}</text>
+              <text class="cl-sim-count">{{frameIndex + 1}}/{{currentScene.frames.length}}</text>
+            </view>
+            <view class="cl-sim-dots">
+              <view wx:for="{{currentScene.frames}}" wx:key="index" data-index="{{index}}" bindtap="onTapFrameDot" class="cl-sim-dot {{frameIndex === index ? 'cl-sim-dot-on' : ''}}"></view>
+            </view>
+          </view>
+        </view>
+
+        <!-- quiz 小测页 -->
+        <view wx:if="{{currentScene.type === 'quiz'}}" class="cl-scene">
+          <text class="cl-scene-title">{{currentScene.title}}</text>
+          <view class="cl-quiz-q">{{currentScene.question}}</view>
+          <view wx:for="{{currentScene.options}}" wx:key="key" data-key="{{item.key}}" bindtap="onPickOption"
+            class="cl-quiz-opt {{quizPicked && item.key === currentScene.answer ? 'cl-quiz-right' : ''}} {{quizPicked === item.key && item.key !== currentScene.answer ? 'cl-quiz-wrong' : ''}}">
+            <text class="cl-quiz-key">{{item.key}}</text>
+            <text class="cl-quiz-text">{{item.text}}</text>
+          </view>
+          <view wx:if="{{quizPicked}}" class="cl-quiz-result">
+            <text class="cl-quiz-verdict {{quizPicked === currentScene.answer ? 'cl-quiz-verdict-right' : 'cl-quiz-verdict-wrong'}}">{{quizPicked === currentScene.answer ? '回答正确' : '正确答案：' + currentScene.answer}}</text>
+            <text class="cl-quiz-expl">{{currentScene.explanation}}</text>
+          </view>
+        </view>
+
+        <!-- summary 总结页 -->
+        <view wx:if="{{currentScene.type === 'summary'}}" class="cl-scene">
+          <text class="cl-scene-title">{{currentScene.title}}</text>
+          <view class="cl-summary-point" wx:for="{{currentScene.points}}" wx:key="*this">
+            <view class="icon ic-check-circle cl-summary-icon"></view>
+            <text class="cl-summary-text">{{item}}</text>
+          </view>
+        </view>
+
+        <!-- 底部留白，避免被字幕/控制栏遮挡 -->
+        <view class="cl-stage-gap"></view>
+      </block>
+    </scroll-view>
+
+    <!-- 字幕条 -->
+    <view wx:if="{{subtitle}}" class="cl-subtitle" bindtap="onToggleSubtitle">
+      <text wx:if="{{showSubtitle}}" class="cl-subtitle-text">{{subtitle}}</text>
+      <view class="cl-subtitle-bar">
+        <view class="icon ic-chevron-right cl-subtitle-arrow {{showSubtitle ? 'cl-arrow-up' : 'cl-arrow-down'}}"></view>
+      </view>
+    </view>
+
+    <!-- 控制栏 -->
+    <view class="cl-controls">
+      <view class="cl-ctrl" bindtap="onPrevScene" hover-class="cl-ctrl-hover">
+        <view class="icon ic-back"></view>
+      </view>
+      <view class="cl-ctrl cl-ctrl-main" bindtap="onTogglePlay" hover-class="cl-ctrl-hover">
+        <view class="icon {{playing ? 'ic-pause' : 'ic-play'}}"></view>
+      </view>
+      <view class="cl-ctrl" bindtap="onNextScene" hover-class="cl-ctrl-hover">
+        <view class="icon ic-arrow-right"></view>
+      </view>
+      <view class="cl-ctrl" bindtap="onReplay" hover-class="cl-ctrl-hover">
+        <view class="icon ic-refresh"></view>
+      </view>
+      <view class="cl-ctrl cl-ctrl-auto {{autoPlay ? 'cl-ctrl-on' : ''}}" bindtap="onToggleAuto" hover-class="cl-ctrl-hover">
+        <view class="icon ic-bolt"></view>
+        <text class="cl-ctrl-label">自动</text>
+      </view>
+    </view>
+  </block>
+</view>

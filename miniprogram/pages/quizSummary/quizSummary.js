@@ -1,5 +1,6 @@
 // pages/quizSummary/quizSummary.js
 const app = getApp();
+const sound = require('../../utils/sound.js');
 
 Page({
   data: {
@@ -33,6 +34,9 @@ Page({
       setTimeout(() => wx.redirectTo({ url: '/pages/quizEntry/quizEntry' }), 800);
       return;
     }
+
+    // 完成刷题：播放结算音效
+    sound.play('complete');
 
     // 预处理每题展示数据：选项标注 + 展开态
     const details = s.details.map((d) => ({

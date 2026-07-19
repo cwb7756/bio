@@ -225,6 +225,31 @@
   margin-top: 4rpx;
 }
 
+/* AI 讲解正文（静态解析 / 流式生成共用） */
+.ai-text {
+  font-size: 25rpx;
+  line-height: 1.7;
+  margin-top: 14rpx;
+  color: var(--ink);
+}
+
+/* AI 生成中占位文案 */
+.ai-thinking {
+  color: var(--gray);
+}
+
+/* 流式生成光标：闪烁动效 */
+.ai-cursor {
+  display: inline-block;
+  color: var(--green-deep);
+  animation: ai-blink 1s steps(1) infinite;
+}
+
+@keyframes ai-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
 /* ============ 加载 / 空态 ============ */
 .state-block {
   flex: 1;

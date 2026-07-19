@@ -67,19 +67,28 @@
           </view>
         </view>
 
-        <!-- AI 讲解（submit 返回后才显示） -->
-        <view class="ai-block" wx:if="{{answered && explanation}}">
+        <!-- AI 讲解：答对展示题库解析（不生成）；答错由 AI 老师实时生成针对性解析 -->
+        <view class="ai-block" wx:if="{{answered}}">
           <view class="ai-avatar">
             <view class="icon ic-bot"></view>
           </view>
           <view class="ai-bubble">
             <view class="ai-who">
-              <text>● AI 生物老师 · 帮你拆解</text>
+              <text>{{correct ? '本题解析' : '● AI 生物老师 · 帮你拆解'}}</text>
             </view>
             <view class="ai-answer">
               <view class="icon ic-check-circle"></view>
-              <text>正确答案：{{correctAnswer}}。{{explanation}}</text>
+              <text>正确答案：{{correctAnswer}}</text>
             </view>
+            <!-- 答对：题库静态解析 -->
+            <view class="ai-text" wx:if="{{correct && explanation}}">{{explanation}}</view>
+            <!-- 答错：AI 流式生成中 / 生成完成 / 失败降级题库解析 -->
+            <block wx:if="{{!correct}}">
+              <view class="ai-text" wx:if="{{aiText}}">{{aiText}}<text class="ai-cursor" wx:if="{{aiLoading}}">▍</text></view>
+              <view class="ai-text ai-thinking" wx:elif="{{aiLoading}}">AI 老师正在分析你的错因...</view>
+              <view class="ai-text" wx:elif="{{explanation}}">{{explanation}}</view>
+              <view class="ai-text" wx:else>别灰心，把错题收藏起来多复习，下次一定对！</view>
+            </block>
           </view>
         </view>
       </view>
@@ -87,10 +96,12 @@
 
     <!-- 底部操作栏 -->
     <view class="action-bar">
-      <view class="btn" bindtap="nextQuestion">
-        <text>{{current + 1 === total ? '完成' : '下一题'}}</text>
-        <view class="icon ic-arrow-right" wx:if="{{current + 1 < total}}"></view>
-        <view class="icon ic-check" wx:else></view>
+      <view class="btn {{finishing ? 'disabled' : ''}}" bindtap="nextQuestion">
+        <text>{{finishing ? '上传中...' : (current + 1 === total ? '完成' : '下一题')}}</text>
+        <block wx:if="{{!finishing}}">
+          <view class="icon ic-arrow-right" wx:if="{{current + 1 < total}}"></view>
+          <view class="icon ic-check" wx:else></view>
+        </block>
       </view>
     </view>
   </block>

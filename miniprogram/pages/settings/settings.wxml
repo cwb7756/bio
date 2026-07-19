@@ -49,6 +49,14 @@
           </view>
           <switch checked="{{settings.sound}}" data-key="sound" bindchange="onSwitch" color="#5FB894" />
         </view>
+        <view class="set-item {{settings.sound ? '' : 'disabled'}}" bindtap="chooseSoundStyle">
+          <view class="set-info">
+            <text class="set-name">音效风格</text>
+            <text class="set-desc">点击切换并试听提示音</text>
+          </view>
+          <text class="set-value">{{soundStyleName}}</text>
+          <view class="icon ic-chevron-right set-arrow"></view>
+        </view>
         <view class="set-item">
           <view class="set-info">
             <text class="set-name">自动播放课程视频</text>

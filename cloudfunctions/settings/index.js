@@ -9,9 +9,13 @@ const db = cloud.database();
 const DEFAULT_SETTINGS = {
   notification: true,   // 学习提醒
   sound: true,          // 音效
+  soundStyle: 'crisp',  // 音效风格：crisp清脆/soft柔和/retro像素
   autoPlay: false,      // 自动播放课程视频
   dailyReminder: false  // 每日打卡提醒
 };
+
+// 音效风格枚举
+const SOUND_STYLES = ['crisp', 'soft', 'retro'];
 
 // 参数校验：字符串长度不超过10000，数组长度不超过100
 function validateParams(obj) {
@@ -56,8 +60,14 @@ exports.main = async (event) => {
       // 仅合并合法字段
       const merged = { ...DEFAULT_SETTINGS, ...(user.settings || {}) };
       Object.keys(DEFAULT_SETTINGS).forEach((k) => {
-        if (typeof incoming[k] === 'boolean') {
-          merged[k] = incoming[k];
+        if (typeof DEFAULT_SETTINGS[k] === 'boolean') {
+          if (typeof incoming[k] === 'boolean') {
+            merged[k] = incoming[k];
+          }
+        } else if (k === 'soundStyle') {
+          if (typeof incoming[k] === 'string' && SOUND_STYLES.indexOf(incoming[k]) >= 0) {
+            merged[k] = incoming[k];
+          }
         }
       });
       await db.collection('users').doc(user._id).update({

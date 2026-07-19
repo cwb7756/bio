@@ -1,0 +1,157 @@
+/* pages/feedback/feedback.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 表单卡片 */
+.fb-card {
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 28rpx;
+}
+
+.fb-label {
+  font-size: 27rpx;
+  font-weight: 700;
+  margin: 24rpx 0 14rpx;
+}
+
+.fb-label:first-child {
+  margin-top: 0;
+}
+
+.fb-types {
+  display: flex;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+/* 文本域 */
+.fb-textarea-wrap {
+  position: relative;
+  border: 3rpx solid var(--gray-line);
+  border-radius: 24rpx;
+  background: var(--paper2);
+  padding: 20rpx 20rpx 48rpx;
+}
+
+.fb-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  font-size: 27rpx;
+  line-height: 1.6;
+}
+
+.fb-ph {
+  color: var(--gray);
+  font-size: 26rpx;
+}
+
+.fb-count {
+  position: absolute;
+  right: 20rpx;
+  bottom: 12rpx;
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+/* 联系方式输入框 */
+.fb-input {
+  border: 3rpx solid var(--gray-line);
+  border-radius: 24rpx;
+  background: var(--paper2);
+  padding: 18rpx 20rpx;
+  font-size: 27rpx;
+}
+
+/* 提交按钮 */
+.fb-submit {
+  width: 100%;
+  margin-top: 32rpx;
+}
+
+.fb-submit.disabled {
+  opacity: 0.6;
+}
+
+/* 历史反馈 */
+.fb-history-item {
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 24rpx 28rpx;
+  margin-bottom: 20rpx;
+}
+
+.fb-h-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.fb-h-type {
+  font-size: 23rpx;
+  padding: 4rpx 18rpx;
+  background: var(--green-soft);
+}
+
+.fb-h-time {
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+.fb-h-content {
+  font-size: 27rpx;
+  line-height: 1.6;
+  display: block;
+}
+
+.fb-h-imgs {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 14rpx;
+  flex-wrap: wrap;
+}
+
+.fb-h-img {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: 16rpx;
+  border: 3rpx solid var(--gray-line);
+}
+
+.fb-h-status {
+  margin-top: 14rpx;
+  font-size: 22rpx;
+  color: var(--green-deep);
+}
+
+/* 空态 */
+.fb-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 60rpx 0;
+}
+
+.fb-empty-icon {
+  width: 72rpx;
+  height: 72rpx;
+  opacity: 0.35;
+}
+
+.fb-empty-text {
+  font-size: 25rpx;
+  color: var(--gray);
+}

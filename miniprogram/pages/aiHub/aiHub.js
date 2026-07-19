@@ -20,9 +20,9 @@ Page({
     wx.navigateTo({ url: '/pages/ai/ai' });
   },
 
-  // AI 课堂后期开发，先占位提示
+  // 进入 AI 课堂（课件生成 + TTS 讲解）
   goClassroom() {
-    wx.showToast({ title: 'AI课堂敬请期待', icon: 'none' });
+    wx.navigateTo({ url: '/pages/aiClassroom/aiClassroom' });
   },
 
   onShareAppMessage() {

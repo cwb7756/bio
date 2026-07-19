@@ -1,5 +1,6 @@
 // pages/settings/settings.js
 const app = getApp();
+const sound = require('../../utils/sound.js');
 
 Page({
   data: {
@@ -9,9 +10,17 @@ Page({
     settings: {
       notification: true,
       sound: true,
+      soundStyle: 'crisp',
       autoPlay: false,
       dailyReminder: false
     },
+    // 可选音效风格
+    soundStyles: [
+      { id: 'crisp', name: '清脆铃声' },
+      { id: 'soft', name: '柔和木琴' },
+      { id: 'retro', name: '复古像素' }
+    ],
+    soundStyleName: '清脆铃声',
     cacheSize: '0KB'
   },
 
@@ -37,11 +46,15 @@ Page({
       data: { action: 'get' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
+          const settings = res.result.data.settings;
           this.setData({
-            settings: res.result.data.settings,
+            settings: settings,
+            soundStyleName: this.styleName(settings.soundStyle),
             isLoggedIn: res.result.data.isLoggedIn,
             loading: false
           });
+          // 同步到全局音效管理器
+          sound.applySettings(settings);
         } else {
           this.setData({ loading: false });
         }
@@ -74,6 +87,12 @@ Page({
     const oldValue = this.data.settings[key];
     this.setData({ ['settings.' + key]: value });
 
+    // 音效开关即时生效，开启时播放一个短反馈
+    if (key === 'sound') {
+      sound.setEnabled(value);
+      if (value) sound.play('pop');
+    }
+
     wx.cloud.callFunction({
       name: 'settings',
       data: {
@@ -92,9 +111,58 @@ Page({
       },
       fail: () => {
         this.setData({ ['settings.' + key]: oldValue });
+        if (key === 'sound') sound.setEnabled(oldValue);
         wx.showToast({ title: '同步失败，请重试', icon: 'none' });
       }
     });
+  },
+
+  // 风格 id → 中文名
+  styleName(id) {
+    const hit = this.data.soundStyles.find((s) => s.id === id);
+    return hit ? hit.name : this.data.soundStyles[0].name;
+  },
+
+  // 选择音效风格：立即生效 + 试听 + 同步云端
+  chooseSoundStyle() {
+    const styles = this.data.soundStyles;
+    wx.showActionSheet({
+      itemList: styles.map((s) => s.name),
+      success: (res) => {
+        const picked = styles[res.tapIndex];
+        if (!picked || picked.id === this.data.settings.soundStyle) return;
+        const old = this.data.settings.soundStyle;
+        this.setData({
+          'settings.soundStyle': picked.id,
+          soundStyleName: picked.name
+        });
+        sound.setStyle(picked.id);
+        // 试听答对音效（音效总开关关闭时静默）
+        sound.play('correct');
+
+        wx.cloud.callFunction({
+          name: 'settings',
+          data: { action: 'update', settings: { soundStyle: picked.id } },
+          success: (r) => {
+            if (r.result && r.result.code === 401) {
+              wx.showToast({ title: '登录后设置将云端同步', icon: 'none' });
+            } else if (!r.result || r.result.code !== 0) {
+              this.rollbackStyle(old);
+            }
+          },
+          fail: () => this.rollbackStyle(old)
+        });
+      }
+    });
+  },
+
+  rollbackStyle(old) {
+    this.setData({
+      'settings.soundStyle': old,
+      soundStyleName: this.styleName(old)
+    });
+    sound.setStyle(old);
+    wx.showToast({ title: '同步失败，请重试', icon: 'none' });
   },
 
   // 清除缓存（保留登录态）

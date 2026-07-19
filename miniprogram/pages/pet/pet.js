@@ -1,4 +1,6 @@
 // pages/pet/pet.js
+const sound = require('../../utils/sound.js');
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -90,12 +92,15 @@ Page({
             diary: res.result.data.diary
           });
           const msg = res.result.data.msg || '';
-          // 播放对应操作的状态图：升级 > 喂食 > 抚摸
+          // 播放对应操作的状态图与音效：升级 > 喂食 > 抚摸
           if (msg.indexOf('升到') >= 0) {
+            sound.play('complete');
             this.playState('/images/cat-happy.png', 2600);
           } else if (action === 'feed') {
+            sound.play('pop');
             this.playState('/images/cat-feed.png', 2000);
           } else if (action === 'pat') {
+            sound.play('pop');
             this.playState('/images/cat-pat.png', 2000);
           }
           wx.showToast({ title: msg || '互动成功', icon: 'none' });

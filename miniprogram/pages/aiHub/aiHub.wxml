@@ -25,19 +25,16 @@
         <view class="icon ic-arrow-right hub-card-arrow"></view>
       </view>
 
-      <!-- AI课堂入口（后期开发） -->
-      <view class="hub-card hub-card-disabled" bindtap="goClassroom" hover-class="hub-card-hover">
+      <!-- AI课堂入口 -->
+      <view class="hub-card" bindtap="goClassroom" hover-class="hub-card-hover">
         <view class="hub-card-icon hub-icon-classroom">
           <view class="icon ic-video"></view>
         </view>
         <view class="hub-card-text">
-          <view class="hub-card-title-row">
-            <text class="hub-card-title">AI课堂</text>
-            <text class="hub-card-badge">敬请期待</text>
-          </view>
-          <text class="hub-card-desc">AI互动课堂，后期上线</text>
+          <text class="hub-card-title">AI课堂</text>
+          <text class="hub-card-desc">AI生成课件，语音讲解互动课堂</text>
         </view>
-        <view class="icon ic-lock hub-card-arrow"></view>
+        <view class="icon ic-arrow-right hub-card-arrow"></view>
       </view>
     </view>
   </view>

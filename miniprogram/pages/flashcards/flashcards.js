@@ -1,5 +1,6 @@
 // pages/flashcards/flashcards.js
 const app = getApp();
+const sound = require('../../utils/sound.js');
 
 Page({
   data: {
@@ -68,6 +69,9 @@ Page({
   noop() {},
 
   switchChapter(e) {
+    if (e.currentTarget.dataset.index !== this.data.activeChapter) {
+      sound.play('click');
+    }
     this.setData({ activeChapter: e.currentTarget.dataset.index });
   },
 
@@ -108,6 +112,7 @@ Page({
       success: (res) => {
         this.setData({ submitting: false });
         if (res.result && res.result.code === 0) {
+          sound.play('pop');
           wx.showToast({ title: '已添加', icon: 'success' });
           this.closeAdd();
           this.loadCards();

@@ -106,7 +106,7 @@ Page({
     });
   },
 
-  // 点击播放：优先跳 B 站小程序，失败复制链接兜底
+  // 点击播放：跳转 B 站小程序播放
   playCurrent() {
     const v = this.data.currentVideo;
     if (!v) {
@@ -127,13 +127,10 @@ Page({
     wx.navigateToMiniProgram({
       appId: 'wx7564fd5313d24844',
       path: 'pages/video/video?avid=' + v.aid,
-      fail: () => {
-        wx.setClipboardData({
-          data: v.url,
-          success: () => {
-            wx.showToast({ title: '链接已复制，请前往B站观看', icon: 'none' });
-          }
-        });
+      fail: (err) => {
+        // 用户取消跳转不提示
+        if (err && err.errMsg && err.errMsg.indexOf('cancel') !== -1) return;
+        wx.showToast({ title: '跳转失败，请稍后再试', icon: 'none' });
       }
     });
   },

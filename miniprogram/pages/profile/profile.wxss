@@ -44,6 +44,21 @@
   padding: 8rpx 0 24rpx;
 }
 
+/* 重置 button 默认样式（open-type="chooseAvatar" 头像选择按钮） */
+button.avatar-btn {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  line-height: normal;
+  font-size: inherit;
+  color: inherit;
+}
+
+button.avatar-btn::after {
+  border: none;
+}
+
 .avatar-wrap {
   position: relative;
   width: 160rpx;

@@ -1,0 +1,97 @@
+<!--pages/feedback/feedback.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">意见反馈</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 反馈表单 -->
+      <view class="fb-card">
+        <view class="fb-label">反馈类型</view>
+        <view class="fb-types">
+          <view
+            wx:for="{{types}}"
+            wx:key="id"
+            class="chip {{type === item.id ? 'on' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="chooseType"
+          >{{item.name}}</view>
+        </view>
+
+        <view class="fb-label">反馈内容</view>
+        <view class="fb-textarea-wrap">
+          <textarea
+            class="fb-textarea"
+            placeholder="说说你遇到的问题或建议，越详细越好～"
+            placeholder-class="fb-ph"
+            maxlength="{{2000}}"
+            value="{{content}}"
+            bindinput="onContentInput"
+          ></textarea>
+          <text class="fb-count">{{contentLen}}/2000</text>
+        </view>
+
+        <view class="fb-label">联系方式（选填）</view>
+        <input
+          class="fb-input"
+          placeholder="微信号/QQ/邮箱，方便我们联系你"
+          placeholder-class="fb-ph"
+          maxlength="100"
+          value="{{contact}}"
+          bindinput="onContactInput"
+        />
+
+        <view class="btn fb-submit {{submitting ? 'disabled' : ''}}" bindtap="submit">
+          {{submitting ? '提交中...' : '提交反馈'}}
+        </view>
+      </view>
+
+      <!-- 我的历史反馈 -->
+      <view class="sec-title">
+        <text class="u">我的反馈</text>
+      </view>
+
+      <view wx:if="{{history.length > 0}}">
+        <view class="fb-history-item" wx:for="{{history}}" wx:key="_id">
+          <view class="fb-h-head">
+            <view class="chip fb-h-type">{{item.typeName}}</view>
+            <text class="fb-h-time">{{item.timeText}}</text>
+          </view>
+          <text class="fb-h-content">{{item.content}}</text>
+          <view class="fb-h-imgs" wx:if="{{item.images.length > 0}}">
+            <image
+              wx:for="{{item.images}}"
+              wx:for-item="img"
+              wx:key="*this"
+              class="fb-h-img"
+              src="{{img}}"
+              mode="aspectFill"
+              data-url="{{img}}"
+              data-urls="{{item.images}}"
+              bindtap="previewImage"
+            ></image>
+          </view>
+          <view class="fb-h-status">已提交，感谢反馈</view>
+        </view>
+      </view>
+
+      <view class="fb-empty" wx:elif="{{historyLoaded}}">
+        <view class="icon ic-message fb-empty-icon"></view>
+        <text class="fb-empty-text">还没有反馈记录，来说点什么吧</text>
+      </view>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

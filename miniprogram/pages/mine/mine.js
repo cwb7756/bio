@@ -26,6 +26,7 @@ Page({
       { icon: 'ic-chart', name: '学习报告', desc: '查看学习数据', badge: '', path: '/pages/report/report' },
       { icon: 'ic-trophy', name: '成就中心', desc: '查看已解锁成就', badge: '', path: '/pages/achievements/achievements' },
       { icon: 'ic-star', name: '我的猫咪', desc: '球球在等你互动', badge: '', path: '/pages/pet/pet' },
+      { icon: 'ic-message', name: '意见反馈', desc: '吐槽或建议告诉我们', badge: '', path: '/pages/feedback/feedback' },
       { icon: 'ic-settings', name: '设置', desc: '通知、隐私等', badge: '', path: '/pages/settings/settings' }
     ]
   },

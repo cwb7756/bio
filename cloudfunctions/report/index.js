@@ -1,6 +1,6 @@
 // 云函数 report - 学习报告
 // 聚合 users / study_progress：打卡、刷题、正确率、时长、近7天分布、章节掌握度
-// 用户无学习记录时返回 demo 示例数据
+// 用户无学习记录时返回真实零值（hasData: false），不返回示例数据
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -32,26 +32,30 @@ function validateParams(obj) {
   return null;
 }
 
-// demo 示例（新用户无记录时展示）
-function demoReport() {
+// 近7天（含今天）的日期起点与星期标签序列
+function last7Days() {
+  const now = new Date();
+  const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const weekLabels = ['日', '一', '二', '三', '四', '五', '六'];
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const start = dayStart - i * 86400000;
+    days.push({ start, label: weekLabels[new Date(start).getDay()] });
+  }
+  return days;
+}
+
+// 零值报告：无学习记录时的真实数据（打卡/时长仍取 users 表真实值）
+function emptyReport(user) {
   return {
-    isDemo: true,
-    streakDays: 12,
-    quizTotal: 286,
-    quizRate: 82,
-    studyHours: 38,
-    week: [
-      { label: '一', count: 4 }, { label: '二', count: 6 }, { label: '三', count: 3 },
-      { label: '四', count: 8 }, { label: '五', count: 5 }, { label: '六', count: 2 },
-      { label: '日', count: 0 }
-    ],
-    chapters: [
-      { chapter: '必修一', mastery: 62 },
-      { chapter: '必修二', mastery: 35 },
-      { chapter: '选择性必修一', mastery: 10 },
-      { chapter: '选择性必修二', mastery: 0 },
-      { chapter: '选择性必修三', mastery: 0 }
-    ]
+    isDemo: false,
+    hasData: false,
+    streakDays: (user && user.streakDays) || 0,
+    quizTotal: 0,
+    quizRate: 0,
+    studyHours: Math.round(((user && user.totalStudyMinutes) || 0) / 6) / 10,
+    week: last7Days().map((d) => ({ label: d.label, count: 0 })),
+    chapters: CHAPTERS.map((chapter) => ({ chapter, mastery: 0 }))
   };
 }
 
@@ -70,7 +74,7 @@ exports.main = async (event) => {
     }
 
     if (!OPENID) {
-      return { code: 0, data: demoReport() };
+      return { code: 0, data: emptyReport(user) };
     }
 
     // 旧数据使用 userID 字段，查询需兼容两种身份
@@ -82,7 +86,7 @@ exports.main = async (event) => {
       .count();
 
     if (recordCount === 0) {
-      return { code: 0, data: demoReport() };
+      return { code: 0, data: emptyReport(user) };
     }
 
     // 3. 统计数据（优先 aggregate，不兼容则退回 _.in() 批量查询 + 内存统计）
@@ -158,20 +162,12 @@ exports.main = async (event) => {
     const quizRate = quizTotal > 0 ? Math.round((quizCorrect / quizTotal) * 100) : 0;
 
     // 4. 近7天学习分布（并行 count 查询，避免全量加载）
-    const now = new Date();
-    const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const weekLabels = ['日', '一', '二', '三', '四', '五', '六'];
-    const weekPromises = [];
-    for (let i = 6; i >= 0; i--) {
-      const start = dayStart - i * 86400000;
-      const end = start + 86400000;
-      weekPromises.push(
-        db.collection('study_progress')
-          .where(progressCond(OPENID, userID, { updatedAt: _.gte(start).and(_.lt(end)) }))
-          .count()
-          .then(({ total }) => ({ label: weekLabels[new Date(start).getDay()], count: total }))
-      );
-    }
+    const weekPromises = last7Days().map((d) =>
+      db.collection('study_progress')
+        .where(progressCond(OPENID, userID, { updatedAt: _.gte(d.start).and(_.lt(d.start + 86400000)) }))
+        .count()
+        .then(({ total }) => ({ label: d.label, count: total }))
+    );
     const week = await Promise.all(weekPromises);
 
     // 5. 组装章节掌握度
@@ -185,6 +181,7 @@ exports.main = async (event) => {
       code: 0,
       data: {
         isDemo: false,
+        hasData: true,
         streakDays: (user && user.streakDays) || 0,
         quizTotal,
         quizRate,

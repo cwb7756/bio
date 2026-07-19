@@ -52,6 +52,19 @@
   height: 32rpx;
 }
 
+/* 设置项右侧当前值（如音效风格） */
+.set-value {
+  font-size: 25rpx;
+  color: var(--gray);
+}
+
+/* 音效总开关关闭时风格项弱化 */
+.set-item.disabled .set-name,
+.set-item.disabled .set-desc,
+.set-item.disabled .set-value {
+  opacity: 0.45;
+}
+
 /* 退出登录 */
 .logout-btn {
   margin-top: 40rpx;

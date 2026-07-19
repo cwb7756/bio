@@ -33,30 +33,23 @@ Page({
     }
   },
 
-  // 选择头像并上传到云存储
-  chooseAvatar() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: (res) => {
-        const tempPath = res.tempFiles[0].tempFilePath;
-        wx.showLoading({ title: '上传中...' });
-        const cloudPath = 'avatars/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
-        wx.cloud.uploadFile({
-          cloudPath: cloudPath,
-          filePath: tempPath,
-          success: (uploadRes) => {
-            wx.hideLoading();
-            this.setData({ avatar: uploadRes.fileID });
-          },
-          fail: (err) => {
-            wx.hideLoading();
-            console.error('avatar upload error:', err);
-            wx.showToast({ title: '头像上传失败', icon: 'none' });
-          }
-        });
+  // 微信头像选择（button open-type="chooseAvatar"），拿到临时路径后上传云存储
+  onChooseAvatar(e) {
+    const tempPath = e.detail.avatarUrl;
+    if (!tempPath) return;
+    wx.showLoading({ title: '上传中...' });
+    const cloudPath = 'avatars/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+    wx.cloud.uploadFile({
+      cloudPath: cloudPath,
+      filePath: tempPath,
+      success: (uploadRes) => {
+        wx.hideLoading();
+        this.setData({ avatar: uploadRes.fileID });
+      },
+      fail: (err) => {
+        wx.hideLoading();
+        console.error('avatar upload error:', err);
+        wx.showToast({ title: '头像上传失败', icon: 'none' });
       }
     });
   },

@@ -6,6 +6,7 @@ const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 var db = cloud.database();
+var _ = db.command;
 
 // 教材分册排序顺序
 var CHAPTER_ORDER = ['必修一', '必修二', '选择性必修一', '选择性必修二', '选择性必修三'];
@@ -88,6 +89,59 @@ async function listQuestions(event) {
   return { code: 0, questions: questions };
 }
 
+// report: 一组题目完成后批量上传刷题成绩
+// records: [{ questionId, chapter, topic, correct, answered }]（answered=false 表示跳过）
+// 已作答题目逐条写入 study_progress（type='quiz'，供 report/achievements 统计）
+// 未作答题目批量返回答案/解析，供总结页展示与错题收藏
+// → { code: 0, added: number, answers: { [questionId]: { answer, explanation } } }
+async function reportQuiz(event, openid) {
+  if (!openid) {
+    return { code: 401, msg: '未登录' };
+  }
+
+  var records = Array.isArray(event.records) ? event.records.slice(0, 100) : [];
+  var now = Date.now();
+  var added = 0;
+  var skippedIds = [];
+
+  for (var i = 0; i < records.length; i++) {
+    var r = records[i] || {};
+    if (!r.questionId) continue;
+    if (r.answered === false) {
+      skippedIds.push(String(r.questionId));
+      continue;
+    }
+    await db.collection('study_progress').add({
+      data: {
+        _openid: openid,
+        type: 'quiz',
+        questionId: String(r.questionId).slice(0, 64),
+        chapter: String(r.chapter || '').slice(0, 50),
+        topic: String(r.topic || '').slice(0, 50),
+        correct: !!r.correct,
+        createdAt: now,
+        updatedAt: now
+      }
+    });
+    added++;
+  }
+
+  // 未作答（跳过）题目：批量查询答案与解析返回
+  var answers = {};
+  if (skippedIds.length > 0) {
+    var res = await db.collection('quiz_questions')
+      .where({ _id: _.in(skippedIds.slice(0, 50)) })
+      .field({ answer: true, explanation: true })
+      .limit(50)
+      .get();
+    res.data.forEach(function (q) {
+      answers[q._id] = { answer: q.answer || '', explanation: q.explanation || '' };
+    });
+  }
+
+  return { code: 0, added: added, answers: answers };
+}
+
 // submit: 提交单题答案，判定正误并返回答案/解析
 // → { code: 0, correct: boolean, answer: string, explanation: string }
 async function submitAnswer(event) {
@@ -133,6 +187,8 @@ exports.main = async (event, context) => {
         return await listQuestions(event);
       case 'submit':
         return await submitAnswer(event);
+      case 'report':
+        return await reportQuiz(event, OPENID);
       case 'categories':
         return await getCategories();
       default:

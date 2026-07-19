@@ -89,8 +89,11 @@ async function addMistake(event, openid) {
       .limit(1)
       .get();
     if (exist.length > 0) {
+      // 防重更新：作答与解析同步刷新（AI 生成解析后回写错题本走此分支）
+      const updateData = { userAnswer, createdAt: now };
+      if (explanation) updateData.explanation = String(explanation).slice(0, 1000);
       await db.collection('mistakes').doc(exist[0]._id).update({
-        data: { userAnswer, createdAt: now }
+        data: updateData
       });
       return { code: 0, data: { _id: exist[0]._id, duplicated: true } };
     }

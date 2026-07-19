@@ -644,16 +644,11 @@ Page({
     this.setData({ isStreaming: false });
   },
 
-  // 点击 Markdown 链接：复制 URL 到剪贴板
+  // 点击 Markdown 链接：小程序内不支持打开外部链接
   onTapLink(e) {
     const url = e.currentTarget.dataset.url;
     if (!url) return;
-    wx.setClipboardData({
-      data: url,
-      success: function() {
-        wx.showToast({ title: '链接已复制', icon: 'success' });
-      }
-    });
+    wx.showToast({ title: '小程序内暂不支持打开链接', icon: 'none' });
   },
 
   sendSuggestion(e) {

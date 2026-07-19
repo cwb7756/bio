@@ -26,8 +26,8 @@
 
       <!-- 表单卡片 -->
       <view class="form-card">
-        <!-- 头像 -->
-        <view class="avatar-section" bindtap="chooseAvatar">
+        <!-- 头像：使用微信头像 -->
+        <button class="avatar-section avatar-btn" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
           <view class="avatar-wrap">
             <image wx:if="{{avatar}}" class="avatar-img" src="{{avatar}}" mode="aspectFill"></image>
             <view wx:else class="icon ic-student avatar-default"></view>
@@ -35,8 +35,8 @@
               <view class="icon ic-pen camera-icon"></view>
             </view>
           </view>
-          <text class="avatar-hint">点击更换头像</text>
-        </view>
+          <text class="avatar-hint">点击使用微信头像</text>
+        </button>
 
         <!-- 昵称 -->
         <view class="field-label">
