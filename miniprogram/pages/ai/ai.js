@@ -245,7 +245,7 @@ Page({
     if (getCurrentPages().length > 1) {
       wx.navigateBack();
     } else {
-      wx.switchTab({ url: '/pages/aiHub/aiHub' });
+      wx.switchTab({ url: '/pages/home/home' });
     }
   },
 

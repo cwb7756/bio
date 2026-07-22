@@ -16,11 +16,11 @@ Page({
     isLoggedIn: false,
     features: [
       { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
-      { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/quizEntry/quizEntry' },
+      { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/aiHub/aiHub' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
-      { icon: 'ic-bot', name: 'AI老师', bg: 'g6', path: '/pages/aiHub/aiHub' }
+      { icon: 'ic-bot', name: '个性化课程', bg: 'g6', path: '/pages/aiClassroom/aiClassroom' }
     ],
     hotTopics: []
   },

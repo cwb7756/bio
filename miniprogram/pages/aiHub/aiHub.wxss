@@ -1,90 +1,295 @@
 /* pages/aiHub/aiHub.wxss */
-.page-header {
-  margin: 8rpx 4rpx 36rpx;
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* 导航栏右侧占位，使标题居中 */
+.nav-placeholder {
+  width: 76rpx;
+  height: 76rpx;
+}
+
+/* Tab 页底部留白 */
+.page-pad {
+  padding-bottom: 180rpx;
+}
+
+/* 分段控件 */
+.cat-segment {
+  margin: 8rpx 0 32rpx;
+}
+
+/* ============ 列表容器 ============ */
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22rpx;
+}
+
+/* ============ 加载 / 空态 ============ */
+.state-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 60rpx;
+  gap: 24rpx;
+}
+
+.state-icon {
+  width: 96rpx;
+  height: 96rpx;
+  opacity: .55;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: var(--gray);
+  font-weight: 600;
+}
+
+.retry-btn,
+.login-btn {
+  margin-top: 16rpx;
+}
+
+/* ============ 章节卡片 ============ */
+.cat-chapter {
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  overflow: hidden;
+}
+
+.cat-ch-head {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  padding: 26rpx;
+  transition: background .15s;
+}
+
+.cat-ch-head:active {
+  background: var(--green-soft);
+}
+
+.cat-ch-icon-wrap {
+  flex: 0 0 84rpx;
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26rpx;
+  border: 4rpx solid var(--line);
+  background: var(--green-soft);
+}
+
+.cat-ch-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.cat-ch-info {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6rpx;
 }
 
-.page-title {
-  font-size: 48rpx;
+.cat-ch-name {
+  font-size: 31rpx;
   font-weight: 700;
-  letter-spacing: 2rpx;
 }
 
-.page-subtitle {
-  font-size: 26rpx;
-  color: var(--ink-soft);
+.cat-ch-meta {
+  font-size: 24rpx;
+  color: var(--gray);
 }
 
-/* 功能入口卡片 */
-.hub-card {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-  padding: 36rpx 32rpx;
-  margin-bottom: 28rpx;
-  border: 4rpx solid var(--line);
-  border-radius: 40rpx;
-  background: var(--paper);
-  box-shadow: var(--sh);
-  transition: transform .12s, box-shadow .12s;
+.cat-ch-count {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--green-deep);
+  min-width: 56rpx;
+  text-align: right;
 }
 
-.hub-card-hover {
-  transform: translate(4rpx, 4rpx);
-  box-shadow: 0 0 0 var(--ink);
+.cat-ch-arrow {
+  width: 32rpx;
+  height: 32rpx;
+  transition: transform .25s;
 }
 
-.hub-card-icon {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 50%;
-  border: 3rpx solid var(--line);
-  background: var(--green);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--sh-sm);
-  flex-shrink: 0;
+.cat-ch-arrow.open {
+  transform: rotate(90deg);
 }
 
-.hub-card-icon .icon {
-  width: 52rpx;
-  height: 52rpx;
+/* ============ 展开内容 ============ */
+.cat-ch-body {
+  padding: 0 26rpx 26rpx;
+  border-top: 3rpx solid var(--gray-line);
+  margin-top: 4rpx;
 }
 
-.hub-icon-classroom {
-  background: var(--green-soft);
-}
-
-.hub-card-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8rpx;
-}
-
-.hub-card-title-row {
+/* 整章练习按钮 */
+.cat-ch-all {
   display: flex;
   align-items: center;
   gap: 14rpx;
-}
-
-.hub-card-title {
-  font-size: 36rpx;
+  margin-top: 22rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 28rpx;
+  background: var(--green);
+  box-shadow: var(--sh-sm);
+  padding: 20rpx 28rpx;
+  font-size: 28rpx;
   font-weight: 700;
+  transition: transform .12s;
 }
 
-.hub-card-desc {
-  font-size: 25rpx;
+.cat-ch-all:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: none;
+}
+
+.cat-ch-all-icon {
+  width: 34rpx;
+  height: 34rpx;
+}
+
+.cat-ch-all-arrow {
+  width: 30rpx;
+  height: 30rpx;
+  margin-left: auto;
+}
+
+/* 考点 chip 列表 */
+.cat-ch-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18rpx;
+  margin-top: 22rpx;
+}
+
+.cat-topic-chip {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  border: 3rpx solid var(--line);
+  border-radius: 40rpx;
+  background: var(--paper);
+  padding: 12rpx 24rpx;
+  transition: transform .12s, background .12s;
+}
+
+.cat-topic-chip:active {
+  transform: translate(3rpx, 3rpx);
+  background: var(--green-soft);
+}
+
+.chip-name {
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.chip-count {
+  font-size: 24rpx;
+  font-weight: 800;
+  color: var(--green-deep);
+  background: var(--green-soft);
+  border-radius: 20rpx;
+  padding: 2rpx 12rpx;
+  min-width: 32rpx;
+  text-align: center;
+}
+
+/* ============ 按考点 · 扁平卡片 ============ */
+.cat-topic-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 4rpx solid var(--line);
+  border-radius: 36rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 26rpx;
+  transition: transform .12s;
+}
+
+.cat-topic-card:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: none;
+}
+
+.cat-tc-left {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-tc-icon-wrap {
+  flex: 0 0 84rpx;
+  height: 84rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 26rpx;
+  border: 4rpx solid var(--line);
+  background: var(--green-soft);
+}
+
+.cat-tc-icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.cat-tc-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  min-width: 0;
+}
+
+.cat-tc-name {
+  font-size: 31rpx;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-tc-chapter {
+  font-size: 24rpx;
   color: var(--gray);
   font-weight: 600;
 }
 
-.hub-card-arrow {
-  width: 36rpx;
-  height: 36rpx;
+.cat-tc-right {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
   flex-shrink: 0;
+}
+
+.cat-tc-count {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--green-deep);
+}
+
+.cat-tc-unit {
+  font-size: 24rpx;
+  color: var(--gray);
+  font-weight: 600;
+  margin-right: 8rpx;
+}
+
+.cat-tc-arrow {
+  width: 32rpx;
+  height: 32rpx;
 }

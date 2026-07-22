@@ -5,37 +5,130 @@
   <!-- 状态栏占位 -->
   <view style="height: {{statusBarHeight}}px;"></view>
 
-  <view class="page-body">
-    <view class="page-pad">
-      <!-- 标题 -->
-      <view class="page-header">
-        <text class="page-title">AI 学习助手</text>
-        <text class="page-subtitle">你的随身生物学习搭档</text>
-      </view>
+  <!-- 导航栏（tab页无返回按钮） -->
+  <view class="navbar">
+    <text class="nav-t">刷题</text>
+    <view class="nav-placeholder"></view>
+  </view>
 
-      <!-- AI老师入口 -->
-      <view class="hub-card" bindtap="goTeacher" hover-class="hub-card-hover">
-        <view class="hub-card-icon hub-icon-teacher">
-          <view class="icon ic-bot"></view>
-        </view>
-        <view class="hub-card-text">
-          <text class="hub-card-title">AI老师</text>
-          <text class="hub-card-desc">一对一生物答疑，随问随答</text>
-        </view>
-        <view class="icon ic-arrow-right hub-card-arrow"></view>
-      </view>
-
-      <!-- AI课堂入口 -->
-      <view class="hub-card" bindtap="goClassroom" hover-class="hub-card-hover">
-        <view class="hub-card-icon hub-icon-classroom">
-          <view class="icon ic-video"></view>
-        </view>
-        <view class="hub-card-text">
-          <text class="hub-card-title">AI课堂</text>
-          <text class="hub-card-desc">AI生成课件，语音讲解互动课堂</text>
-        </view>
-        <view class="icon ic-arrow-right hub-card-arrow"></view>
-      </view>
+  <!-- 未登录态 -->
+  <view class="state-block" wx:if="{{notLoggedIn}}">
+    <view class="icon ic-pen state-icon"></view>
+    <text class="state-text">请先登录后再刷题</text>
+    <view class="btn login-btn" bindtap="goLogin">
+      <text>去登录</text>
     </view>
   </view>
+
+  <!-- 加载中 -->
+  <view class="state-block" wx:elif="{{loading}}">
+    <view class="icon ic-pen state-icon"></view>
+    <text class="state-text">正在加载分类...</text>
+  </view>
+
+  <!-- 空 / 错误态 -->
+  <view class="state-block" wx:elif="{{loadError || (chapters.length === 0 && topics.length === 0)}}">
+    <view class="icon ic-folder state-icon"></view>
+    <text class="state-text">{{loadError ? '加载失败' : '暂无题目'}}</text>
+    <view class="btn retry-btn" bindtap="onRetry" wx:if="{{loadError}}">
+      <view class="icon ic-refresh"></view>
+      <text>重试</text>
+    </view>
+  </view>
+
+  <!-- 分类内容 -->
+  <block wx:else>
+    <view class="page-body">
+      <view class="page-pad">
+        <!-- 分段控件 -->
+        <view class="segment cat-segment">
+          <view
+            class="seg-item {{activeTab === 0 ? 'on' : ''}}"
+            data-index="0"
+            bindtap="switchTab"
+          >按章节</view>
+          <view
+            class="seg-item {{activeTab === 1 ? 'on' : ''}}"
+            data-index="1"
+            bindtap="switchTab"
+          >按考点</view>
+        </view>
+
+        <!-- 按章节视图 -->
+        <view class="cat-list" wx:if="{{activeTab === 0}}">
+          <view
+            class="cat-chapter"
+            wx:for="{{chapters}}"
+            wx:key="name"
+          >
+            <!-- 章节头部（可点展开） -->
+            <view class="cat-ch-head" data-name="{{item.name}}" bindtap="toggleChapter">
+              <view class="cat-ch-icon-wrap">
+                <view class="icon ic-folder cat-ch-icon"></view>
+              </view>
+              <view class="cat-ch-info">
+                <text class="cat-ch-name">{{item.name}}</text>
+                <text class="cat-ch-meta">{{item.count}} 题 · {{item.topics.length}} 个考点</text>
+              </view>
+              <view class="cat-ch-count">{{item.count}}</view>
+              <view class="icon ic-chevron-right cat-ch-arrow {{expanded[item.name] ? 'open' : ''}}"></view>
+            </view>
+
+            <!-- 展开内容 -->
+            <view class="cat-ch-body" wx:if="{{expanded[item.name]}}">
+              <!-- 整章练习 -->
+              <view class="cat-ch-all" data-chapter="{{item.name}}" bindtap="startChapter">
+                <view class="icon ic-pen cat-ch-all-icon"></view>
+                <text>整章练习</text>
+                <view class="icon ic-arrow-right cat-ch-all-arrow"></view>
+              </view>
+
+              <!-- 考点列表 -->
+              <view class="cat-ch-topics">
+                <view
+                  class="cat-topic-chip"
+                  wx:for="{{item.topics}}"
+                  wx:for-item="tp"
+                  wx:key="name"
+                  data-chapter="{{item.name}}"
+                  data-topic="{{tp.name}}"
+                  bindtap="startTopic"
+                >
+                  <text class="chip-name">{{tp.name}}</text>
+                  <text class="chip-count">{{tp.count}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 按考点视图 -->
+        <view class="cat-list" wx:else>
+          <view
+            class="cat-topic-card"
+            wx:for="{{topics}}"
+            wx:key="name"
+            data-chapter="{{item.chapter}}"
+            data-topic="{{item.name}}"
+            bindtap="startTopic"
+          >
+            <view class="cat-tc-left">
+              <view class="cat-tc-icon-wrap">
+                <view class="icon ic-target cat-tc-icon"></view>
+              </view>
+              <view class="cat-tc-info">
+                <text class="cat-tc-name">{{item.name}}</text>
+                <text class="cat-tc-chapter">{{item.chapter}}</text>
+              </view>
+            </view>
+            <view class="cat-tc-right">
+              <text class="cat-tc-count">{{item.count}}</text>
+              <text class="cat-tc-unit">题</text>
+              <view class="icon ic-chevron-right cat-tc-arrow"></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>
