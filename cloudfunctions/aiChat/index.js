@@ -400,3 +400,13 @@ exports.main = async (event, context) => {
     return { code: -1, msg: 'AI会话服务异常' };
   }
 };
+
+// ---------- 测试导出 ----------
+exports.listSessions = listSessions;
+exports.getSession = getSession;
+exports.saveSession = saveSession;
+exports.clearSession = clearSession;
+exports.updateTitle = updateTitle;
+exports.matchContext = matchContext;
+exports.SESSIONS_LIMIT = SESSIONS_LIMIT;
+exports.MAX_SESSION_MESSAGES = MAX_SESSION_MESSAGES;

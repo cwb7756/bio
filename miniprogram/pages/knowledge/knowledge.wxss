@@ -132,3 +132,489 @@
   color: var(--ink-soft);
   line-height: 1.5;
 }
+
+/* ============ AI 悬浮框 ============ */
+.ai-float-panel {
+  position: fixed;
+  z-index: 999;
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow .2s;
+}
+
+/* 缩放时增强阴影 */
+.ai-float-panel.resizing {
+  box-shadow: 0 0 0 6rpx rgba(95, 184, 148, 0.3), 8rpx 8rpx 2rpx rgba(74, 88, 82, 0.5);
+}
+
+/* 缩放遮罩（缩放时背景变灰） */
+.float-resize-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 38, 33, 0.35);
+  z-index: 998;
+}
+
+/* 拖拽区（仅拖拽条） */
+.float-drag-zone {
+  padding: 12rpx 24rpx;
+  background: var(--paper2);
+}
+
+.float-drag-bar {
+  width: 80rpx;
+  height: 8rpx;
+  border-radius: 4rpx;
+  background: var(--gray-line);
+  margin: 0 auto;
+}
+
+/* 头部（标题 + 关闭按钮） */
+.float-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10rpx 24rpx 12rpx;
+  background: var(--paper2);
+  border-bottom: 3rpx solid var(--gray-line);
+}
+
+.float-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.float-close-btn {
+  width: 52rpx;
+  height: 52rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-sm);
+}
+
+.float-close-btn .icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.float-close-btn:active {
+  background: var(--green-soft);
+  transform: translate(2rpx, 2rpx);
+}
+
+/* ============ Phase 1: 考点选择 ============ */
+.float-select-body {
+  padding: 20rpx 24rpx;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.float-kp-scroll {
+  flex: 1;
+  height: 0;
+}
+
+.float-kp-item {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  border: 3rpx solid var(--gray-line);
+  border-radius: 24rpx;
+  background: var(--paper2);
+  padding: 18rpx;
+  margin-bottom: 14rpx;
+  transition: all .15s;
+}
+
+.float-kp-item.selected {
+  border-color: var(--green-deep);
+  background: var(--green-soft);
+}
+
+.float-kp-badge {
+  flex: 0 0 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  border: 3rpx solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-soft);
+}
+
+.float-kp-badge .icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.float-kp-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.float-kp-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.float-kp-desc {
+  font-size: 21rpx;
+  color: var(--gray);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.float-kp-check {
+  flex: 0 0 40rpx;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity .15s;
+}
+
+.float-kp-check.show {
+  opacity: 1;
+  background: var(--green-accent);
+  border-color: var(--green-deep);
+}
+
+.float-kp-check .icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* AI讲按钮 */
+.float-ai-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  font-size: 28rpx;
+  font-weight: 700;
+  border: 4rpx solid var(--line);
+  border-radius: 28rpx;
+  padding: 20rpx;
+  background: var(--green);
+  color: var(--ink);
+  box-shadow: var(--sh-sm);
+  margin-top: 16rpx;
+  transition: transform .12s;
+}
+
+.float-ai-btn:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.float-ai-btn .icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.float-ai-btn.disabled {
+  background: var(--gray-line);
+  color: var(--gray);
+  box-shadow: none;
+}
+
+/* ============ Phase 2: 流式对话 ============ */
+.float-chat-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.float-chat-scroll {
+  flex: 1;
+  height: 0;
+  padding: 20rpx 24rpx;
+}
+
+/* 用户消息 */
+.float-chat-user {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24rpx;
+}
+
+.float-chat-user-text {
+  max-width: 80%;
+  font-size: 26rpx;
+  font-weight: 600;
+  padding: 16rpx 22rpx;
+  border-radius: 24rpx 10rpx 24rpx 24rpx;
+  background: var(--green);
+  border: 3rpx solid var(--line);
+  box-shadow: var(--sh-sm);
+}
+
+/* AI 消息 */
+.float-chat-ai {
+  display: flex;
+  gap: 14rpx;
+  align-items: flex-start;
+}
+
+.float-chat-avatar {
+  flex: 0 0 56rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  border: 3rpx solid var(--line);
+  background: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sh-sm);
+}
+
+.float-chat-avatar .icon {
+  width: 30rpx;
+  height: 30rpx;
+}
+
+.float-chat-bubble {
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx 22rpx;
+  border: 3rpx solid var(--line);
+  border-radius: 10rpx 26rpx 26rpx 26rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+}
+
+.float-chat-bubble.streaming {
+  animation: stream-glow 1.5s infinite ease-in-out;
+}
+
+@keyframes stream-glow {
+  0%, 100% {
+    border-color: var(--line);
+  }
+  50% {
+    border-color: var(--green);
+  }
+}
+
+/* 流式加载动画 */
+.typing-indicator {
+  display: flex;
+  gap: 8rpx;
+  align-items: center;
+  padding: 8rpx 0;
+}
+
+.typing-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: var(--green-deep);
+  animation: typing-bounce 1.2s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-10rpx);
+    opacity: 1;
+  }
+}
+
+/* 停止生成按钮 */
+.float-stop-btn {
+  display: flex;
+  justify-content: center;
+  padding: 10rpx 24rpx 16rpx;
+}
+
+.float-stop-btn text {
+  font-size: 24rpx;
+  font-weight: 600;
+  border: 3rpx solid var(--line);
+  border-radius: 28rpx;
+  padding: 10rpx 32rpx;
+  background: var(--paper2);
+  box-shadow: var(--sh-sm);
+  color: var(--ink);
+}
+
+/* ============ 缩放手柄 ============ */
+.float-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 60rpx;
+  height: 60rpx;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 6rpx;
+}
+
+.float-resize-grip {
+  width: 22rpx;
+  height: 22rpx;
+  border-right: 4rpx solid var(--gray);
+  border-bottom: 4rpx solid var(--gray);
+  border-bottom-right-radius: 6rpx;
+  opacity: 0.6;
+}
+
+.ai-float-panel.resizing .float-resize-grip {
+  opacity: 1;
+  border-color: var(--green-deep);
+}
+
+/* ============ Markdown 渲染样式 ============ */
+.msg-content {
+  font-size: 26rpx;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.md-body {
+  white-space: normal;
+}
+
+.md-p {
+  margin: 8rpx 0;
+}
+
+.md-h {
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.md-h1 {
+  font-size: 30rpx;
+  margin: 16rpx 0 8rpx;
+}
+
+.md-h2 {
+  font-size: 28rpx;
+  margin: 14rpx 0 6rpx;
+}
+
+.md-h3 {
+  font-size: 26rpx;
+  margin: 10rpx 0 4rpx;
+}
+
+.md-bold {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.md-inline-code {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 23rpx;
+  background: var(--green-soft);
+  border: 2rpx solid var(--gray-line);
+  border-radius: 6rpx;
+  padding: 0 6rpx;
+}
+
+.md-li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  margin: 6rpx 0;
+}
+
+.md-li-dot {
+  flex-shrink: 0;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--green-deep);
+  margin-top: 14rpx;
+}
+
+.md-li-num {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.md-li-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.md-quote {
+  border-left: 5rpx solid var(--green);
+  padding-left: 16rpx;
+  margin: 8rpx 0;
+  color: var(--ink-soft);
+}
+
+.md-code {
+  background: var(--paper2);
+  border: 3rpx solid var(--line);
+  border-radius: 12rpx;
+  padding: 14rpx 18rpx;
+  margin: 10rpx 0;
+}
+
+.md-code-text {
+  font-family: Consolas, Monaco, monospace;
+  font-size: 23rpx;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.md-link {
+  color: var(--green-deep);
+  text-decoration: underline;
+}
+
+.md-image {
+  width: 100%;
+  border-radius: 12rpx;
+  margin: 8rpx 0;
+}

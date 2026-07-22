@@ -44,13 +44,13 @@
         <view class="segment cat-segment">
           <view
             class="seg-item {{activeTab === 0 ? 'on' : ''}}"
-            data-index="0"
-            bindtap="switchTab"
+            data-index="{{0}}"
+            bindtap="switchCategory"
           >按章节</view>
           <view
             class="seg-item {{activeTab === 1 ? 'on' : ''}}"
-            data-index="1"
-            bindtap="switchTab"
+            data-index="{{1}}"
+            bindtap="switchCategory"
           >按考点</view>
         </view>
 

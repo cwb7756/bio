@@ -35,22 +35,6 @@
   letter-spacing: 2rpx;
 }
 
-.avatar-btn {
-  border-radius: 50%;
-  background: var(--green-soft);
-}
-
-.avatar-icon {
-  width: 44rpx;
-  height: 44rpx;
-}
-
-.avatar-btn .avatar-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-}
-
 /* 搜索框 */
 .search-wrap {
   position: relative;

@@ -87,6 +87,8 @@ async function refreshAchievements(OPENID) {
   const user = userData[0] || {};
 
   // 2. 构建查询条件（兼容 _openid 和 userID 两种字段）
+  // 安全前提：userID 必须且只能来自服务端 users 表（按 _openid 查询），绝不可源自客户端 event；
+  // main 入口已加防御断言拦截客户端传入的 userID，以防越权查询他人数据。
   const userID = user.userID || user._id || '';
   let spQuery = { _openid: OPENID };
   if (userID) {
@@ -254,6 +256,15 @@ async function refreshAchievements(OPENID) {
 
 exports.main = async (event) => {
   const { OPENID } = cloud.getWXContext();
+
+  // 防御性断言：拒绝客户端传入 userID
+  // study_progress/mistakes 旧数据按 userID 关联用户，但该值只能由服务端 users 表查询得到；
+  // 客户端直接传入 userID 属越权请求，必须拦截以防回归。
+  if (event.userID) {
+    console.warn('achievements: rejected client-supplied userID');
+    return { code: 403, msg: '非法请求' };
+  }
+
   const { action = 'list', skip = 0, limit = 50 } = event;
 
   const validErr = validateParams(event);

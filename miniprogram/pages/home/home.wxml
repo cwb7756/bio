@@ -13,10 +13,7 @@
           <text class="greeting-hi">{{userName}}，你好</text>
           <text class="greeting-title">今天也要加油鸭</text>
         </view>
-        <view class="icon-btn avatar-btn">
-          <image wx:if="{{userAvatar}}" class="avatar-img" src="{{userAvatar}}" mode="aspectFill"></image>
-          <view wx:else class="icon ic-student avatar-icon"></view>
-        </view>
+
       </view>
 
       <!-- 搜索 -->

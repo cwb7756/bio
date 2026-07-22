@@ -1,0 +1,65 @@
+{
+  "permissions": {
+    "users": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid",
+      "fields": {
+        "passwordHash": {
+          "read": false
+        }
+      }
+    },
+    "courses": {
+      "read": true,
+      "write": false
+    },
+    "lessons": {
+      "read": true,
+      "write": false
+    },
+    "quiz_questions": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "study_progress": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "achievements": {
+      "read": true,
+      "write": false
+    },
+    "user_achievements": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "mistakes": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "pet": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "pet_diary": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "videos": {
+      "read": true,
+      "write": false
+    },
+    "knowledge_points": {
+      "read": true,
+      "write": false
+    },
+    "flashcards": {
+      "read": "doc.scope == 'system' || doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "ai_chat_sessions": {
+      "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    }
+  }
+}

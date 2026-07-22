@@ -1,0 +1,14 @@
+{
+  "name": "bio-mini-program",
+  "version": "1.0.0",
+  "private": true,
+  "description": "高中生物学习小程序 - ESLint 配置",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:cf": "eslint cloudfunctions",
+    "lint:mp": "eslint miniprogram"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}

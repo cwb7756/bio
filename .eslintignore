@@ -1,0 +1,16 @@
+# 依赖目录
+node_modules/
+**/node_modules/
+
+# 小程序 npm 构建产物
+miniprogram_npm/
+**/miniprogram_npm/
+
+# 构建与临时文件
+dist/
+build/
+.tmp/
+.cache/
+
+# 工具产物
+tools/img-compress/backup/

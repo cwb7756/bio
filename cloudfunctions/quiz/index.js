@@ -199,3 +199,10 @@ exports.main = async (event, context) => {
     return { code: -1, msg: '刷题服务异常' };
   }
 };
+
+// ---------- 测试导出 ----------
+exports.submitAnswer = submitAnswer;
+exports.reportQuiz = reportQuiz;
+exports.getCategories = getCategories;
+exports.listQuestions = listQuestions;
+exports.CHAPTER_ORDER = CHAPTER_ORDER;

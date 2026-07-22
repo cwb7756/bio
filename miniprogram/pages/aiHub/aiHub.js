@@ -65,7 +65,7 @@ Page({
   },
 
   // 切换「按章节 / 按考点」
-  switchTab(e) {
+  switchCategory(e) {
     this.setData({ activeTab: e.currentTarget.dataset.index });
   },
 

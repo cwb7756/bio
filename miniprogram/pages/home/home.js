@@ -10,7 +10,6 @@ Page({
     searchValue: '',
     catImage: '',
     userName: '同学',
-    userAvatar: '',
     loading: true,
     continueLearning: null,
     isLoggedIn: false,
@@ -45,9 +44,9 @@ Page({
     // 先用本地缓存快速回显用户名；未登录重置为默认称呼
     const info = wx.getStorageSync('userInfo');
     if (info && info.nickname) {
-      this.setData({ userName: info.nickname, userAvatar: info.avatar || '' });
+      this.setData({ userName: info.nickname });
     } else {
-      this.setData({ userName: '同学', userAvatar: '' });
+      this.setData({ userName: '同学' });
     }
     // 同步登录态，驱动"开始第一节课 / 请登录"文案切换
     this.setData({ isLoggedIn: !!app.globalData.isLoggedIn });
@@ -104,7 +103,6 @@ Page({
 
           if (user && loggedIn) {
             updateData.userName = user.nickname || '同学';
-            updateData.userAvatar = user.avatar || '';
             // 同步更新本地缓存
             const cached = wx.getStorageSync('userInfo') || {};
             wx.setStorageSync('userInfo', { ...cached, ...user });

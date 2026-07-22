@@ -3,11 +3,11 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-19T04:13:56Z"
+exported_at: "2026-07-22T03:40:13Z"
 modules:
     "":
-        dir_name: 宠物学习类微信小程序全栈工程
-        title: 宠物学习类微信小程序全栈工程
+        dir_name: 宠物学习小程序全栈工程（微信开发者工具）
+        title: 宠物学习小程序全栈工程（微信开发者工具）
         scope:
             - .gitignore
             - project.config.json
@@ -40,8 +40,8 @@ modules:
         depends_on: []
         related_to: []
     miniprogram:
-        dir_name: 宠物学习类微信小程序客户端
-        title: 宠物学习类微信小程序客户端
+        dir_name: 微信小程序客户端（宠物学习）
+        title: 微信小程序客户端（宠物学习）
         scope:
             - miniprogram/
         source_files: []

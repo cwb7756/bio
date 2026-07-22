@@ -7,6 +7,8 @@ const db = cloud.database();
 const _ = db.command;
 
 // study_progress 身份兼容条件：旧数据用 userID，新数据用 _openid
+// 安全前提：此处的 userID 必须且只能来自服务端 users 表（按 _openid 查询）的结果，
+// 绝不可源自客户端 event 传入——否则将构成越权查询他人学习数据。main 入口已加防御断言拦截。
 function progressCond(openid, userID, extra) {
   const conds = [Object.assign({ _openid: openid }, extra)];
   if (userID) {
@@ -127,6 +129,14 @@ async function getHotTopics() {
  */
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
+
+  // 防御性断言：拒绝客户端传入 userID
+  // study_progress 旧数据按 userID 关联用户，但该值只能由服务端 users 表查询得到；
+  // 客户端直接传入 userID 属越权请求，必须拦截以防回归。
+  if (event.userID) {
+    console.warn('home: rejected client-supplied userID');
+    return { code: 403, msg: '非法请求' };
+  }
 
   const validErr = validateParams(event);
   if (validErr) return validErr;

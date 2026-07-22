@@ -80,4 +80,140 @@
       <text>AI老师讲一讲</text>
     </view>
   </view>
+
+  <!-- 缩放遮罩（缩放时背景变灰） -->
+  <view wx:if="{{floatVisible && floatResizing}}" class="float-resize-mask"></view>
+
+  <!-- AI 悬浮框 -->
+  <view wx:if="{{floatVisible}}" class="ai-float-panel {{floatResizing ? 'resizing' : ''}}" style="top: {{floatTop}}px; left: {{floatLeft}}px; width: {{floatWidth}}px; height: {{floatHeight}}px;">
+    <!-- 拖拽区（仅拖拽条） -->
+    <view class="float-drag-zone"
+          catchtouchstart="onFloatTouchStart"
+          catchtouchmove="onFloatTouchMove"
+          catchtouchend="onFloatTouchEnd">
+      <view class="float-drag-bar"></view>
+    </view>
+    <!-- 头部（标题 + 关闭按钮，不在拖拽区内） -->
+    <view class="float-header">
+      <text class="float-title">{{floatPhase === 'select' ? '选择考点' : 'AI老师讲解'}}</text>
+      <view class="float-close-btn" bindtap="onCloseFloat">
+        <view class="icon ic-close"></view>
+      </view>
+    </view>
+
+    <!-- Phase 1: 考点选择 -->
+    <view wx:if="{{floatPhase === 'select'}}" class="float-select-body">
+      <scroll-view scroll-y="true" enhanced="true" show-scrollbar="{{false}}" class="float-kp-scroll">
+        <view
+          wx:for="{{knowledgePoints}}"
+          wx:key="_id"
+          class="float-kp-item {{selectedKpId === item._id ? 'selected' : ''}}"
+          data-id="{{item._id}}"
+          data-index="{{index}}"
+          bindtap="onSelectKp"
+        >
+          <view class="float-kp-badge">
+            <view class="icon {{item.icon}}"></view>
+          </view>
+          <view class="float-kp-info">
+            <text class="float-kp-title">{{item.title}}</text>
+            <text class="float-kp-desc">{{item.desc}}</text>
+          </view>
+          <view class="float-kp-check {{selectedKpId === item._id ? 'show' : ''}}">
+            <view class="icon ic-check-white"></view>
+          </view>
+        </view>
+      </scroll-view>
+      <view class="float-ai-btn {{selectedKpId ? '' : 'disabled'}}" bindtap="onStartAIExplain">
+        <view class="icon ic-bot"></view>
+        <text>AI讲</text>
+      </view>
+    </view>
+
+    <!-- Phase 2: 流式对话 -->
+    <view wx:if="{{floatPhase === 'chat'}}" class="float-chat-body">
+      <scroll-view scroll-y="true" enhanced="true" show-scrollbar="{{false}}" class="float-chat-scroll" scroll-into-view="{{floatScrollIntoView}}" scroll-with-animation="true">
+        <!-- 用户消息（选中的考点） -->
+        <view class="float-chat-user">
+          <text class="float-chat-user-text">{{selectedKp.title}}</text>
+        </view>
+        <!-- AI 消息 -->
+        <view class="float-chat-ai">
+          <view class="float-chat-avatar">
+            <view class="icon ic-bot"></view>
+          </view>
+          <view class="float-chat-bubble {{!aiContent && aiStreaming ? 'streaming' : ''}}">
+            <!-- 流式加载指示 -->
+            <view wx:if="{{!aiContent && aiStreaming}}" class="typing-indicator">
+              <view class="typing-dot"></view>
+              <view class="typing-dot"></view>
+              <view class="typing-dot"></view>
+            </view>
+            <!-- Markdown 渲染 -->
+            <view wx:else class="msg-content md-body">
+              <block wx:if="{{aiBlocks.length}}">
+                <block wx:for="{{aiBlocks}}" wx:for-item="b" wx:key="index">
+                  <view wx:if="{{b.type === 'h1'}}" class="md-h md-h1">
+                    <template is="md-segs" data="{{segs: b.segments}}" />
+                  </view>
+                  <view wx:elif="{{b.type === 'h2'}}" class="md-h md-h2">
+                    <template is="md-segs" data="{{segs: b.segments}}" />
+                  </view>
+                  <view wx:elif="{{b.type === 'h3'}}" class="md-h md-h3">
+                    <template is="md-segs" data="{{segs: b.segments}}" />
+                  </view>
+                  <view wx:elif="{{b.type === 'li'}}" class="md-li">
+                    <view class="md-li-dot"></view>
+                    <view class="md-li-body">
+                      <template is="md-segs" data="{{segs: b.segments}}" />
+                    </view>
+                  </view>
+                  <view wx:elif="{{b.type === 'oli'}}" class="md-li">
+                    <text class="md-li-num">{{b.num}}.</text>
+                    <view class="md-li-body">
+                      <template is="md-segs" data="{{segs: b.segments}}" />
+                    </view>
+                  </view>
+                  <view wx:elif="{{b.type === 'quote'}}" class="md-quote">
+                    <template is="md-segs" data="{{segs: b.segments}}" />
+                  </view>
+                  <view wx:elif="{{b.type === 'code'}}" class="md-code">
+                    <text class="md-code-text" selectable="true">{{b.text}}</text>
+                  </view>
+                  <view wx:else class="md-p">
+                    <template is="md-segs" data="{{segs: b.segments}}" />
+                  </view>
+                </block>
+              </block>
+              <text wx:else>{{aiContent}}</text>
+            </view>
+          </view>
+        </view>
+        <view id="float-chat-bottom" style="height: 8rpx;"></view>
+      </scroll-view>
+      <!-- 停止生成按钮 -->
+      <view wx:if="{{aiStreaming}}" class="float-stop-btn" catchtap="onStopFloatAI">
+        <text>■ 停止生成</text>
+      </view>
+    </view>
+
+    <!-- 缩放手柄（右下角） -->
+    <view class="float-resize-handle"
+          catchtouchstart="onResizeStart"
+          catchtouchmove="onResizeMove"
+          catchtouchend="onResizeEnd">
+      <view class="float-resize-grip"></view>
+    </view>
+  </view>
 </view>
+
+<!-- Markdown 行内片段模板 -->
+<template name="md-segs">
+  <block wx:for="{{segs}}" wx:for-item="seg" wx:key="index">
+    <text wx:if="{{seg.type === 'bold'}}" class="md-bold">{{seg.text}}</text>
+    <text wx:elif="{{seg.type === 'code'}}" class="md-inline-code">{{seg.text}}</text>
+    <text wx:elif="{{seg.type === 'link'}}" class="md-link">{{seg.text}}</text>
+    <image wx:elif="{{seg.type === 'image'}}" src="{{seg.url}}" mode="widthFix" class="md-image" />
+    <text wx:else>{{seg.text}}</text>
+  </block>
+</template>

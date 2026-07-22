@@ -313,3 +313,13 @@ exports.main = async (event, context) => {
     return { code: -1, msg: '服务器异常，请稍后重试' };
   }
 };
+
+// ---------- 测试导出 ----------
+exports.toSafe = toSafe;
+exports.validateParams = validateParams;
+exports.emailLogin = emailLogin;
+exports.wxLogin = wxLogin;
+exports.emailRegister = emailRegister;
+exports.updateProfile = updateProfile;
+exports.LOCK_THRESHOLD = LOCK_THRESHOLD;
+exports.LOCK_DURATION = LOCK_DURATION;
