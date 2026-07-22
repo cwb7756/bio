@@ -1,5 +1,6 @@
 // pages/mistakes/mistakes.js
 const app = getApp();
+const { addToNotebook } = require('../../utils/notebook.js');
 
 Page({
   data: {
@@ -114,6 +115,31 @@ Page({
   // 去刷题
   goQuiz() {
     wx.navigateTo({ url: '/pages/quizEntry/quizEntry' });
+  },
+
+  // 收录到笔记本
+  addToNotebook(e) {
+    var id = e.currentTarget.dataset.id;
+    var note = null;
+    for (var i = 0; i < this.data.mistakes.length; i++) {
+      if (this.data.mistakes[i]._id === id) {
+        note = this.data.mistakes[i];
+        break;
+      }
+    }
+    if (!note) return;
+    var content = note.stem;
+    if (note.answer) content += '\n正确答案：' + note.answer;
+    if (note.userAnswer) content += '\n我的作答：' + note.userAnswer;
+    if (note.explanation) content += '\n解析：' + note.explanation;
+    addToNotebook({
+      type: 'mistake',
+      source: 'mistakes',
+      refId: note.questionId || note._id,
+      title: note.topic ? (note.chapter + '·' + note.topic) : '错题收录',
+      content: content,
+      meta: { chapter: note.chapter, topic: note.topic }
+    });
   },
 
   onShareAppMessage() {

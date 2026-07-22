@@ -89,6 +89,9 @@
               <view class="ch-progress-fill" style="width: {{item.progress}}%;"></view>
             </view>
           </view>
+          <view class="ch-add-nb" data-id="{{item._id}}" data-index="{{index}}" catchtap="addChapterToNotebook">
+            <view class="icon ic-pen"></view>
+          </view>
           <view class="ch-arrow">
             <view class="icon ic-chevron-right"></view>
           </view>

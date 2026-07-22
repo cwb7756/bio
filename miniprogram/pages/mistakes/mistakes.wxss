@@ -193,3 +193,24 @@
   color: var(--gray);
   margin-bottom: 16rpx;
 }
+
+/* 加入笔记本按钮 */
+.mk-add-nb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  margin-top: 16rpx;
+  padding: 14rpx;
+  border: 3rpx solid var(--green-accent);
+  border-radius: 24rpx;
+  background: var(--green-soft);
+  font-size: 25rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.mk-add-nb .icon {
+  width: 30rpx;
+  height: 30rpx;
+}

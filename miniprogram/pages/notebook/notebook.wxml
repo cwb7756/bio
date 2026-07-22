@@ -1,0 +1,100 @@
+<!--pages/notebook/notebook.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">我的笔记本</text>
+    <view class="nav-count" wx:if="{{!loading}}">{{notes.length}}条</view>
+    <view class="icon-btn" wx:else></view>
+  </view>
+
+  <view class="page-body">
+    <!-- 工具栏 -->
+    <view class="nb-toolbar">
+      <view class="nb-hint" wx:if="{{isDemo}}">示例笔记 · 收录第一条真实笔记后自动隐藏</view>
+      <view class="nb-hint" wx:else>长按卡片可拖动，松手自动对齐</view>
+      <view class="nb-auto-btn" bindtap="autoArrange" wx:if="{{notes.length > 0}}">
+        <view class="icon ic-refresh"></view>
+        <text>自动整理</text>
+      </view>
+    </view>
+
+    <!-- 画布滚动区 -->
+    <scroll-view
+      scroll-y="true"
+      enhanced="true"
+      show-scrollbar="{{false}}"
+      class="nb-scroll"
+      style="height: {{scrollHeight}}px;"
+    >
+      <view class="nb-canvas" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;">
+        <!-- 笔记卡片 -->
+        <view
+          wx:for="{{notes}}"
+          wx:key="_id"
+          class="nb-card nb-type-{{item.type}} {{draggingId === item._id ? 'nb-dragging' : ''}}"
+          style="left: {{item.pxX}}px; top: {{item.pxY}}px;"
+          data-id="{{item._id}}"
+          catchtouchstart="onCardTouchStart"
+          catchtouchmove="onCardTouchMove"
+          catchtouchend="onCardTouchEnd"
+        >
+          <!-- 类型标签 + 删除 -->
+          <view class="nb-card-head">
+            <view class="nb-type-chip">
+              <view class="icon {{typeIcon[item.type]}}"></view>
+              <text>{{typeLabel[item.type]}}</text>
+            </view>
+            <view
+              wx:if="{{!item.isDemo}}"
+              class="nb-del"
+              catchtap="removeNote"
+              data-id="{{item._id}}"
+            >
+              <view class="icon ic-close"></view>
+            </view>
+          </view>
+
+          <!-- 标题 -->
+          <text class="nb-title">{{item.title}}</text>
+
+          <!-- 内容 -->
+          <text class="nb-content" wx:if="{{item.content}}">{{item.content}}</text>
+
+          <!-- 课程跳转 -->
+          <view
+            wx:if="{{item.type === 'course' && item.meta.courseId}}"
+            class="nb-goto"
+            catchtap="goCourse"
+            data-courseid="{{item.meta.courseId}}"
+          >
+            <text>去学习</text>
+            <view class="icon ic-arrow-right"></view>
+          </view>
+
+          <!-- 来源 -->
+          <view class="nb-source" wx:if="{{item.source}}">
+            <text>来自{{sourceLabel[item.source]}}</text>
+          </view>
+        </view>
+
+        <!-- 空态 -->
+        <view class="nb-empty" wx:if="{{notes.length === 0 && !loading}}">
+          <view class="icon ic-folder nb-empty-icon"></view>
+          <text class="nb-empty-title">笔记本空空如也</text>
+          <text class="nb-empty-desc">在错题本、知识卡片、AI答疑、课程页面\n点击「加入笔记本」即可收录</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 加载 -->
+    <view class="nb-loading" wx:if="{{loading}}">加载中...</view>
+  </view>
+</view>

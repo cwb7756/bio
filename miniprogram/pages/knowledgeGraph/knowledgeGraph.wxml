@@ -1,0 +1,161 @@
+<!--pages/knowledgeGraph/knowledgeGraph.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <text class="nav-t">{{rootNode ? rootNode.title : '知识图谱'}}</text>
+    <view class="icon-btn" style="visibility: hidden;"></view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
+
+  <!-- 画布区域 -->
+  <scroll-view wx:else scroll-x="true" scroll-y="true" class="kg-scroll" show-scrollbar="{{false}}">
+    <view class="kg-canvas" style="width: {{canvasWidth}}rpx; height: {{canvasHeight}}rpx;">
+
+      <!-- 连线层（在节点下方渲染） -->
+      <view class="kg-line" wx:for="{{lines}}" wx:key="index"
+        style="left: {{item.x}}rpx; top: {{item.y}}rpx; width: {{item.length}}rpx; transform: rotate({{item.angle}}deg);">
+      </view>
+
+      <!-- 根节点（知识点本身） -->
+      <view class="kg-root" style="left: {{rootX}}rpx; top: {{rootY}}rpx; width: {{rootNode ? '300' : '0'}}rpx;" bindtap="tapRootNode">
+        <view class="kg-root-card">
+          <view class="kg-root-icon">
+            <view class="icon {{rootNode.icon || 'ic-target'}}"></view>
+          </view>
+          <view class="kg-root-info">
+            <text class="kg-root-title">{{rootNode.title}}</text>
+            <text class="kg-root-desc">{{rootNode.desc}}</text>
+          </view>
+          <view class="kg-root-go">
+            <view class="icon ic-arrow-right"></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 子知识点节点 -->
+      <view wx:for="{{visibleNodes}}" wx:key="_id"
+        class="kg-node {{selectedId === item._id ? 'selected' : ''}} {{item.status === 'done' ? 'kg-done' : 'kg-todo'}}"
+        style="left: {{item.x}}rpx; top: {{item.y}}rpx;"
+        data-id="{{item._id}}"
+        bindtap="tapNode">
+        <view class="kg-node-card">
+          <!-- 状态标识 -->
+          <view class="kg-node-status">
+            <view class="icon ic-check-white" wx:if="{{item.status === 'done'}}"></view>
+            <text wx:else class="kg-node-num">{{item.difficulty}}</text>
+          </view>
+          <!-- 节点内容 -->
+          <view class="kg-node-body">
+            <text class="kg-node-title">{{item.title}}</text>
+            <view class="kg-node-meta">
+              <!-- 难度指示器 -->
+              <view class="kg-diff">
+                <view class="kg-diff-dot {{index < item.difficulty ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this"></view>
+              </view>
+              <!-- 子节点数 -->
+              <text class="kg-child-count" wx:if="{{item.hasChildren}}">{{item.collapsed ? '+' : '−'}}{{item.childCount}}</text>
+              <!-- 课程标识 -->
+              <view class="kg-course-tag" wx:if="{{item.lessons.length > 0}}">
+                <view class="icon ic-video"></view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+    </view>
+  </scroll-view>
+
+  <!-- 顶部操作栏 -->
+  <view wx:if="{{!loading && visibleNodes.length > 0}}" class="kg-toolbar">
+    <view class="kg-stat-mini">
+      <text class="kg-stat-num">{{doneCount}}/{{totalCount}}</text>
+      <text class="kg-stat-label">已掌握</text>
+    </view>
+    <view class="kg-toolbar-btns">
+      <view class="kg-tool-btn" bindtap="expandAll">
+        <text>全部展开</text>
+      </view>
+      <view class="kg-tool-btn" bindtap="collapseAll">
+        <text>收起</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 节点详情面板 -->
+  <view wx:if="{{showDetail}}" class="kg-detail-mask" bindtap="closeDetail">
+    <view class="kg-detail-panel" catchtap="">
+      <!-- 头部 -->
+      <view class="kg-detail-header">
+        <view class="kg-detail-icon">
+          <view class="icon {{detailNode.icon || 'ic-folder'}}"></view>
+        </view>
+        <view class="kg-detail-title-wrap">
+          <text class="kg-detail-title">{{detailNode.title}}</text>
+          <view class="kg-detail-tags" wx:if="{{detailNode.tags.length > 0}}">
+            <text class="kg-tag" wx:for="{{detailNode.tags}}" wx:key="*this">{{item}}</text>
+          </view>
+        </view>
+        <view class="kg-detail-close" bindtap="closeDetail">
+          <view class="icon ic-close"></view>
+        </view>
+      </view>
+
+      <!-- 描述 -->
+      <scroll-view scroll-y="true" class="kg-detail-scroll" enhanced="true" show-scrollbar="{{false}}">
+        <view class="kg-detail-section">
+          <text class="kg-detail-label">知识点描述</text>
+          <text class="kg-detail-desc">{{detailNode.description}}</text>
+        </view>
+
+        <!-- 难度 -->
+        <view class="kg-detail-section">
+          <text class="kg-detail-label">难度等级</text>
+          <view class="kg-diff kg-diff-lg">
+            <view class="kg-diff-dot {{index < detailNode.difficulty ? 'on' : ''}}" wx:for="{{[1,2,3,4,5]}}" wx:key="*this"></view>
+            <text class="kg-diff-text">{{detailNode.difficulty}}/5</text>
+          </view>
+        </view>
+
+        <!-- 关联课程 -->
+        <view class="kg-detail-section" wx:if="{{detailNode.lessons.length > 0}}">
+          <text class="kg-detail-label">关联课程</text>
+          <view class="kg-lesson-list">
+            <view class="kg-lesson-item" wx:for="{{detailNode.lessons}}" wx:key="_id">
+              <view class="icon ic-video kg-lesson-icon"></view>
+              <text class="kg-lesson-title">{{item.title}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 前置依赖 -->
+        <view class="kg-detail-section" wx:if="{{detailNode.prerequisites.length > 0}}">
+          <text class="kg-detail-label">前置知识点</text>
+          <text class="kg-detail-prereq">{{detailNode.prerequisites.length}} 个前置知识点需先掌握</text>
+        </view>
+      </scroll-view>
+
+      <!-- 底部操作按钮 -->
+      <view class="kg-detail-actions">
+        <view wx:if="{{detailNode.hasChildren}}" class="btn ghost kg-detail-btn" bindtap="toggleExpand">
+          <text>{{detailNode.collapsed ? '展开子节点' : '收起子节点'}}</text>
+        </view>
+        <view wx:if="{{detailNode.lessons.length > 0}}" class="btn kg-detail-btn" bindtap="goCourseFromDetail">
+          <view class="icon ic-video"></view>
+          <text>去看课程</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</view>

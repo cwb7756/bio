@@ -75,9 +75,19 @@ Page({
     wx.navigateBack();
   },
 
-  // 点击节点：无解锁限制，任何节点均可跳转课程页
+  // 点击知识点节点：跳转到以该知识点为核心的详细图谱页
   tapNode(e) {
     const node = e.currentTarget.dataset.node;
-    wx.navigateTo({ url: '/pages/course/course?courseId=' + node.courseId });
+    if (!node || !node.kpId) {
+      wx.showToast({ title: '该知识点暂无详细图谱', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/knowledgeGraph/knowledgeGraph?courseId=' + node.courseId + '&kpId=' + node.kpId,
+      fail: (err) => {
+        console.error('navigate to knowledgeGraph failed:', err);
+        wx.showToast({ title: '页面跳转失败', icon: 'none' });
+      }
+    });
   }
 });

@@ -22,6 +22,7 @@ Page({
     totalAchievements: 0,
     menuList: [
       { icon: 'ic-close', name: '我的错题本', desc: '错题回顾与复习', badge: '', path: '/pages/mistakes/mistakes' },
+      { icon: 'ic-pen', name: '我的笔记本', desc: '收录的知识点、课程与AI回答', badge: '', path: '/pages/notebook/notebook' },
       { icon: 'ic-folder', name: '速记卡片', desc: '考点速记随身看', badge: '', path: '/pages/flashcards/flashcards' },
       { icon: 'ic-chart', name: '学习报告', desc: '查看学习数据', badge: '', path: '/pages/report/report' },
       { icon: 'ic-trophy', name: '成就中心', desc: '查看已解锁成就', badge: '', path: '/pages/achievements/achievements' },

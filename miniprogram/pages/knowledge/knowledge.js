@@ -1,6 +1,7 @@
 // pages/knowledge/knowledge.js
 const app = getApp();
 const { parseMarkdown } = require('../../utils/markdown.js');
+const { addToNotebook } = require('../../utils/notebook.js');
 
 // 系统提示词 - 定义AI生物老师角色
 const SYSTEM_PROMPT = `你是一位专业的高中生物老师，擅长用简洁清晰的方式解答生物问题。
@@ -419,5 +420,40 @@ Page({
       console.error('matchContext error:', err);
       return '';
     }
+  },
+
+  // 收录知识点到笔记本
+  addKpToNotebook(e) {
+    var id = e.currentTarget.dataset.id;
+    var kp = null;
+    for (var i = 0; i < this.data.knowledgePoints.length; i++) {
+      if (this.data.knowledgePoints[i]._id === id) {
+        kp = this.data.knowledgePoints[i];
+        break;
+      }
+    }
+    if (!kp) return;
+    addToNotebook({
+      type: 'knowledge',
+      source: 'knowledge',
+      refId: kp._id,
+      title: kp.title,
+      content: kp.desc || '',
+      meta: { courseId: this.data.courseId, chapter: this.data.course ? this.data.course.chapter : '' }
+    });
+  },
+
+  // 收录AI回答到笔记本
+  addAiToNotebook() {
+    if (!this.data.aiContent || this.data.aiStreaming) return;
+    var kp = this.data.selectedKp;
+    addToNotebook({
+      type: 'ai',
+      source: 'knowledge',
+      refId: 'kpai_' + (kp ? kp._id : this.data.courseId),
+      title: kp ? ('AI讲解：' + kp.title) : 'AI知识点讲解',
+      content: this.data.aiContent,
+      meta: { courseId: this.data.courseId }
+    });
   }
 });

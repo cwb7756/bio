@@ -93,6 +93,22 @@
   height: 30rpx;
 }
 
+.fc-add-nb {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid var(--green-accent);
+  border-radius: 14rpx;
+  background: var(--green-soft);
+}
+
+.fc-add-nb .icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
 .fc-content {
   font-size: 26rpx;
   color: var(--ink-soft);

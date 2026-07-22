@@ -59,6 +59,10 @@
           <view class="mk-explain" wx:if="{{expanded[item._id]}}">
             <text>{{item.explanation}}</text>
           </view>
+          <view class="mk-add-nb" catchtap="addToNotebook" data-id="{{item._id}}">
+            <view class="icon ic-pen"></view>
+            <text>加入我的笔记本</text>
+          </view>
         </view>
 
         <!-- 空态 -->

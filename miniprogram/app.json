@@ -20,7 +20,9 @@
     "pages/settings/settings",
     "pages/feedback/feedback",
     "pages/pet/pet",
-    "pages/map/map"
+    "pages/map/map",
+    "pages/knowledgeGraph/knowledgeGraph",
+    "pages/notebook/notebook"
   ],
   "window": {
     "backgroundColor": "#F3F8F3",

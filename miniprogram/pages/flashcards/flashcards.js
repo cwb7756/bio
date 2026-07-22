@@ -1,6 +1,7 @@
 // pages/flashcards/flashcards.js
 const app = getApp();
 const sound = require('../../utils/sound.js');
+const { addToNotebook } = require('../../utils/notebook.js');
 
 Page({
   data: {
@@ -154,6 +155,27 @@ Page({
 
   onShareAppMessage() {
     return { title: 'Bio - 高中生物学习助手', path: '/pages/home/home' };
+  },
+
+  // 收录到笔记本
+  addToNotebook(e) {
+    var id = e.currentTarget.dataset.id;
+    var card = null;
+    for (var i = 0; i < this.data.cards.length; i++) {
+      if (this.data.cards[i]._id === id) {
+        card = this.data.cards[i];
+        break;
+      }
+    }
+    if (!card) return;
+    addToNotebook({
+      type: 'knowledge',
+      source: 'flashcards',
+      refId: card._id,
+      title: card.title,
+      content: card.content,
+      meta: { chapter: card.chapter }
+    });
   },
 
   onShareTimeline() {

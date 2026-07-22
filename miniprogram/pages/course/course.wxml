@@ -70,6 +70,9 @@
           <view class="vd-play" wx:else>
             <view class="icon ic-play"></view>
           </view>
+          <view class="vd-add-nb" data-lessonid="{{item._id}}" data-title="{{item.title}}" catchtap="addLessonToNotebook">
+            <view class="icon ic-pen"></view>
+          </view>
         </view>
       </view>
 

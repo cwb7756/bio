@@ -43,7 +43,7 @@
           <view class="map-line"></view>
           <view
             wx:for="{{nodes}}"
-            wx:key="lessonId"
+            wx:key="kpId"
             class="map-node {{index % 2 === 0 ? 'node-left' : 'node-right'}}"
             data-node="{{item}}"
             bindtap="tapNode"

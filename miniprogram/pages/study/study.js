@@ -1,5 +1,6 @@
 // pages/study/study.js
 const app = getApp();
+const { addToNotebook } = require('../../utils/notebook.js');
 
 Page({
   data: {
@@ -121,6 +122,21 @@ Page({
     const ch = this.data.chapters[idx];
     wx.navigateTo({
       url: '/pages/course/course?courseId=' + ch._id
+    });
+  },
+
+  // 收录章节到笔记本
+  addChapterToNotebook(e) {
+    var idx = e.currentTarget.dataset.index;
+    var ch = this.data.chapters[idx];
+    if (!ch) return;
+    addToNotebook({
+      type: 'course',
+      source: 'study',
+      refId: ch._id,
+      title: ch.title,
+      content: '已学' + ch.completed + '/' + ch.lessons + '课时，完成率' + ch.progress + '%',
+      meta: { courseId: ch._id }
     });
   },
 

@@ -196,6 +196,27 @@
   word-break: break-all;
 }
 
+/* 收入笔记本按钮 */
+.msg-add-nb {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+  margin-top: 10rpx;
+  padding: 6rpx 16rpx;
+  border: 2rpx solid var(--green-accent);
+  border-radius: 22rpx;
+  background: var(--green-soft);
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+  align-self: flex-start;
+}
+
+.msg-add-nb .icon {
+  width: 26rpx;
+  height: 26rpx;
+}
+
 /* 快捷问题 */
 .ai-suggestions {
   padding: 12rpx 28rpx;

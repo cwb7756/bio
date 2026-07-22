@@ -58,6 +58,9 @@
             >
               <view class="icon ic-close"></view>
             </view>
+            <view class="fc-add-nb" data-id="{{item._id}}" catchtap="addToNotebook">
+              <view class="icon ic-pen"></view>
+            </view>
           </view>
           <text class="fc-content">{{item.content}}</text>
         </view>

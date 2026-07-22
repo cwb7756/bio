@@ -53,12 +53,24 @@
       "read": true,
       "write": false
     },
+    "knowledge_graph_nodes": {
+      "read": true,
+      "write": false
+    },
+    "knowledge_graph_edges": {
+      "read": true,
+      "write": false
+    },
     "flashcards": {
       "read": "doc.scope == 'system' || doc._openid == auth.openid",
       "write": "doc._openid == auth.openid"
     },
     "ai_chat_sessions": {
       "read": "doc._openid == auth.openid",
+      "write": "doc._openid == auth.openid"
+    },
+    "notebook": {
+      "read": "doc.scope == 'system' || doc._openid == auth.openid",
       "write": "doc._openid == auth.openid"
     }
   }

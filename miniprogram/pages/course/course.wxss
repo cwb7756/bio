@@ -228,6 +228,23 @@
   height: 30rpx;
 }
 
+.vd-add-nb {
+  flex: 0 0 52rpx;
+  width: 52rpx;
+  height: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid var(--green-accent);
+  border-radius: 14rpx;
+  background: var(--green-soft);
+}
+
+.vd-add-nb .icon {
+  width: 26rpx;
+  height: 26rpx;
+}
+
 /* ============ 考点 chips ============ */
 .kp-scroll {
   white-space: nowrap;

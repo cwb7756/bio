@@ -3,25 +3,19 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-22T03:40:13Z"
+exported_at: "2026-07-22T05:28:01Z"
 modules:
     "":
-        dir_name: 宠物学习小程序全栈工程（微信开发者工具）
-        title: 宠物学习小程序全栈工程（微信开发者工具）
-        scope:
-            - .gitignore
-            - project.config.json
-            - README.md
+        dir_name: 知识点详情页与 AI 悬浮讲解
+        title: 知识点详情页与 AI 悬浮讲解
+        scope: []
         source_files: []
-        children:
-            - cloudfunctions
-            - docs
-            - miniprogram
+        children: []
         depends_on: []
         related_to: []
     cloudfunctions:
-        dir_name: 微信云函数业务域集合（认证_首页_AI答疑_错题_成就等）
-        title: 微信云函数业务域集合（认证/首页/AI答疑/错题/成就等）
+        dir_name: 微信云函数业务域服务集
+        title: 微信云函数业务域服务集
         scope:
             - cloudfunctions/
         source_files: []

@@ -133,6 +133,16 @@
             </block>
             <text wx:else>{{item.content}}</text>
           </view>
+          <!-- 收入笔记本 -->
+          <view
+            wx:if="{{item.content && !isStreaming}}"
+            class="msg-add-nb"
+            data-index="{{index}}"
+            catchtap="addAiMsgToNotebook"
+          >
+            <view class="icon ic-pen"></view>
+            <text>收入笔记本</text>
+          </view>
         </view>
       </block>
 

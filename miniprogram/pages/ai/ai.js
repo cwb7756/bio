@@ -1,6 +1,7 @@
 // pages/ai/ai.js
 const app = getApp();
 const { parseMarkdown } = require('../../utils/markdown.js');
+const { addToNotebook } = require('../../utils/notebook.js');
 
 // 系统提示词 - 定义AI生物老师角色（基于上下文数据回答）
 const SYSTEM_PROMPT = `你是一位专业的高中生物老师，擅长用简洁清晰的方式解答生物问题。
@@ -649,6 +650,25 @@ Page({
     const url = e.currentTarget.dataset.url;
     if (!url) return;
     wx.showToast({ title: '小程序内暂不支持打开链接', icon: 'none' });
+  },
+
+  // 收录AI回答到笔记本
+  addAiMsgToNotebook(e) {
+    var idx = e.currentTarget.dataset.index;
+    var msg = this.data.messages[idx];
+    if (!msg || msg.role !== 'ai' || !msg.content) return;
+    // 取上一条用户提问作为标题
+    var title = 'AI回答';
+    if (idx > 0 && this.data.messages[idx - 1] && this.data.messages[idx - 1].role === 'user') {
+      title = this.data.messages[idx - 1].content.slice(0, 50);
+    }
+    addToNotebook({
+      type: 'ai',
+      source: 'ai',
+      refId: 'aimsg_' + msg.ts,
+      title: title,
+      content: msg.content
+    });
   },
 
   sendSuggestion(e) {

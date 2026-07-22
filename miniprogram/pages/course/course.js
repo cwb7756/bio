@@ -1,4 +1,6 @@
 // pages/course/course.js
+const { addToNotebook } = require('../../utils/notebook.js');
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -256,6 +258,21 @@ Page({
 
   goBack() {
     wx.navigateBack();
+  },
+
+  // 收录课时到笔记本
+  addLessonToNotebook(e) {
+    var lessonId = e.currentTarget.dataset.lessonid;
+    var title = e.currentTarget.dataset.title;
+    var course = this.data.course;
+    addToNotebook({
+      type: 'course',
+      source: 'course',
+      refId: lessonId,
+      title: title || '课时收录',
+      content: course ? (course.title + ' · ' + (course.tag || '')) : '',
+      meta: { courseId: this.data.courseId }
+    });
   },
 
   // 分享给好友
