@@ -3,55 +3,30 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-22T05:28:01Z"
+exported_at: "2026-07-23T03:05:42Z"
 modules:
     "":
-        dir_name: 知识点详情页与 AI 悬浮讲解
-        title: 知识点详情页与 AI 悬浮讲解
+        dir_name: 我的笔记本（自由画布拖拽排版）
+        title: 我的笔记本（自由画布拖拽排版）
         scope: []
         source_files: []
         children: []
         depends_on: []
         related_to: []
     cloudfunctions:
-        dir_name: 微信云函数业务域服务集
-        title: 微信云函数业务域服务集
+        dir_name: 微信小程序云函数集合（业务后端）
+        title: 微信小程序云函数集合（业务后端）
         scope:
             - cloudfunctions/
         source_files: []
         children: []
         depends_on: []
-        related_to:
-            - path: miniprogram
-    docs:
-        dir_name: 上线审计、课程视频规划与手绘原型文档集
-        title: 上线审计、课程视频规划与手绘原型文档集
-        scope:
-            - docs/
-            - prototype/
-        source_files: []
-        children: []
-        depends_on: []
         related_to: []
     miniprogram:
-        dir_name: 微信小程序客户端（宠物学习）
-        title: 微信小程序客户端（宠物学习）
+        dir_name: 高中生物学习助手小程序前端
+        title: 高中生物学习助手小程序前端
         scope:
             - miniprogram/
-        source_files: []
-        children:
-            - miniprogram/app_shell
-        depends_on: []
-        related_to:
-            - path: cloudfunctions
-    miniprogram/app_shell:
-        dir_name: 小程序应用壳与全局设计系统
-        title: 小程序应用壳与全局设计系统
-        scope:
-            - miniprogram/app.js
-            - miniprogram/app.json
-            - miniprogram/app.wxss
-            - miniprogram/sitemap.json
         source_files: []
         children: []
         depends_on: []
