@@ -17,9 +17,13 @@
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
 
-  <!-- 画布区域 -->
-  <scroll-view wx:else scroll-x="true" scroll-y="true" class="kg-scroll" show-scrollbar="{{false}}">
-    <view class="kg-canvas" style="width: {{canvasWidth}}rpx; height: {{canvasHeight}}rpx;">
+  <!-- 画布区域：单指拖动漫游 + 双指捏合缩放（手写 touch，保证节点 tap 正常） -->
+  <view wx:else class="kg-area"
+    bindtouchstart="onTouchStart"
+    bindtouchmove="onTouchMove"
+    bindtouchend="onTouchEnd"
+    bindtouchcancel="onTouchEnd">
+    <view class="kg-view" style="width: {{canvasWidth}}rpx; height: {{canvasHeight}}rpx; transform: translate({{tx}}px, {{ty}}px) scale({{scale}});">
 
       <!-- 连线层（在节点下方渲染） -->
       <view class="kg-line" wx:for="{{lines}}" wx:key="index"
@@ -74,13 +78,14 @@
       </view>
 
     </view>
-  </scroll-view>
+  </view>
 
   <!-- 顶部操作栏 -->
   <view wx:if="{{!loading && visibleNodes.length > 0}}" class="kg-toolbar">
     <view class="kg-stat-mini">
       <text class="kg-stat-num">{{doneCount}}/{{totalCount}}</text>
       <text class="kg-stat-label">已掌握</text>
+      <text class="kg-scale-label">{{scalePercent}}%</text>
     </view>
     <view class="kg-toolbar-btns">
       <view class="kg-tool-btn" bindtap="expandAll">
@@ -88,6 +93,9 @@
       </view>
       <view class="kg-tool-btn" bindtap="collapseAll">
         <text>收起</text>
+      </view>
+      <view class="kg-tool-btn" bindtap="resetView">
+        <text>复位</text>
       </view>
     </view>
   </view>

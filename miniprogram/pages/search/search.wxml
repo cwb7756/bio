@@ -1,0 +1,141 @@
+<!--pages/search/search.wxml-->
+<view class="page-container">
+  <view class="bg-dots"></view>
+
+  <!-- 状态栏占位 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 导航栏：返回 + 搜索框 -->
+  <view class="navbar">
+    <view class="icon-btn" bindtap="goBack">
+      <view class="icon ic-back nav-icon"></view>
+    </view>
+    <view class="search nav-search">
+      <view class="icon ic-search search-icon"></view>
+      <input
+        placeholder="搜考点 / 题目，如：光合作用"
+        value="{{keyword}}"
+        focus="{{!searchedKeyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+        confirm-type="search"
+      />
+      <view class="search-clear" catchtap="clearKeyword" wx:if="{{keyword}}">
+        <view class="icon ic-close"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 搜索历史（未执行搜索时） -->
+      <block wx:if="{{!searched && !searching}}">
+        <block wx:if="{{history.length > 0}}">
+          <view class="sec-title">
+            <text class="u">搜索历史</text>
+            <view class="more" bindtap="clearHistory">
+              <view class="icon ic-history more-icon"></view>
+              <text>清空</text>
+            </view>
+          </view>
+          <view class="history-chips">
+            <view
+              class="h-chip"
+              wx:for="{{history}}"
+              wx:key="*this"
+              data-word="{{item}}"
+              bindtap="onTapHistory"
+            >{{item}}</view>
+          </view>
+        </block>
+        <view wx:else class="empty-box">
+          <text class="empty-title">搜索考点 / 知识点 / 题目</text>
+          <text class="empty-desc">输入关键词，如：光合作用、细胞呼吸</text>
+        </view>
+      </block>
+
+      <!-- 搜索中 -->
+      <view wx:if="{{searching}}" class="loading-tip">搜索中...</view>
+
+      <!-- 搜索结果 -->
+      <block wx:if="{{searched && !searching}}">
+        <!-- 空态 -->
+        <view
+          wx:if="{{courses.length === 0 && knowledgePoints.length === 0 && questions.length === 0}}"
+          class="empty-box"
+        >
+          <text class="empty-title">未找到相关内容</text>
+          <text class="empty-desc">换个关键词试试吧</text>
+        </view>
+
+        <!-- 课程考点 -->
+        <block wx:if="{{courses.length > 0}}">
+          <view class="sec-title"><text class="u">课程考点</text></view>
+          <view
+            class="s-card"
+            wx:for="{{courses}}"
+            wx:key="_id"
+            data-id="{{item._id}}"
+            bindtap="goCourse"
+          >
+            <view class="s-ic">
+              <view class="icon {{item.icon}}"></view>
+            </view>
+            <view class="s-info">
+              <text class="s-title">{{item.title}}</text>
+              <text class="s-meta">{{item.chapter}} · {{item.level}} · {{item.totalLessons}}课时</text>
+            </view>
+            <view class="icon ic-chevron-right s-arrow"></view>
+          </view>
+        </block>
+
+        <!-- 知识点 -->
+        <block wx:if="{{knowledgePoints.length > 0}}">
+          <view class="sec-title"><text class="u">知识点</text></view>
+          <view
+            class="s-card"
+            wx:for="{{knowledgePoints}}"
+            wx:key="_id"
+            data-course-id="{{item.courseId}}"
+            data-kp-id="{{item._id}}"
+            bindtap="goKnowledgePoint"
+          >
+            <view class="s-ic kp">
+              <view class="icon ic-target"></view>
+            </view>
+            <view class="s-info">
+              <text class="s-title">{{item.title}}</text>
+              <text class="s-meta">{{item.chapter}}{{item.desc ? ' · ' + item.desc : ''}}</text>
+            </view>
+            <view class="icon ic-chevron-right s-arrow"></view>
+          </view>
+        </block>
+
+        <!-- 题目 -->
+        <block wx:if="{{questions.length > 0}}">
+          <view class="sec-title"><text class="u">题目</text></view>
+          <view
+            class="s-card q"
+            wx:for="{{questions}}"
+            wx:key="questionId"
+            data-chapter="{{item.chapter}}"
+            data-topic="{{item.topic}}"
+            bindtap="goQuestion"
+          >
+            <view class="s-q-main">
+              <view class="chip s-q-chip">{{item.chapter}} · {{item.topic}}</view>
+              <text class="s-q-stem">{{item.stem}}</text>
+            </view>
+            <view class="icon ic-chevron-right s-arrow"></view>
+          </view>
+        </block>
+
+        <view class="result-tip" wx:if="{{courses.length > 0 || knowledgePoints.length > 0 || questions.length > 0}}">
+          <text>以上为「{{searchedKeyword}}」的搜索结果</text>
+        </view>
+      </block>
+
+      <view style="height: 60rpx;"></view>
+    </view>
+  </view>
+</view>

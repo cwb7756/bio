@@ -34,6 +34,20 @@
   <block wx:else>
     <view class="page-body">
       <view class="page-pad">
+        <!-- 搜索栏 -->
+        <view class="search qe-search">
+          <view class="icon ic-search search-icon"></view>
+          <input
+            placeholder="搜索章节 / 考点"
+            value="{{searchValue}}"
+            bindinput="onSearchInput"
+            confirm-type="search"
+          />
+          <view class="search-clear" catchtap="clearSearch" wx:if="{{searchValue}}">
+            <view class="icon ic-close"></view>
+          </view>
+        </view>
+
         <!-- 分段控件 -->
         <view class="segment cat-segment">
           <view
@@ -50,9 +64,10 @@
 
         <!-- 按章节视图 -->
         <view class="cat-list" wx:if="{{activeTab === 0}}">
+          <view class="search-empty" wx:if="{{searchValue && filteredChapters.length === 0}}">未找到相关章节或考点</view>
           <view
             class="cat-chapter"
-            wx:for="{{chapters}}"
+            wx:for="{{filteredChapters}}"
             wx:key="name"
           >
             <!-- 章节头部（可点展开） -->
@@ -98,9 +113,10 @@
 
         <!-- 按考点视图 -->
         <view class="cat-list" wx:else>
+          <view class="search-empty" wx:if="{{searchValue && filteredTopics.length === 0}}">未找到相关章节或考点</view>
           <view
             class="cat-topic-card"
-            wx:for="{{topics}}"
+            wx:for="{{filteredTopics}}"
             wx:key="name"
             data-chapter="{{item.chapter}}"
             data-topic="{{item.name}}"

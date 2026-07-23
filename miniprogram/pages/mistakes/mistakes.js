@@ -11,7 +11,8 @@ Page({
     expanded: {},
     skip: 0,
     limit: 20,
-    total: 0
+    total: 0,
+    searchValue: ''
   },
 
   onLoad() {
@@ -29,12 +30,17 @@ Page({
     this.loadMistakes(false);
   },
 
-  // 调用 mistakes 云函数获取错题列表
+  // 调用 mistakes 云函数获取错题列表（带关键词时服务端按题干/章节/考点过滤）
   loadMistakes(append, done) {
     this.setData({ loading: true });
     wx.cloud.callFunction({
       name: 'mistakes',
-      data: { action: 'list', skip: this.data.skip, limit: this.data.limit },
+      data: {
+        action: 'list',
+        skip: this.data.skip,
+        limit: this.data.limit,
+        keyword: (this.data.searchValue || '').trim()
+      },
       success: (res) => {
         if (res.result && res.result.code === 0) {
           var list = res.result.list || (res.result.data && res.result.data.mistakes) || [];
@@ -74,6 +80,23 @@ Page({
       this.setData({ skip: this.data.skip + this.data.limit });
       this.loadMistakes(true);
     }
+  },
+
+  // 搜索输入与确认
+  onSearchInput(e) {
+    this.setData({ searchValue: e.detail.value });
+  },
+
+  onSearchConfirm() {
+    this.setData({ skip: 0, mistakes: [], expanded: {} });
+    this.loadMistakes(false);
+  },
+
+  // 清空搜索并恢复全量列表
+  clearSearch() {
+    if (!this.data.searchValue) return;
+    this.setData({ searchValue: '', skip: 0, mistakes: [], expanded: {} });
+    this.loadMistakes(false);
   },
 
   goBack() {

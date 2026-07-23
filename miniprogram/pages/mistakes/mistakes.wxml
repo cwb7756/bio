@@ -11,14 +11,29 @@
       <view class="icon ic-back nav-icon"></view>
     </view>
     <text class="nav-t">错题本</text>
-    <view class="nav-count" wx:if="{{!loading}}">{{mistakes.length}}题</view>
+    <view class="nav-count" wx:if="{{!loading}}">{{searchValue ? '找到 ' + total + ' 题' : total + ' 题'}}</view>
     <view class="icon-btn" wx:else></view>
   </view>
 
   <view class="page-body">
     <view class="page-pad">
+      <!-- 搜索栏 -->
+      <view class="search mk-search">
+        <view class="icon ic-search search-icon"></view>
+        <input
+          placeholder="搜索题干 / 章节 / 考点"
+          value="{{searchValue}}"
+          bindinput="onSearchInput"
+          bindconfirm="onSearchConfirm"
+          confirm-type="search"
+        />
+        <view class="search-clear" catchtap="clearSearch" wx:if="{{searchValue}}">
+          <view class="icon ic-close"></view>
+        </view>
+      </view>
+
       <!-- demo 提示 -->
-      <view wx:if="{{isDemo && !loading}}" class="demo-tip">
+      <view wx:if="{{isDemo && !loading && !searchValue}}" class="demo-tip">
         <text>示例数据 · 刷题后答错的题目会自动收录到这里</text>
       </view>
 
@@ -67,9 +82,10 @@
 
         <!-- 空态 -->
         <view wx:if="{{mistakes.length === 0}}" class="empty-box">
-          <text class="empty-title">错题本空空如也</text>
-          <text class="empty-desc">去刷题，答错的题目会自动收录进来</text>
-          <view class="btn" bindtap="goQuiz">去刷题</view>
+          <text class="empty-title">{{searchValue ? '未找到相关错题' : '错题本空空如也'}}</text>
+          <text class="empty-desc">{{searchValue ? '换个关键词试试，或清空搜索查看全部' : '去刷题，答错的题目会自动收录进来'}}</text>
+          <view class="btn ghost" bindtap="clearSearch" wx:if="{{searchValue}}">清空搜索</view>
+          <view class="btn" bindtap="goQuiz" wx:else>去刷题</view>
         </view>
       </block>
 

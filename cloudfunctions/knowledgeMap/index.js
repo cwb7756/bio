@@ -31,6 +31,30 @@ function validateParams(obj) {
   return null;
 }
 
+// study_progress 身份兼容条件：旧数据用 userID，新数据用 _openid
+// 安全前提：userID 必须且只能来自服务端 users 表（按 _openid 查询）的结果，
+// 绝不可源自客户端 event 传入——否则将构成越权查询他人学习数据。main 入口已加防御断言拦截。
+function progressCond(openid, userID, extra) {
+  const conds = [Object.assign({ _openid: openid }, extra)];
+  if (userID) {
+    conds.push(Object.assign({ userID: userID }, extra));
+  }
+  return conds.length > 1 ? _.or(conds) : conds[0];
+}
+
+// 按 OPENID 查询 users 表，获取服务端 userID（用于兼容旧版学习记录的身份字段）
+async function getServerUserID(OPENID) {
+  if (!OPENID) return '';
+  try {
+    const { data } = await db.collection('users').where({ _openid: OPENID }).limit(1).get();
+    const user = data[0] || {};
+    return user.userID || user._id || '';
+  } catch (e) {
+    console.error('getServerUserID error:', e);
+    return '';
+  }
+}
+
 // ========== Action: getMap（原有逻辑） ==========
 async function getMap(event, OPENID) {
   const { courseId = 'course_required_1' } = event;
@@ -56,8 +80,10 @@ async function getMap(event, OPENID) {
     // 3. 用户该课程已完成课时 ID（兼容 lessonId 和 itemIndex 两种记录格式）
     let completedLessonIds = [];
     if (OPENID) {
+      // 旧记录以 userID 关联用户，查询需兼容两种身份（userID 仅来自服务端 users 表）
+      const userID = await getServerUserID(OPENID);
       const { data: progress } = await db.collection('study_progress')
-        .where({ _openid: OPENID, courseId, type: 'lesson' })
+        .where(progressCond(OPENID, userID, { courseId, type: 'lesson' }))
         .limit(100)
         .get();
       completedLessonIds = progress.map(p => p.lessonId || '').filter(Boolean);
@@ -224,8 +250,10 @@ async function getSubGraph(event, OPENID) {
     // 4. 用户已完成课时（用于推导子知识点掌握状态）
     let completedLessonIds = [];
     if (OPENID) {
+      // 旧记录以 userID 关联用户，查询需兼容两种身份（userID 仅来自服务端 users 表）
+      const userID = await getServerUserID(OPENID);
       const { data: progress } = await db.collection('study_progress')
-        .where({ _openid: OPENID, courseId, type: 'lesson' })
+        .where(progressCond(OPENID, userID, { courseId, type: 'lesson' }))
         .limit(100)
         .get();
       completedLessonIds = progress.map(p => p.lessonId || '').filter(Boolean);
@@ -316,6 +344,14 @@ function formatRootNode(kp) {
 exports.main = async (event, context) => {
   const { OPENID } = cloud.getWXContext();
   const action = event.action || 'getMap';
+
+  // 防御性断言：拒绝客户端传入 userID
+  // study_progress 旧数据按 userID 关联用户，但该值只能由服务端 users 表查询得到；
+  // 客户端直接传入 userID 属越权请求，必须拦截以防回归。
+  if (event.userID) {
+    console.warn('knowledgeMap: rejected client-supplied userID');
+    return { code: 403, msg: '非法请求' };
+  }
 
   const validErr = validateParams(event);
   if (validErr) return validErr;

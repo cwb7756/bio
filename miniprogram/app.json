@@ -21,7 +21,8 @@
     "pages/pet/pet",
     "pages/map/map",
     "pages/knowledgeGraph/knowledgeGraph",
-    "pages/notebook/notebook"
+    "pages/notebook/notebook",
+    "pages/search/search"
   ],
   "window": {
     "backgroundColor": "#F3F8F3",

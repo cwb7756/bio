@@ -1,9 +1,11 @@
-// 云函数 aiCourseware - AI课堂：腾讯云 TTS 语音合成 + 课件 CRUD
+// 云函数 aiCourseware - AI课堂：腾讯云 TTS 语音合成 + AI 文生图 + 课件 CRUD
 // 通过 cloud.getWXContext() 获取 OPENID 做数据隔离
 // TTS 密钥通过环境变量 TENCENT_SECRET_ID / TENCENT_SECRET_KEY 注入，不下发前端
+// 文生图使用 CloudBase AI 内置能力（HY-Image-3.0-Plus），生成后转存云存储持久化
 const cloud = require('wx-server-sdk');
+const https = require('https');
 
-cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV, timeout: 150000 });
 const db = cloud.database();
 
 // 课件列表上限
@@ -12,6 +14,8 @@ const COURSEWARES_LIMIT = 20;
 const TTS_SEGMENT_MAX = 140;
 // 默认音色：101001 智瑜（精品女声）
 const DEFAULT_VOICE = 101001;
+// 可选音色白名单（与前端选项一致，防止滥用未开通音色）
+const ALLOWED_VOICES = [101001, 101002, 101004];
 
 // ---------- 腾讯云 TTS ----------
 
@@ -70,24 +74,107 @@ async function tts(event) {
   if (!segments.length) {
     return { code: 400, msg: '缺少合成文本' };
   }
-  const voiceType = parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE;
+  // 音色优先取前端选择（白名单校验），否则走环境变量或默认
+  const reqVoice = parseInt(event.voiceType, 10);
+  const voiceType = ALLOWED_VOICES.indexOf(reqVoice) >= 0
+    ? reqVoice
+    : (parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE);
   const clips = [];
-  for (let i = 0; i < segments.length; i++) {
-    const res = await client.TextToVoice({
-      Text: segments[i],
-      SessionId: 'cw-' + Date.now() + '-' + i,
-      VoiceType: voiceType,
-      Codec: 'mp3',
-      SampleRate: 16000
-    });
-    if (res && res.Audio) {
-      clips.push({ text: segments[i], audioBase64: res.Audio });
+  try {
+    for (let i = 0; i < segments.length; i++) {
+      const res = await client.TextToVoice({
+        Text: segments[i],
+        SessionId: 'cw-' + Date.now() + '-' + i,
+        VoiceType: voiceType,
+        Codec: 'mp3',
+        SampleRate: 16000
+      });
+      if (res && res.Audio) {
+        clips.push({ text: segments[i], audioBase64: res.Audio });
+      }
     }
+  } catch (err) {
+    // 区分腾讯云错误类型：资源包耗尽返回明确 code 供前端提示
+    const errMsg = String((err && err.message) || '');
+    console.error('tts invoke error:', err);
+    if (/resource pack allowance|exhausted/i.test(errMsg)) {
+      return { code: 402, msg: 'TTS额度已用完' };
+    }
+    return { code: -1, msg: 'TTS合成失败' };
   }
   if (!clips.length) {
     return { code: -1, msg: 'TTS合成失败' };
   }
   return { code: 0, clips: clips };
+}
+
+// ---------- AI 文生图 ----------
+
+// 生图模型：混元文生图 v3.0（需 wx-server-sdk >= 4.0.2）
+const IMAGE_MODEL = 'HY-Image-3.0-Plus-4090-Tob-v1.0';
+// 统一风格前缀集中云端，保证全课件插图风格一致
+const IMAGE_STYLE_PREFIX = '高中生物教学插图，扁平手绘风格，浅色纯色背景，柔和绿色系配色，画面简洁清晰，不包含任何文字、字母或数字标注：';
+
+// 下载远程图片为 Buffer（生图 URL 仅 24h 有效，需转存云存储）
+function downloadImage(url) {
+  return new Promise(function (resolve, reject) {
+    https.get(url, function (response) {
+      if (response.statusCode !== 200) {
+        reject(new Error('download image status ' + response.statusCode));
+        return;
+      }
+      const chunks = [];
+      response.on('data', function (chunk) { chunks.push(chunk); });
+      response.on('end', function () { resolve(Buffer.concat(chunks)); });
+      response.on('error', reject);
+    }).on('error', reject);
+  });
+}
+
+// 调文生图模型；revise 失败/超时时降级重试一次
+async function callImageModel(prompt) {
+  const imageModel = cloud.ai().createImageModel('hunyuan-image');
+  try {
+    return await imageModel.generateImage({
+      model: IMAGE_MODEL,
+      prompt: prompt,
+      size: '1280x720',
+      revise: { value: true }
+    });
+  } catch (err) {
+    console.error('generateImage with revise failed, retry without revise:', err);
+    return await imageModel.generateImage({
+      model: IMAGE_MODEL,
+      prompt: prompt,
+      size: '1280x720',
+      revise: { value: false }
+    });
+  }
+}
+
+// genImage: 文生图 + 转存云存储
+// 入参 { visual } → { code: 0, fileID }
+async function genImage(event, openid) {
+  const visual = String(event.visual || '').trim().slice(0, 200);
+  if (!visual) {
+    return { code: 400, msg: '缺少画面描述' };
+  }
+  const prompt = (IMAGE_STYLE_PREFIX + visual).slice(0, 500);
+  const res = await callImageModel(prompt);
+  const url = res && res.data && res.data[0] && res.data[0].url;
+  if (!url) {
+    return { code: -1, msg: '生图失败' };
+  }
+  const buffer = await downloadImage(url);
+  const cloudPath = 'ai-courseware-images/' + openid + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.png';
+  const uploadRes = await cloud.uploadFile({
+    cloudPath: cloudPath,
+    fileContent: buffer
+  });
+  if (!uploadRes || !uploadRes.fileID) {
+    return { code: -1, msg: '图片转存失败' };
+  }
+  return { code: 0, fileID: uploadRes.fileID };
 }
 
 // ---------- 课件 CRUD ----------
@@ -195,6 +282,8 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'tts':
         return await tts(event);
+      case 'genImage':
+        return await genImage(event, OPENID);
       case 'saveCourseware':
         return await saveCourseware(event, OPENID);
       case 'listCoursewares':

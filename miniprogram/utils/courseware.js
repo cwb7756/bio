@@ -1,5 +1,5 @@
 // utils/courseware.js
-// AI课堂课件工具层：大纲/场景 prompt 模板、健壮 JSON 解析、SVG 净化、TTS 文本清洗
+// AI课堂课件工具层：大纲/场景 prompt 模板、健壮 JSON 解析、场景规范化、TTS 文本清洗
 
 // ---------- 常量 ----------
 
@@ -26,15 +26,13 @@ var SCENE_PROMPT_FRAGMENTS = {
   ].join('\n'),
   diagram: [
     '本节为静态图解页，输出格式：',
-    '{"type":"diagram","title":"章节标题","narration":"讲稿","svg":"<svg>...</svg>","caption":"图注（20字内）"}',
-    'svg 要求：自包含，必须含 viewBox="0 0 400 300"；只用基础图形标签 circle/ellipse/rect/line/path/text/polygon/polyline；',
-    '线条统一 stroke="#1E2621" stroke-width="1.5"；填充色仅允许 #8FD3A8 #E8F5EE #FFF0A6 #FFFFFF #D6EFE0；',
-    'text 元素 font-size="14" fill="#1E2621"；禁止 script、image、use、事件属性、任何外部链接。'
+    '{"type":"diagram","title":"章节标题","narration":"讲稿","visual":"画面描述","caption":"图注（20字内）"}',
+    'visual 为给生图模型的画面描述（60字内），描述要绘制的生物结构或过程示意图的内容、主体与布局，不包含颜色、风格要求。'
   ].join('\n'),
   sim: [
     '本节为分步动画模拟页，把一个动态过程拆成有序的关键帧，输出格式：',
-    '{"type":"sim","title":"章节标题","narration":"本节总起讲稿（50-100字）","frames":[{"svg":"<svg>...</svg>","caption":"第N步名称（15字内）","narration":"该帧讲稿（50-120字）"}]}',
-    'frames 为 2-6 帧，严格按过程先后顺序排列；每帧 svg 要求同图解页（viewBox="0 0 400 300"，同一套配色）。'
+    '{"type":"sim","title":"章节标题","narration":"本节总起讲稿（50-100字）","frames":[{"visual":"该帧画面描述","caption":"第N步名称（15字内）","narration":"该帧讲稿（50-120字）"}]}',
+    'frames 为 2-6 帧，严格按过程先后顺序排列；每帧 visual 为给生图模型的画面描述（60字内），各帧画面主体与构图保持一致，仅表现步骤间的变化。'
   ].join('\n'),
   quiz: [
     '本节为随堂小测页，输出格式：',
@@ -202,21 +200,21 @@ function normalizeScene(raw, sectionTitle) {
       return { type: 'concept', title: title, narration: narration, blocks: blocks };
     }
     case 'diagram': {
-      if (!isNonEmptyString(raw.svg)) return null;
+      if (!isNonEmptyString(raw.visual)) return null;
       return {
         type: 'diagram',
         title: title,
         narration: narration,
-        svg: raw.svg,
+        visual: raw.visual.trim(),
         caption: isNonEmptyString(raw.caption) ? raw.caption.trim() : ''
       };
     }
     case 'sim': {
       var frames = Array.isArray(raw.frames) ? raw.frames.filter(function (f) {
-        return f && typeof f === 'object' && isNonEmptyString(f.svg);
+        return f && typeof f === 'object' && isNonEmptyString(f.visual);
       }).map(function (f, i) {
         return {
-          svg: f.svg,
+          visual: f.visual.trim(),
           caption: isNonEmptyString(f.caption) ? f.caption.trim() : ('第' + (i + 1) + '步'),
           narration: isNonEmptyString(f.narration) ? f.narration.trim() : ''
         };
@@ -259,47 +257,6 @@ function fallbackScene(sectionTitle, goal) {
       { kind: 'paragraph', text: '本节内容生成失败，已降级为提示页。可以返回重新生成，或结合教材「' + (goal || sectionTitle || '') + '」相关内容学习。' }
     ]
   };
-}
-
-// ---------- SVG 净化 ----------
-
-// 净化 AI 生成的 SVG 字符串；不合法返回 null
-function sanitizeSvg(svg) {
-  if (!isNonEmptyString(svg)) return null;
-  var s = svg.trim();
-  var start = s.indexOf('<svg');
-  var end = s.lastIndexOf('</svg>');
-  if (start < 0 || end < 0) return null;
-  s = s.slice(start, end + 6);
-  // 剔除危险/外部引用标签
-  s = s.replace(/<(script|foreignObject|use|image|img|iframe|link|style|animate|set)\b[\s\S]*?(<\/\s*\1\s*>|\/\s*>)/gi, '');
-  // 剔除 on* 事件属性（双引号/单引号/无引号）
-  s = s.replace(/\s+on[a-zA-Z]+\s*=\s*"[^"]*"/g, '');
-  s = s.replace(/\s+on[a-zA-Z]+\s*=\s*'[^']*'/g, '');
-  s = s.replace(/\s+on[a-zA-Z]+\s*=\s*[^\s>]+/g, '');
-  // 拒绝任何外部链接或 javascript: 伪协议
-  if (/https?:\/\//i.test(s)) return null;
-  if (/javascript\s*:/i.test(s)) return null;
-  // 必须具备 viewBox（保证缩放正常）
-  if (!/viewBox\s*=/i.test(s)) return null;
-  // 体积保护：超过 60KB 拒绝渲染
-  if (s.length > 60 * 1024) return null;
-  return s;
-}
-
-// SVG 字符串 → data URI（供 background-image 使用）
-// encodeURIComponent 不编码 ( ) ' ~ ! *，需额外编码防止 url() 被提前截断
-function svgToDataUri(svg) {
-  var encoded = encodeURIComponent(svg).replace(/[()'!~*]/g, function (c) {
-    return '%' + c.charCodeAt(0).toString(16).toUpperCase();
-  });
-  return 'data:image/svg+xml;charset=utf-8,' + encoded;
-}
-
-// 便捷方法：净化并转 data URI，失败返回空串
-function svgToUriSafe(svg) {
-  var clean = sanitizeSvg(svg);
-  return clean ? svgToDataUri(clean) : '';
 }
 
 // ---------- TTS 文本清洗 ----------
@@ -353,7 +310,5 @@ module.exports = {
   normalizeOutline: normalizeOutline,
   normalizeScene: normalizeScene,
   fallbackScene: fallbackScene,
-  sanitizeSvg: sanitizeSvg,
-  svgToUriSafe: svgToUriSafe,
   cleanTtsText: cleanTtsText
 };

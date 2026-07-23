@@ -115,6 +115,22 @@ Page({
     });
   },
 
+  // 点击核心考点卡片 → 进入以该考点为中心的知识图谱画布页
+  goKnowledgeGraph(e) {
+    const kpId = e.currentTarget.dataset.id;
+    if (!kpId) {
+      wx.showToast({ title: '该考点暂无图解', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/knowledgeGraph/knowledgeGraph?courseId=' + this.data.courseId + '&kpId=' + kpId,
+      fail: (err) => {
+        console.error('navigate to knowledgeGraph failed:', err);
+        wx.showToast({ title: '页面跳转失败', icon: 'none' });
+      }
+    });
+  },
+
   goBack() {
     wx.navigateBack();
   },

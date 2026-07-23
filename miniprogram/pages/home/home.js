@@ -125,8 +125,14 @@ Page({
     this.setData({ searchValue: e.detail.value });
   },
 
+  // 搜索确认：跳转全局搜索结果页（课程/考点 + 知识点 + 题目）
   onSearchConfirm() {
-    wx.showToast({ title: '搜索功能开发中', icon: 'none' });
+    const keyword = (this.data.searchValue || '').trim();
+    if (!keyword) {
+      wx.showToast({ title: '请输入搜索内容', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/search/search?keyword=' + encodeURIComponent(keyword) });
   },
 
   goFeature(e) {

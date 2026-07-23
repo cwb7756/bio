@@ -16,15 +16,18 @@
   padding: 80rpx 0;
 }
 
-/* ========== 画布滚动区域 ========== */
-.kg-scroll {
+/* ========== 画布缩放漫游区域 ========== */
+.kg-area {
   width: 100%;
   height: calc(100vh - 280rpx);
   position: relative;
+  overflow: hidden;
 }
 
-.kg-canvas {
+.kg-view {
   position: relative;
+  transform-origin: 0 0;
+  will-change: transform;
 }
 
 /* ========== 连线 ========== */
@@ -264,6 +267,16 @@
 .kg-stat-label {
   font-size: 22rpx;
   color: var(--gray);
+}
+
+.kg-scale-label {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--gray);
+  background: var(--bg);
+  padding: 2rpx 12rpx;
+  border-radius: 20rpx;
+  margin-left: 12rpx;
 }
 
 .kg-toolbar-btns {

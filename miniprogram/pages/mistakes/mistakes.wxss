@@ -19,6 +19,34 @@
   padding: 8rpx 20rpx;
 }
 
+/* 搜索栏 */
+.mk-search {
+  border-radius: 40rpx;
+  background: var(--paper);
+  padding: 16rpx 24rpx;
+  margin-bottom: 8rpx;
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex: 0 0 32rpx;
+}
+
+.search-clear {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44rpx;
+}
+
+.search-clear .icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
 .demo-tip {
   border: 3rpx dashed var(--gray-line);
   border-radius: 24rpx;

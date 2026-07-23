@@ -10,6 +10,9 @@ Page({
     activeTab: 0,       // 0=按章节 1=按考点
     chapters: [],       // [{ name, count, topics: [{ name, count }] }]
     topics: [],         // [{ name, chapter, count }]
+    filteredChapters: [], // 搜索过滤后的章节视图数据
+    filteredTopics: [],   // 搜索过滤后的考点视图数据
+    searchValue: '',
     expanded: {}        // 章节展开态，key=章节名
   },
 
@@ -49,6 +52,7 @@ Page({
           topics: topics || [],
           expanded
         });
+        this.applyFilter();
       } else {
         this.setData({ loading: false, loadError: true });
         wx.showToast({ title: (res.result && res.result.msg) || '加载失败', icon: 'none' });
@@ -57,6 +61,50 @@ Page({
       this.setData({ loading: false, loadError: true });
       wx.showToast({ title: '加载失败', icon: 'none' });
     });
+  },
+
+  // 搜索过滤：章节名命中保留全部考点，考点名命中仅保留命中考点（纯客户端过滤）
+  applyFilter() {
+    const kw = (this.data.searchValue || '').trim().toLowerCase();
+    if (!kw) {
+      this.setData({
+        filteredChapters: this.data.chapters,
+        filteredTopics: this.data.topics
+      });
+      return;
+    }
+
+    const filteredChapters = [];
+    this.data.chapters.forEach((ch) => {
+      if (ch.name.toLowerCase().indexOf(kw) !== -1) {
+        filteredChapters.push(ch);
+        return;
+      }
+      const hitTopics = (ch.topics || []).filter(
+        (tp) => tp.name.toLowerCase().indexOf(kw) !== -1
+      );
+      if (hitTopics.length > 0) {
+        filteredChapters.push({ name: ch.name, count: ch.count, topics: hitTopics });
+      }
+    });
+
+    const filteredTopics = this.data.topics.filter(
+      (tp) => tp.name.toLowerCase().indexOf(kw) !== -1
+    );
+
+    this.setData({ filteredChapters, filteredTopics });
+  },
+
+  // 搜索输入（实时过滤）与清空
+  onSearchInput(e) {
+    this.setData({ searchValue: e.detail.value });
+    this.applyFilter();
+  },
+
+  clearSearch() {
+    if (!this.data.searchValue) return;
+    this.setData({ searchValue: '' });
+    this.applyFilter();
   },
 
   // 切换「按章节 / 按考点」

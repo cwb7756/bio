@@ -26,6 +26,11 @@ Page({
     canvasHeight: 600,
     doneCount: 0,
     totalCount: 0,
+    // 画布视图状态（手写拖动/缩放）
+    tx: 0,
+    ty: 0,
+    scale: 1,
+    scalePercent: 100,
     // 详情面板
     showDetail: false,
     detailNode: null,
@@ -34,11 +39,26 @@ Page({
 
   onLoad(options) {
     const sys = wx.getSystemInfoSync();
+    // 布局坐标为 rpx，transform 平移单位为 px，需换算
+    this._rpxToPx = sys.screenWidth / 750;
+    this._viewInited = false;
     this.setData({
       statusBarHeight: sys.statusBarHeight,
       courseId: (options && options.courseId) || 'course_required_1',
       kpId: (options && options.kpId) || ''
     });
+  },
+
+  onReady() {
+    // 获取画布可视区位置与尺寸，用于双指缩放的中心补偿
+    wx.createSelectorQuery().select('.kg-area').boundingClientRect((rect) => {
+      if (rect) {
+        this._areaLeft = rect.left;
+        this._areaTop = rect.top;
+        this._areaW = rect.width;
+        this._areaH = rect.height;
+      }
+    }).exec();
   },
 
   onShow() {
@@ -151,7 +171,7 @@ Page({
     const visibleNodes = [];
     this._rootNodes.forEach(node => this._collectVisible(node, visibleNodes));
 
-    this.setData({
+    const setPayload = {
       rootNode: this._rootNode,
       visibleNodes,
       lines,
@@ -162,6 +182,90 @@ Page({
       doneCount: this._allNodes.filter(n => n.status === 'done').length,
       totalCount: this._allNodes.length,
       loading: false
+    };
+    // 首次渲染时定位初始视角：根考点水平居中、顶部留 PAD 间距；
+    // 折叠/展开重渲染时保持用户当前视角不变
+    if (!this._viewInited) {
+      this._viewInited = true;
+      const rootCenterX = rootX + ROOT_W / 2;
+      this._initTx = Math.round((375 - rootCenterX) * this._rpxToPx);
+      this._initTy = 0;
+      setPayload.tx = this._initTx;
+      setPayload.ty = this._initTy;
+      setPayload.scale = 1;
+      setPayload.scalePercent = 100;
+    }
+    this.setData(setPayload);
+  },
+
+  // 触摸开始：区分单指拖动 / 双指缩放
+  onTouchStart(e) {
+    const touches = e.touches;
+    if (touches.length === 1) {
+      this._touchStartX = touches[0].clientX;
+      this._touchStartY = touches[0].clientY;
+      this._startTx = this.data.tx;
+      this._startTy = this.data.ty;
+      this._moved = false;
+    } else if (touches.length === 2) {
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      this._pinchStartDist = Math.hypot(dx, dy);
+      this._pinchStartScale = this.data.scale || 1;
+      // 双指中点（换算为相对画布可视区的坐标，用于缩放中心补偿）
+      this._pinchCenterX = (touches[0].clientX + touches[1].clientX) / 2 - (this._areaLeft || 0);
+      this._pinchCenterY = (touches[0].clientY + touches[1].clientY) / 2 - (this._areaTop || 0);
+    }
+  },
+
+  // 触摸移动：单指平移 / 双指捏合缩放（以双指中点为中心）
+  onTouchMove(e) {
+    const touches = e.touches;
+    if (touches.length === 1 && this._pinchStartDist == null) {
+      const dx = touches[0].clientX - this._touchStartX;
+      const dy = touches[0].clientY - this._touchStartY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) this._moved = true;
+      this.setData({ tx: this._startTx + dx, ty: this._startTy + dy });
+    } else if (touches.length === 2 && this._pinchStartDist) {
+      const dx = touches[1].clientX - touches[0].clientX;
+      const dy = touches[1].clientY - touches[0].clientY;
+      const dist = Math.hypot(dx, dy);
+      let newScale = this._pinchStartScale * (dist / this._pinchStartDist);
+      newScale = Math.max(0.4, Math.min(2.5, newScale));
+      // 以双指中点为基准缩放，补偿平移使该点保持不动
+      const cx = this._pinchCenterX;
+      const cy = this._pinchCenterY;
+      const bx = (cx - this.data.tx) / this._pinchStartScale;
+      const by = (cy - this.data.ty) / this._pinchStartScale;
+      this.setData({
+        scale: newScale,
+        scalePercent: Math.round(newScale * 100),
+        tx: cx - bx * newScale,
+        ty: cy - by * newScale
+      });
+    }
+  },
+
+  // 触摸结束：双指拆解后重新错定单指起点，避免跳变
+  onTouchEnd(e) {
+    if (e.touches.length < 2) {
+      this._pinchStartDist = null;
+    }
+    if (e.touches.length === 1) {
+      this._touchStartX = e.touches[0].clientX;
+      this._touchStartY = e.touches[0].clientY;
+      this._startTx = this.data.tx;
+      this._startTy = this.data.ty;
+    }
+  },
+
+  // 复位：恢复初始视角与 100% 缩放
+  resetView() {
+    this.setData({
+      tx: this._initTx || 0,
+      ty: this._initTy || 0,
+      scale: 1,
+      scalePercent: 100
     });
   },
 

@@ -2,6 +2,7 @@
 // AI课堂：输入问题 → 大纲确认 → 分阶段生成课件 → TTS 配音播放
 const app = getApp();
 const cw = require('../../utils/courseware.js');
+const sound = require('../../utils/sound.js');
 
 // 场景类型中文标签
 const TYPE_LABELS = {
@@ -21,6 +22,15 @@ const SUGGESTIONS = [
   '兴奋在神经纤维上的传导',
   '生态系统的能量流动'
 ];
+
+// 可选讲解音色（腾讯云 TTS VoiceType，与云函数白名单一致）
+const VOICES = [
+  { id: 101001, name: '智瑜', desc: '女声' },
+  { id: 101002, name: '智聆', desc: '女声' },
+  { id: 101004, name: '智云', desc: '男声' }
+];
+const DEFAULT_VOICE_ID = 101001;
+const VOICE_STORAGE_KEY = 'aiClassroomVoice';
 
 // LLM 调用：流式累加全文 → 解析 JSON；失败 reject 供重试
 function llmJson(messages) {
@@ -67,6 +77,8 @@ Page({
     inputValue: '',
     suggestions: SUGGESTIONS,
     historyList: [],
+    voices: VOICES,
+    voiceType: DEFAULT_VOICE_ID,
     // outline 态
     outlineLoading: false,
     outlineTitle: '',
@@ -76,6 +88,7 @@ Page({
     genTotal: 0,
     genDoneList: [],         // [{ title, sceneType }]
     genProgress: '0%',       // 进度条宽度（含单位，规避内联样式 }}% 校验误报）
+    genStage: '',            // 生成阶段提示（如「正在绘制插图…」）
     // playing 态
     coursewareTitle: '',
     scenes: [],
@@ -88,7 +101,11 @@ Page({
     subtitle: '',
     showSubtitle: true,
     quizPicked: '',          // quiz 已选选项 key
-    isLastScene: false
+    isLastScene: false,
+    // 课程完成反馈
+    showComplete: false,
+    quizRight: 0,
+    quizTotal: 0
   },
 
   onLoad(options) {
@@ -107,6 +124,10 @@ Page({
     this._silentToastShown = false;
     this._sceneStarted = false;  // 当前场景音频是否已开始（暂停中恢复用）
     this._genAborted = false;
+    this._imageJobs = [];        // 生图任务 promise 列表
+    this._clipEndedCb = null;    // 当前音频片段结束回调指针
+    this._clipErrorCb = null;    // 当前音频片段错误回调指针
+    this._ttsConfigToastShown = false;
 
     // 登录门控：课件为用户数据，未登录跳转登录页
     if (!app.globalData.isLoggedIn) {
@@ -117,6 +138,15 @@ Page({
       return;
     }
     this.loadHistory();
+
+    // 恢复上次选择的讲解音色
+    try {
+      const savedVoice = parseInt(wx.getStorageSync(VOICE_STORAGE_KEY), 10);
+      const valid = VOICES.some(function (v) { return v.id === savedVoice; });
+      if (valid) this.setData({ voiceType: savedVoice });
+    } catch (e) {
+      // 读取失败使用默认音色
+    }
 
     // 支持外部带问题预填（如 AI 答疑页联动）
     if (options && options.question) {
@@ -176,6 +206,18 @@ Page({
     const text = e.currentTarget.dataset.text;
     this.setData({ inputValue: text });
     this.onStartOutline();
+  },
+
+  // 选择讲解音色（生成课件前，input 态），选择持久化到本地
+  onSelectVoice(e) {
+    const id = parseInt(e.currentTarget.dataset.id, 10);
+    if (!id || id === this.data.voiceType) return;
+    this.setData({ voiceType: id });
+    try {
+      wx.setStorageSync(VOICE_STORAGE_KEY, id);
+    } catch (err) {
+      // 存储失败不影响本次使用
+    }
   },
 
   // 检查 AI 能力可用性
@@ -242,13 +284,15 @@ Page({
     const title = this.data.outlineTitle || '生物小课堂';
 
     this._scenesRaw = [];
+    this._imageJobs = [];
     this._genAborted = false;
     this.setData({
       phase: 'generating',
       genCurrent: 1,
       genTotal: sections.length,
       genDoneList: [],
-      genProgress: '0%'
+      genProgress: '0%',
+      genStage: ''
     });
 
     for (let i = 0; i < sections.length; i++) {
@@ -257,7 +301,9 @@ Page({
       const scene = await this.genOneScene(question, title, sections[i], i, sections.length);
       if (this._genAborted) return;
       this._scenesRaw.push(scene);
-      // 轻量列表用于进度展示（不带 svg 长字符串）
+      // 发起该场景生图任务（不阻塞后续场景生成）
+      this.scheduleSceneImages(scene);
+      // 轻量列表用于进度展示（不带图片数据）
       const doneList = this._scenesRaw.map(function (s) {
         return { title: s.title, sceneType: s.type };
       });
@@ -271,6 +317,15 @@ Page({
       wx.showToast({ title: '课件生成失败，请重试', icon: 'none' });
       this.setData({ phase: 'input' });
       return;
+    }
+
+    // 等待全部生图任务完成（帧级并行，fileID 直接写回场景对象）
+    if (this._imageJobs.length) {
+      this.setData({ genStage: '正在绘制插图…' });
+      await Promise.all(this._imageJobs);
+      this._imageJobs = [];
+      if (this._genAborted) return;
+      this.setData({ genStage: '' });
     }
 
     // 保存课件（best-effort，失败不影响播放）
@@ -304,6 +359,41 @@ Page({
       }
     }
     return cw.fallbackScene(section.title, section.goal);
+  },
+
+  // 调云函数文生图；失败返回 ''（不 throw，走降级）
+  genImage(visual) {
+    if (!visual) return Promise.resolve('');
+    return wx.cloud.callFunction({
+      name: 'aiCourseware',
+      data: { action: 'genImage', visual: visual }
+    }).then(function (res) {
+      if (res.result && res.result.code === 0 && res.result.fileID) {
+        return res.result.fileID;
+      }
+      return '';
+    }).catch(function (err) {
+      console.error('genImage error:', err);
+      return '';
+    });
+  },
+
+  // 收集场景生图任务：diagram 单张；sim 帧级并行，fileID 写回场景对象
+  scheduleSceneImages(scene) {
+    const self = this;
+    if (scene.type === 'diagram' && scene.visual) {
+      this._imageJobs.push(this.genImage(scene.visual).then(function (fileID) {
+        scene.imageFileId = fileID;
+      }));
+    } else if (scene.type === 'sim' && Array.isArray(scene.frames)) {
+      scene.frames.forEach(function (f) {
+        if (f.visual) {
+          self._imageJobs.push(self.genImage(f.visual).then(function (fileID) {
+            f.imageFileId = fileID;
+          }));
+        }
+      });
+    }
   },
 
   // 先播放已完成部分（生成中途）
@@ -398,32 +488,28 @@ Page({
 
   // ---------- 播放准备 ----------
 
-  // 场景预处理：SVG 净化转 data URI；quiz 选项结构化；失败的图形场景降级
+  // 场景预处理：校验生图 fileID；quiz 选项结构化；失败的图形场景降级
   prepareScene(raw) {
     const s = Object.assign({}, raw);
     if (s.type === 'diagram') {
-      const uri = cw.svgToUriSafe(s.svg);
-      if (!uri) {
+      if (!s.imageFileId) {
         return {
           type: 'concept',
           title: s.title,
           narration: s.narration,
-          blocks: [{ kind: 'paragraph', text: s.caption || '图解渲染失败，请结合讲稿理解。' }]
+          blocks: [{ kind: 'paragraph', text: s.caption || '插图生成失败，请结合讲稿理解。' }]
         };
       }
-      s.svgUri = uri;
       return s;
     }
     if (s.type === 'sim') {
-      const frames = (s.frames || []).map(function (f) {
-        return { svg: f.svg, caption: f.caption, narration: f.narration, svgUri: cw.svgToUriSafe(f.svg) };
-      }).filter(function (f) { return !!f.svgUri; });
+      const frames = (s.frames || []).filter(function (f) { return !!f.imageFileId; });
       if (frames.length < 2) {
         return {
           type: 'concept',
           title: s.title,
           narration: s.narration,
-          blocks: [{ kind: 'paragraph', text: '动画渲染失败，请结合讲稿理解本过程。' }]
+          blocks: [{ kind: 'paragraph', text: '动画生成失败，请结合讲稿理解本过程。' }]
         };
       }
       s.frames = frames;
@@ -451,6 +537,9 @@ Page({
       currentFrame: null,
       frameIndex: 0,
       quizPicked: '',
+      quizRight: 0,
+      quizTotal: 0,
+      showComplete: false,
       playing: true,
       showSubtitle: true,
       isLastScene: scenes.length <= 1
@@ -497,17 +586,23 @@ Page({
     }
   },
 
-  // 获取 TTS clips（带缓存）；失败 resolve([]) 走静音降级
+  // 获取 TTS clips（带缓存）；失败 resolve([]) 走静音降级；503 明确提示未配置
   getClips(key, text) {
     if (this._ttsCache[key]) return this._ttsCache[key];
     const clean = cw.cleanTtsText(text);
     if (!clean) return Promise.resolve([]);
+    const self = this;
     const p = wx.cloud.callFunction({
       name: 'aiCourseware',
-      data: { action: 'tts', text: clean }
+      data: { action: 'tts', text: clean, voiceType: this.data.voiceType }
     }).then(function (res) {
       if (res.result && res.result.code === 0 && res.result.clips && res.result.clips.length) {
         return res.result.clips;
+      }
+      if (res.result && (res.result.code === 503 || res.result.code === 402) && !self._ttsConfigToastShown) {
+        self._ttsConfigToastShown = true;
+        const tip = res.result.code === 503 ? '语音服务未配置，已切换字幕模式' : '语音额度已用完，已切换字幕模式';
+        wx.showToast({ title: tip, icon: 'none', duration: 2500 });
       }
       return [];
     }).catch(function (err) {
@@ -528,7 +623,17 @@ Page({
 
   ensureAudio() {
     if (!this._audio) {
+      const self = this;
       this._audio = wx.createInnerAudioContext();
+      // 事件监听仅绑定一次，经回调指针派发，避免重复注册导致回调累积
+      this._audio.onEnded(function () {
+        const cb = self._clipEndedCb;
+        if (cb) cb();
+      });
+      this._audio.onError(function (err) {
+        const cb = self._clipErrorCb;
+        if (cb) cb(err);
+      });
     }
     return this._audio;
   },
@@ -601,12 +706,14 @@ Page({
     });
   },
 
-  // 顺序连播 clips
+  // 顺序连播 clips（通过回调指针派发，监听器不重复注册）
   playClipsSequentially(clips, idx, onDone) {
     const self = this;
     const token = this._playToken;
     if (this._playToken !== token) return;
     if (idx >= clips.length) {
+      this._clipEndedCb = null;
+      this._clipErrorCb = null;
       if (onDone) onDone.call(this);
       return;
     }
@@ -620,17 +727,17 @@ Page({
     }
     const audio = this.ensureAudio();
     audio.stop();
-    audio.src = path;
-    audio.onEnded(function () {
+    this._clipEndedCb = function () {
       if (self._playToken !== token) return;
       self.playClipsSequentially(clips, idx + 1, onDone);
-    });
-    audio.onError(function (res) {
+    };
+    this._clipErrorCb = function (res) {
       console.error('audio play error:', res);
       if (self._playToken !== token) return;
       // 跳过损坏片段继续
       self.playClipsSequentially(clips, idx + 1, onDone);
-    });
+    };
+    audio.src = path;
     audio.play();
   },
 
@@ -669,9 +776,33 @@ Page({
     if (this.data.current < this.data.scenes.length - 1) {
       this.enterScene(this.data.current + 1);
     } else {
-      this.setData({ playing: false });
-      wx.showToast({ title: '课件播放完毕', icon: 'none' });
+      this.showCompletion();
     }
+  },
+
+  // 课程完成反馈：弹层 + 完成音效
+  showCompletion() {
+    this.setData({ playing: false, showComplete: true });
+    sound.play('complete');
+  },
+
+  // 末页「完成课程」按钮：手动触发完成反馈
+  onFinishCourse() {
+    if (this.data.showComplete) return;
+    this.stopPlayback();
+    this.showCompletion();
+  },
+
+  // 完成弹层：再学一遍
+  onRestartCourse() {
+    this.setData({ showComplete: false, playing: true });
+    this.enterScene(0);
+  },
+
+  // 完成弹层：返回输入页
+  onCompleteExit() {
+    this.setData({ showComplete: false });
+    this.onExitPlay();
   },
 
   // 停止播放（翻页/退出前调用）：停音频、清定时器、吊销令牌
@@ -679,6 +810,8 @@ Page({
     this._playToken = null;
     this._pendingPlay = null;
     this._silentPending = null;
+    this._clipEndedCb = null;
+    this._clipErrorCb = null;
     if (this._silentTimer) {
       clearTimeout(this._silentTimer);
       this._silentTimer = null;
@@ -775,10 +908,19 @@ Page({
     }
   },
 
-  // quiz 选项作答
+  // quiz 选项作答（累计小测成绩，供课程完成反馈展示）
   onPickOption(e) {
     if (this.data.quizPicked) return;
-    this.setData({ quizPicked: e.currentTarget.dataset.key });
+    const key = e.currentTarget.dataset.key;
+    const scene = this.data.currentScene;
+    const updates = { quizPicked: key };
+    if (scene && scene.type === 'quiz') {
+      updates.quizTotal = this.data.quizTotal + 1;
+      if (key === scene.answer) {
+        updates.quizRight = this.data.quizRight + 1;
+      }
+    }
+    this.setData(updates);
   },
 
   onShareAppMessage() {

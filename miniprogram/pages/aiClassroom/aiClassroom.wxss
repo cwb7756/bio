@@ -318,6 +318,12 @@
   margin-top: 12rpx;
 }
 
+.cl-gen-stage {
+  font-size: 24rpx;
+  color: var(--green-deep);
+  margin-top: 8rpx;
+}
+
 .cl-progress {
   width: 100%;
   height: 20rpx;
@@ -606,9 +612,6 @@
 .cl-diagram-img {
   width: 100%;
   height: 480rpx;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
 }
 
 .cl-diagram-caption {
@@ -632,9 +635,6 @@
 .cl-sim-frame {
   width: 100%;
   height: 480rpx;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
 }
 
 .cl-sim-caption-row {
@@ -882,4 +882,93 @@
 
 .cl-ctrl-on .cl-ctrl-label {
   color: var(--green-deep);
+}
+
+/* ---- 课程完成遮罩 ---- */
+.cl-complete-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 38, 33, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+}
+
+.cl-complete-card {
+  width: 600rpx;
+  padding: 56rpx 48rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 40rpx;
+  background: var(--paper);
+  box-shadow: var(--sh);
+}
+
+.cl-complete-icon {
+  width: 96rpx;
+  height: 96rpx;
+}
+
+.cl-complete-title {
+  font-size: 44rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.cl-complete-name {
+  font-size: 28rpx;
+  color: var(--ink-soft);
+}
+
+.cl-complete-stats {
+  font-size: 26rpx;
+  color: var(--green-deep);
+  background: var(--green-soft);
+  border: 3rpx solid var(--line);
+  border-radius: 24rpx;
+  padding: 8rpx 24rpx;
+}
+
+.cl-complete-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 24rpx;
+}
+
+/* ---- 音色选择 ---- */
+.cl-voice-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin: 28rpx 4rpx 0;
+}
+
+.cl-voice-label {
+  flex-shrink: 0;
+  font-size: 26rpx;
+  color: var(--ink-soft);
+}
+
+.cl-voice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+/* ---- 末页完成课程按钮 ---- */
+.cl-finish-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 56rpx;
+}
+
+.cl-finish-btn {
+  padding: 0 96rpx;
 }

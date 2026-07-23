@@ -1,0 +1,187 @@
+/* pages/search/search.wxss */
+.page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+/* 导航栏内搜索框 */
+.nav-search {
+  flex: 1;
+  margin-left: 16rpx;
+  padding: 12rpx 20rpx;
+  border-radius: 40rpx;
+  background: var(--paper);
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex: 0 0 32rpx;
+}
+
+.search-clear {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44rpx;
+}
+
+.search-clear .icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+/* 搜索历史 */
+.history-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.h-chip {
+  border: 3rpx solid var(--line);
+  border-radius: 30rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  font-size: 24rpx;
+  font-weight: 700;
+  color: var(--ink-soft);
+  padding: 10rpx 26rpx;
+}
+
+.h-chip:active {
+  transform: scale(0.95);
+}
+
+/* 结果卡片 */
+.s-card {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  border: 4rpx solid var(--line);
+  border-radius: 28rpx;
+  background: var(--paper);
+  box-shadow: var(--sh-sm);
+  padding: 22rpx 24rpx;
+  margin-top: 18rpx;
+}
+
+.s-card:active {
+  transform: scale(0.98);
+}
+
+.s-ic {
+  flex: 0 0 76rpx;
+  height: 76rpx;
+  border: 3rpx solid var(--line);
+  border-radius: 22rpx;
+  background: var(--green-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.s-ic .icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.s-ic.kp {
+  background: var(--hl);
+}
+
+.s-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+  overflow: hidden;
+}
+
+.s-title {
+  font-size: 28rpx;
+  font-weight: 800;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-meta {
+  font-size: 23rpx;
+  color: var(--gray);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-arrow {
+  width: 30rpx;
+  height: 30rpx;
+  flex: 0 0 30rpx;
+}
+
+/* 题目卡片 */
+.s-q-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  overflow: hidden;
+}
+
+.s-q-chip {
+  align-self: flex-start;
+  font-size: 22rpx;
+}
+
+.s-q-stem {
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+/* 结果底部提示 */
+.result-tip {
+  text-align: center;
+  color: var(--gray);
+  font-size: 23rpx;
+  padding: 32rpx 0 8rpx;
+}
+
+/* 加载 / 空态 */
+.loading-tip {
+  text-align: center;
+  color: var(--gray);
+  font-size: 26rpx;
+  padding: 80rpx 0;
+}
+
+.empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  padding: 100rpx 0;
+}
+
+.empty-title {
+  font-size: 32rpx;
+  font-weight: 800;
+}
+
+.empty-desc {
+  font-size: 25rpx;
+  color: var(--gray);
+}

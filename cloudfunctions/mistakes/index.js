@@ -36,12 +36,38 @@ function formatMistake(m, isDemo) {
 }
 
 // 错题列表：仅查当前用户记录，无记录返回空列表 + isDemo
-async function listMistakes(openid, skip, limit) {
+// keyword 可选：先按 _openid 隔离拉取，再在本人记录内按 stem/chapter/topic 过滤并内存分页
+async function listMistakes(openid, skip, limit, keyword) {
   if (!openid) {
     return { code: 0, list: [], total: 0, isDemo: true };
   }
 
   const condition = { _openid: openid };
+  const kw = String(keyword || '').trim().slice(0, 50).toLowerCase();
+
+  // 有关键词：拉取本人全部错题（数据量小），JS 过滤后内存分页
+  if (kw) {
+    const { data: all } = await db.collection('mistakes')
+      .where(condition)
+      .orderBy('createdAt', 'desc')
+      .limit(1000)
+      .get();
+
+    const matched = all.filter((m) =>
+      String(m.stem || '').toLowerCase().indexOf(kw) !== -1 ||
+      String(m.chapter || '').toLowerCase().indexOf(kw) !== -1 ||
+      String(m.topic || '').toLowerCase().indexOf(kw) !== -1
+    );
+
+    return {
+      code: 0,
+      list: matched.slice(skip, skip + limit).map((m) => formatMistake(m, false)),
+      total: matched.length,
+      isDemo: false
+    };
+  }
+
+  // 无关键词：保持原有 count + skip/limit 高效路径
   const { total } = await db.collection('mistakes').where(condition).count();
 
   if (total === 0) {
@@ -135,7 +161,7 @@ exports.main = async (event) => {
   try {
     switch (action) {
       case 'list':
-        return await listMistakes(OPENID, pageNum, pageSize);
+        return await listMistakes(OPENID, pageNum, pageSize, event.keyword);
       case 'add':
         return await addMistake(event, OPENID);
       case 'remove':

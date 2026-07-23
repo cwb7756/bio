@@ -15,6 +15,41 @@
   height: 76rpx;
 }
 
+/* 搜索栏 */
+.qe-search {
+  border-radius: 40rpx;
+  background: var(--paper);
+  padding: 16rpx 24rpx;
+  margin: 8rpx 0 24rpx;
+}
+
+.search-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex: 0 0 32rpx;
+}
+
+.search-clear {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44rpx;
+}
+
+.search-clear .icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.search-empty {
+  text-align: center;
+  color: var(--gray);
+  font-size: 26rpx;
+  padding: 60rpx 0;
+}
+
 /* 分段控件 */
 .cat-segment {
   margin: 8rpx 0 32rpx;

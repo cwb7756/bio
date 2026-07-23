@@ -37,6 +37,14 @@
         <view class="chip cl-sugg-chip" wx:for="{{suggestions}}" wx:key="*this" data-text="{{item}}" bindtap="onTapSuggestion">{{item}}</view>
       </view>
 
+      <!-- 音色选择（生成课件前） -->
+      <view class="cl-voice-row">
+        <text class="cl-voice-label">讲解音色</text>
+        <view class="cl-voice-chips">
+          <view wx:for="{{voices}}" wx:key="id" data-id="{{item.id}}" bindtap="onSelectVoice" class="chip cl-voice-chip {{voiceType === item.id ? 'on' : ''}}">{{item.name}}·{{item.desc}}</view>
+        </view>
+      </view>
+
       <!-- 历史课件 -->
       <block wx:if="{{historyList.length}}">
         <view class="sec-title"><text class="u">历史课件</text></view>
@@ -95,6 +103,7 @@
       <view class="icon ic-bot cl-gen-icon"></view>
       <text class="cl-gen-title">AI老师正在制作课件</text>
       <text class="cl-gen-progress-text">正在生成 第{{genCurrent}}节 / 共{{genTotal}}节</text>
+      <text wx:if="{{genStage}}" class="cl-gen-stage">{{genStage}}</text>
       <view class="cl-progress">
         <view class="cl-progress-bar" style="width: {{genProgress}};"></view>
       </view>
@@ -170,7 +179,7 @@
         <view wx:if="{{currentScene.type === 'diagram'}}" class="cl-scene">
           <text class="cl-scene-title">{{currentScene.title}}</text>
           <view class="cl-diagram">
-            <view class="cl-diagram-img" style="background-image: url(&quot;{{currentScene.svgUri}}&quot;)"></view>
+            <image class="cl-diagram-img" src="{{currentScene.imageFileId}}" mode="aspectFit" />
             <text wx:if="{{currentScene.caption}}" class="cl-diagram-caption">{{currentScene.caption}}</text>
           </view>
         </view>
@@ -179,7 +188,7 @@
         <view wx:if="{{currentScene.type === 'sim'}}" class="cl-scene">
           <text class="cl-scene-title">{{currentScene.title}}</text>
           <view class="cl-sim">
-            <view class="cl-sim-frame" style="background-image: url(&quot;{{currentFrame.svgUri}}&quot;)"></view>
+            <image class="cl-sim-frame" src="{{currentFrame.imageFileId}}" mode="aspectFit" />
             <view class="cl-sim-caption-row">
               <text class="cl-sim-caption">{{currentFrame.caption}}</text>
               <text class="cl-sim-count">{{frameIndex + 1}}/{{currentScene.frames.length}}</text>
@@ -214,6 +223,11 @@
           </view>
         </view>
 
+        <!-- 末页：完成课程按钮 -->
+        <view wx:if="{{isLastScene && !showComplete}}" class="cl-finish-wrap">
+          <view class="btn deep cl-finish-btn" bindtap="onFinishCourse">完成课程</view>
+        </view>
+
         <!-- 底部留白，避免被字幕/控制栏遮挡 -->
         <view class="cl-stage-gap"></view>
       </block>
@@ -244,6 +258,20 @@
       <view class="cl-ctrl cl-ctrl-auto {{autoPlay ? 'cl-ctrl-on' : ''}}" bindtap="onToggleAuto" hover-class="cl-ctrl-hover">
         <view class="icon ic-bolt"></view>
         <text class="cl-ctrl-label">自动</text>
+      </view>
+    </view>
+
+    <!-- 课程完成遮罩 -->
+    <view wx:if="{{showComplete}}" class="cl-complete-mask">
+      <view class="cl-complete-card">
+        <view class="icon ic-check-circle cl-complete-icon"></view>
+        <text class="cl-complete-title">课程完成！</text>
+        <text class="cl-complete-name">{{coursewareTitle}}</text>
+        <text class="cl-complete-stats">共 {{scenes.length}} 节<block wx:if="{{quizTotal}}"> · 小测 {{quizRight}}/{{quizTotal}} 正确</block></text>
+        <view class="cl-complete-actions">
+          <view class="btn ghost" bindtap="onRestartCourse">再学一遍</view>
+          <view class="btn deep" bindtap="onCompleteExit">完成课程</view>
+        </view>
       </view>
     </view>
   </block>

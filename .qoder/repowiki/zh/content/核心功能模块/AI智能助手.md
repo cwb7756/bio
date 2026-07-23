@@ -2,27 +2,34 @@
 
 <cite>
 **本文引用的文件**   
-- [ai.js](file://miniprogram/pages/ai/ai.js)
-- [ai.wxml](file://miniprogram/pages/ai/ai.wxml)
-- [ai.wxss](file://miniprogram/pages/ai/ai.wxss)
-- [ai.json](file://miniprogram/pages/ai/ai.json)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
 - [aiClassroom.wxml](file://miniprogram/pages/aiClassroom/aiClassroom.wxml)
 - [aiClassroom.wxss](file://miniprogram/pages/aiClassroom/aiClassroom.wxss)
 - [aiClassroom.json](file://miniprogram/pages/aiClassroom/aiClassroom.json)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [aiHub.wxml](file://miniprogram/pages/aiHub/aiHub.wxml)
+- [aiHub.wxss](file://miniprogram/pages/aiHub/aiHub.wxss)
+- [aiHub.json](file://miniprogram/pages/aiHub/aiHub.json)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
+- [knowledgeGraph.wxml](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxml)
+- [knowledgeGraph.wxss](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxss)
+- [knowledgeGraph.json](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.json)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [config.json](file://cloudfunctions/aiChat/config.json)
 - [package.json](file://cloudfunctions/aiChat/package.json)
+- [index.js](file://cloudfunctions/aiCourseware/index.js)
+- [config.json](file://cloudfunctions/aiCourseware/config.json)
+- [package.json](file://cloudfunctions/aiCourseware/package.json)
 - [markdown.js](file://miniprogram/utils/markdown.js)
 </cite>
 
 ## 更新摘要
 **变更内容**   
-- **UI界面增强**：优化了AI聊天页面的视觉设计和用户交互体验
-- **样式改进**：更新了ai.wxss中的样式定义，提升了界面美观度和响应性
-- **功能集成改进**：增强了ai.js中的逻辑处理，改进了与云函数的集成效率
-- **视图模板优化**：完善了ai.wxml的结构和组件组织
-- **用户体验提升**：通过界面优化和功能改进，提供了更流畅的AI对话体验
+- **AI页面功能移除**：完全删除了小程序中的原始AI聊天页面（ai.js、ai.json、ai.wxml、ai.wxss共1532行代码）
+- **架构重构**：AI功能已迁移至新的模块结构，包括AI课堂和AI Hub等替代方案
+- **知识图谱集成**：新增了知识图谱功能作为AI能力的核心载体
+- **云端服务保留**：保留了aiChat和aiCourseware云函数作为后端支持
+- **文档架构调整**：重新组织文档结构以反映当前的AI功能分布
 
 ## 目录
 1. [简介](#简介)
@@ -31,71 +38,87 @@
 4. [架构总览](#架构总览)
 5. [详细组件分析](#详细组件分析)
 6. [AI课堂模块详解](#ai课堂模块详解)
-7. [依赖分析](#依赖分析)
-8. [性能考虑](#性能考虑)
-9. [故障排查指南](#故障排查指南)
-10. [结论](#结论)
-11. [附录](#附录)
+7. [AI Hub功能](#ai-hub功能)
+8. [知识图谱集成](#知识图谱集成)
+9. [依赖分析](#依赖分析)
+10. [性能考虑](#性能考虑)
+11. [故障排查指南](#故障排查指南)
+12. [结论](#结论)
+13. [附录](#附录)
 
 ## 简介
-本文件面向AI智能助手功能，系统性阐述以下方面：
-- AI服务集成与云函数调用流程
-- 对话管理与上下文维护策略
-- 问题分类与学习建议生成机制
-- 大语言模型API调用、消息格式处理、响应缓存
-- 具体对话流实现、错误重试策略与性能优化技巧
+本文件面向AI智能助手功能的当前架构状态，系统性阐述以下方面：
+- AI功能从独立聊天页面向模块化架构的迁移过程
+- AI课堂和AI Hub双模块的设计与实现
+- 知识图谱作为AI能力载体的集成方案
+- 云端AI服务的持续支持与优化
+- 大语言模型API调用、消息格式处理、上下文管理和响应缓存机制
+- 具体的对话流实现、错误重试策略与性能优化技巧
 - AI提示词工程指导与对话质量评估方法
-- AI课堂模块的架构设计与实现原理
 
-**重大更新** 本次更新重点优化了AI聊天界面的用户体验，通过UI增强和集成改进，显著提升了AI助手的可用性和美观度。同时保持了完整的AI课堂模块支持，形成了"AI聊天+AI课堂"的双模式学习架构。
+**重大更新** 本次更新反映了AI功能的重大架构调整：原始独立的AI聊天页面已被完全移除，AI能力现已整合到AI课堂、AI Hub和知识图谱等多个模块中，形成了更加结构化和功能丰富的AI学习生态系统。
 
 ## 项目结构
-本项目为微信小程序+云开发架构。AI相关能力由前端页面与云端函数协同完成：
+本项目为微信小程序+云开发架构。AI相关能力经过重构后由多个前端模块与云端函数协同完成：
 - 小程序端：负责用户交互、消息展示、本地状态与缓存、Markdown渲染等
 - 云端函数：封装LLM API调用、提示词组装、上下文管理、结果缓存与返回
 
 ```mermaid
 graph TB
 subgraph "小程序端 - AI功能"
-A["ai.js<br/>AI聊天页面逻辑"]
-B["ai.wxml<br/>AI聊天视图模板"]
-C["ai.wxss<br/>AI聊天样式"]
-D["ai.json<br/>AI聊天配置"]
-E["aiClassroom.js<br/>AI课堂页面逻辑"]
-F["aiClassroom.wxml<br/>AI课堂视图模板"]
-G["aiClassroom.wxss<br/>AI课堂样式"]
-H["aiClassroom.json<br/>AI课堂配置"]
-I["markdown.js<br/>Markdown渲染工具"]
+A["aiClassroom.js<br/>AI课堂页面逻辑"]
+B["aiClassroom.wxml<br/>AI课堂视图模板"]
+C["aiClassroom.wxss<br/>AI课堂样式"]
+D["aiClassroom.json<br/>AI课堂配置"]
+E["aiHub.js<br/>AI Hub页面逻辑"]
+F["aiHub.wxml<br/>AI Hub视图模板"]
+G["aiHub.wxss<br/>AI Hub样式"]
+H["aiHub.json<br/>AI Hub配置"]
+I["knowledgeGraph.js<br/>知识图谱页面逻辑"]
+J["knowledgeGraph.wxml<br/>知识图谱视图模板"]
+K["knowledgeGraph.wxss<br/>知识图谱样式"]
+L["knowledgeGraph.json<br/>知识图谱配置"]
+M["markdown.js<br/>Markdown渲染工具"]
 end
 subgraph "云函数端 - AI服务"
-J["aiChat/index.js<br/>AI聊天云函数"]
-K["aiCourseware/index.js<br/>AI课件云函数"]
-L["aiChat/config.json<br/>AI聊天配置"]
-M["aiCourseware/config.json<br/>AI课件配置"]
-N["aiChat/package.json<br/>AI聊天依赖"]
-O["aiCourseware/package.json<br/>AI课件依赖"]
+N["aiChat/index.js<br/>AI聊天云函数"]
+O["aiCourseware/index.js<br/>AI课件云函数"]
+P["aiChat/config.json<br/>AI聊天配置"]
+Q["aiCourseware/config.json<br/>AI课件配置"]
+R["aiChat/package.json<br/>AI聊天依赖"]
+S["aiCourseware/package.json<br/>AI课件依赖"]
 end
-A --> J
-E --> K
+A --> N
+A --> O
+E --> N
+I --> N
 B --> A
 C --> A
 D --> A
 F --> E
 G --> E
 H --> E
-A --> I
-E --> I
+J --> I
+K --> I
+L --> I
+A --> M
+E --> M
+I --> M
 ```
 
 **图表来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
-- [ai.wxml](file://miniprogram/pages/ai/ai.wxml)
-- [ai.wxss](file://miniprogram/pages/ai/ai.wxss)
-- [ai.json](file://miniprogram/pages/ai/ai.json)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
 - [aiClassroom.wxml](file://miniprogram/pages/aiClassroom/aiClassroom.wxml)
 - [aiClassroom.wxss](file://miniprogram/pages/aiClassroom/aiClassroom.wxss)
 - [aiClassroom.json](file://miniprogram/pages/aiClassroom/aiClassroom.json)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [aiHub.wxml](file://miniprogram/pages/aiHub/aiHub.wxml)
+- [aiHub.wxss](file://miniprogram/pages/aiHub/aiHub.wxss)
+- [aiHub.json](file://miniprogram/pages/aiHub/aiHub.json)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
+- [knowledgeGraph.wxml](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxml)
+- [knowledgeGraph.wxss](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxss)
+- [knowledgeGraph.json](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.json)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [config.json](file://cloudfunctions/aiChat/config.json)
@@ -105,53 +128,51 @@ E --> I
 - [markdown.js](file://miniprogram/utils/markdown.js)
 
 ## 核心组件
-- **AI聊天模块（原有）**
-  - 负责收集用户输入、维护会话列表、调用云函数、渲染结果
-  - 使用Markdown工具将结构化文本渲染为富文本
-  - 提供自由对话式的学习体验
-  - **更新** 经过UI增强后，提供更直观的界面交互和更好的视觉反馈
-- **AI课堂模块（新增）**
+- **AI课堂模块（主要AI功能载体）**
   - 提供结构化的课程内容和学习路径
   - 支持课程管理、进度跟踪和学习建议
   - 结合AI技术生成个性化学习内容
+  - 作为原AI聊天功能的主要替代方案
+- **AI Hub模块（AI功能入口）**
+  - 提供统一的AI功能入口和导航
+  - 整合各种AI工具和资源
+  - 支持多模态AI交互体验
+- **知识图谱模块（AI能力可视化）**
+  - 将AI生成的知识以图谱形式展示
+  - 支持知识点关联和探索性学习
+  - 提供可视化的学习路径规划
 - **云端服务层**
   - aiChat云函数：处理AI聊天请求、上下文管理、缓存策略
   - aiCourseware云函数：处理课件内容、学习进度、个性化推荐
 
 **章节来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [markdown.js](file://miniprogram/utils/markdown.js)
 
 ## 架构总览
-整体采用"双模式+云端智能"的分层设计：
-- 前端提供两种学习模式：自由对话模式和结构化课堂模式
+整体采用"多模块+云端智能"的分层设计：
+- 前端提供多种AI交互模式：结构化课堂模式、统一入口模式和知识图谱模式
 - 云端集中管理模型调用、提示词工程、缓存与限流
 - 统一的AI服务接口，支持多种学习场景
 
 ```mermaid
 sequenceDiagram
 participant U as "用户"
-participant Chat as "AI聊天(ai.js)"
 participant Class as "AI课堂(aiClassroom.js)"
+participant Hub as "AI Hub(aiHub.js)"
+participant KG as "知识图谱(knowledgeGraph.js)"
 participant CF1 as "aiChat云函数"
 participant CF2 as "aiCourseware云函数"
 participant LLM as "大语言模型API"
 participant MD as "Markdown渲染"
-Note over U : 选择学习模式
-U->>Chat : "进入AI聊天模式"
+Note over U : 选择AI功能模式
 U->>Class : "进入AI课堂模式"
-par 聊天模式流程
-Chat->>CF1 : "发送聊天请求"
-CF1->>LLM : "调用AI模型"
-LLM-->>CF1 : "返回回答"
-CF1-->>Chat : "标准化响应"
-Chat->>MD : "渲染内容"
-MD-->>Chat : "富文本"
-Chat-->>U : "展示回答"
-end
+U->>Hub : "进入AI Hub模式"
+U->>KG : "进入知识图谱模式"
 par 课堂模式流程
 Class->>CF2 : "获取课程内容"
 CF2->>LLM : "生成个性化内容"
@@ -161,58 +182,43 @@ Class->>MD : "渲染课件"
 MD-->>Class : "富文本课件"
 Class-->>U : "展示课程"
 end
+par Hub模式流程
+Hub->>CF1 : "发送AI请求"
+CF1->>LLM : "调用AI模型"
+LLM-->>CF1 : "返回回答"
+CF1-->>Hub : "标准化响应"
+Hub->>MD : "渲染内容"
+MD-->>Hub : "富文本"
+Hub-->>U : "展示回答"
+end
+par 知识图谱模式流程
+KG->>CF1 : "查询知识节点"
+CF1->>LLM : "生成知识关联"
+LLM-->>CF1 : "返回图谱数据"
+CF1-->>KG : "结构化图谱"
+KG->>MD : "渲染图谱"
+MD-->>KG : "可视化数据"
+KG-->>U : "展示知识图谱"
+end
 ```
 
 **图表来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [markdown.js](file://miniprogram/utils/markdown.js)
 
 ## 详细组件分析
 
-### 小程序端：AI聊天页面
-职责
-- 管理对话列表与当前会话上下文
-- 处理用户输入、加载历史、分页与滚动
-- 调用aiChat云函数并处理成功/失败分支
-- 使用Markdown工具渲染结构化输出
-- **更新** 通过UI增强提供更友好的用户界面和交互反馈
-
-关键流程
-- 初始化会话与历史消息
-- 发送消息时构建请求体（包含用户消息、会话标识、系统提示词等）
-- 接收响应后更新UI，必要时触发缓存写入或失效
-- 渲染Markdown内容
-
-```mermaid
-flowchart TD
-Start(["进入AI聊天页面"]) --> Init["初始化会话/历史消息"]
-Init --> Input["用户输入消息"]
-Input --> BuildReq["构建请求参数"]
-BuildReq --> CallCloud["调用aiChat云函数"]
-CallCloud --> Resp{"是否成功?"}
-Resp --> |是| Update["更新消息列表"]
-Update --> Render["Markdown渲染"]
-Render --> Show["展示回答"]
-Resp --> |否| Retry["重试/降级策略"]
-Retry --> Show
-```
-
-**章节来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
-- [ai.wxml](file://miniprogram/pages/ai/ai.wxml)
-- [ai.wxss](file://miniprogram/pages/ai/ai.wxss)
-- [ai.json](file://miniprogram/pages/ai/ai.json)
-- [markdown.js](file://miniprogram/utils/markdown.js)
-
-### 小程序端：AI课堂页面（新增）
+### 小程序端：AI课堂页面（主要AI功能）
 职责
 - 管理课程列表和学习进度
 - 提供结构化的学习内容和导航
 - 调用aiCourseware云函数获取个性化课件
 - 支持学习记录保存和进度同步
+- 作为原AI聊天功能的主要替代方案
 
 关键特性
 - 课程分类和搜索功能
@@ -239,7 +245,70 @@ NextLesson --> GetContent
 - [aiClassroom.wxss](file://miniprogram/pages/aiClassroom/aiClassroom.wxss)
 - [aiClassroom.json](file://miniprogram/pages/aiClassroom/aiClassroom.json)
 
-### 云端函数：aiChat
+### 小程序端：AI Hub页面（AI功能入口）
+职责
+- 提供统一的AI功能入口界面
+- 整合各种AI工具和资源
+- 支持多模态AI交互体验
+- 管理AI会话历史和偏好设置
+
+关键特性
+- AI功能聚合和快速访问
+- 多工具切换和统一管理
+- 会话历史浏览和管理
+- 个性化AI设置配置
+
+```mermaid
+flowchart TD
+HubStart(["进入AI Hub"]) --> ShowTools["显示可用AI工具"]
+ShowTools --> SelectTool["选择AI工具"]
+SelectTool --> InitSession["初始化AI会话"]
+InitSession --> ProcessInput["处理用户输入"]
+ProcessInput --> CallCloud["调用云端AI服务"]
+CallCloud --> DisplayResult["展示AI结果"]
+DisplayResult --> SaveHistory["保存会话历史"]
+SaveHistory --> Continue["继续交互"]
+Continue --> SelectTool
+```
+
+**章节来源**
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [aiHub.wxml](file://miniprogram/pages/aiHub/aiHub.wxml)
+- [aiHub.wxss](file://miniprogram/pages/aiHub/aiHub.wxss)
+- [aiHub.json](file://miniprogram/pages/aiHub/aiHub.json)
+
+### 小程序端：知识图谱页面（AI能力可视化）
+职责
+- 将AI生成的知识以图谱形式展示
+- 支持知识点关联和探索性学习
+- 提供可视化的学习路径规划
+- 实现知识的交互式探索
+
+关键特性
+- 知识节点的可视化展示
+- 知识点间的关联关系映射
+- 交互式知识探索导航
+- 学习路径的智能规划
+
+```mermaid
+flowchart TD
+KGStart(["进入知识图谱"]) --> LoadKnowledge["加载知识数据"]
+LoadKnowledge --> BuildGraph["构建知识图谱"]
+BuildGraph --> Visualize["可视化展示"]
+Visualize --> Explore["探索知识节点"]
+Explore --> DetailView["查看节点详情"]
+DetailView --> GeneratePath["生成学习路径"]
+GeneratePath --> Navigate["导航学习"]
+Navigate --> Explore
+```
+
+**章节来源**
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
+- [knowledgeGraph.wxml](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxml)
+- [knowledgeGraph.wxss](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxss)
+- [knowledgeGraph.json](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.json)
+
+### 云端函数：aiChat（保留的核心服务）
 职责
 - 解析请求参数，校验必要字段
 - 组合系统提示词与用户上下文
@@ -275,7 +344,7 @@ HandleErr --> ReturnErr["返回错误响应"]
 - [config.json](file://cloudfunctions/aiChat/config.json)
 - [package.json](file://cloudfunctions/aiChat/package.json)
 
-### 云端函数：aiCourseware（新增）
+### 云端函数：aiCourseware（课件管理服务）
 职责
 - 处理AI课堂相关的业务逻辑
 - 管理课件内容和课程结构
@@ -320,8 +389,8 @@ SaveProgress --> ReturnCourse["返回结构化课程"]
 ```mermaid
 flowchart TD
 Q["用户问题/学习需求"] --> Mode{"学习模式"}
-Mode --> |聊天模式| Classify["意图分类"]
-Mode --> |课堂模式| PathGen["学习路径生成"]
+Mode --> |课堂模式| Classify["意图分类"]
+Mode --> |Hub模式| PathGen["学习路径生成"]
 Classify --> Type{"分类类型"}
 Type --> |概念解释| PromptA["生成解释型提示词"]
 Type --> |解题步骤| PromptB["生成步骤型提示词"]
@@ -399,14 +468,16 @@ CourseSession --> Response : "课堂模式数据"
 ```
 
 **图表来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 
 **章节来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 
@@ -466,7 +537,7 @@ Wait --> Try
 ## AI课堂模块详解
 
 ### 模块架构设计
-AI课堂模块作为AI智能助手的扩展功能，提供了结构化的学习体验：
+AI课堂模块作为AI智能助手的主要功能载体，提供了结构化的学习体验：
 
 ```mermaid
 graph TB
@@ -518,25 +589,121 @@ ACC --> DB
   - 多模态内容支持（文本、图片、代码示例）
   - 交互式学习元素集成
 
-### 与AI聊天的协同工作
-AI课堂模块与AI聊天功能形成互补关系：
-- **互补性**：课堂提供结构化学习，聊天提供自由探索
-- **数据共享**：学习进度和知识掌握情况在两个模式间同步
-- **智能推荐**：基于聊天中的问题发现学习盲点，自动推荐课堂内容
-- **统一体验**：一致的UI风格和交互逻辑
+## AI Hub功能
 
-**章节来源**
-- [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
-- [aiClassroom.wxml](file://miniprogram/pages/aiClassroom/aiClassroom.wxml)
-- [aiClassroom.wxss](file://miniprogram/pages/aiClassroom/aiClassroom.wxss)
-- [aiClassroom.json](file://miniprogram/pages/aiClassroom/aiClassroom.json)
-- [index.js](file://cloudfunctions/aiCourseware/index.js)
+### 功能定位与设计
+AI Hub作为AI功能的统一入口，提供了便捷的AI工具访问和管理：
+
+```mermaid
+graph TB
+subgraph "AI Hub前端"
+AH["aiHub.js<br/>Hub逻辑控制器"]
+AHW["aiHub.wxml<br/>Hub界面模板"]
+AHX["aiHub.wxss<br/>Hub样式"]
+AHJ["aiHub.json<br/>Hub配置"]
+end
+subgraph "AI Hub后端"
+ACH["aiChat/index.js<br/>聊天云函数"]
+AHConf["aiChat/config.json<br/>聊天配置"]
+AHPackage["aiChat/package.json<br/>聊天依赖"]
+end
+subgraph "AI服务集成"
+LLM["大语言模型API"]
+Cache["缓存存储"]
+DB["数据库"]
+end
+AH --> ACH
+AHW --> AH
+AHX --> AH
+AHJ --> AH
+ACH --> LLM
+ACH --> Cache
+ACH --> DB
+```
+
+**图表来源**
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [aiHub.wxml](file://miniprogram/pages/aiHub/aiHub.wxml)
+- [aiHub.wxss](file://miniprogram/pages/aiHub/aiHub.wxss)
+- [aiHub.json](file://miniprogram/pages/aiHub/aiHub.json)
+- [index.js](file://cloudfunctions/aiChat/index.js)
+- [config.json](file://cloudfunctions/aiChat/config.json)
+- [package.json](file://cloudfunctions/aiChat/package.json)
+
+### 核心功能特性
+- **统一入口管理**
+  - AI工具聚合和快速访问
+  - 多模态交互支持
+  - 会话历史统一管理
+- **智能工具调度**
+  - 基于用户需求的工具推荐
+  - 多工具协作工作流
+  - 任务自动分解和执行
+- **用户体验优化**
+  - 直观的界面设计
+  - 流畅的交互流程
+  - 个性化的设置管理
+
+## 知识图谱集成
+
+### 知识图谱架构
+知识图谱作为AI能力的可视化载体，实现了知识的结构化展示和探索：
+
+```mermaid
+graph TB
+subgraph "知识图谱前端"
+KGJS["knowledgeGraph.js<br/>图谱逻辑控制器"]
+KGWXML["knowledgeGraph.wxml<br/>图谱界面模板"]
+KGWXSS["knowledgeGraph.wxss<br/>图谱样式"]
+KGJSON["knowledgeGraph.json<br/>图谱配置"]
+end
+subgraph "知识图谱后端"
+KGC["aiChat/index.js<br/>知识查询云函数"]
+KGConf["aiChat/config.json<br/>知识配置"]
+KGPackage["aiChat/package.json<br/>知识依赖"]
+end
+subgraph "知识数据存储"
+GraphDB["知识图谱数据库"]
+Cache["缓存存储"]
+LLM["大语言模型API"]
+end
+KGJS --> KGC
+KGWXML --> KGJS
+KGWXSS --> KGJS
+KGJSON --> KGJS
+KGC --> GraphDB
+KGC --> Cache
+KGC --> LLM
+```
+
+**图表来源**
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
+- [knowledgeGraph.wxml](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxml)
+- [knowledgeGraph.wxss](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.wxss)
+- [knowledgeGraph.json](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.json)
+- [index.js](file://cloudfunctions/aiChat/index.js)
+- [config.json](file://cloudfunctions/aiChat/config.json)
+- [package.json](file://cloudfunctions/aiChat/package.json)
+
+### 核心功能特性
+- **知识可视化展示**
+  - 节点关系的图形化呈现
+  - 交互式知识探索
+  - 动态知识关联发现
+- **智能学习路径**
+  - 基于知识图谱的学习规划
+  - 个性化学习路径推荐
+  - 知识点掌握度评估
+- **探索性学习支持**
+  - 自由探索的知识导航
+  - 关联知识的智能推荐
+  - 学习进度的可视化跟踪
 
 ## 依赖分析
 - 前端依赖
   - 页面逻辑与视图绑定
   - Markdown渲染工具
-  - 课堂模块特有的UI组件和数据管理
+  - 各AI模块特有的UI组件和数据管理
 - 云端依赖
   - 云函数运行时环境
   - 第三方SDK（如HTTP客户端、缓存存储）
@@ -545,7 +712,7 @@ AI课堂模块与AI聊天功能形成互补关系：
 
 ```mermaid
 graph LR
-Front["ai.js + aiClassroom.js"] --> Cloud1["aiChat/index.js"]
+Front["aiClassroom.js + aiHub.js + knowledgeGraph.js"] --> Cloud1["aiChat/index.js"]
 Front --> Cloud2["aiCourseware/index.js"]
 Front --> MD["markdown.js"]
 Cloud1 --> SDK["外部SDK/HTTP客户端"]
@@ -558,15 +725,17 @@ Cloud2 --> DB["学习数据库"]
 ```
 
 **图表来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [markdown.js](file://miniprogram/utils/markdown.js)
 
 **章节来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [markdown.js](file://miniprogram/utils/markdown.js)
@@ -576,19 +745,18 @@ Cloud2 --> DB["学习数据库"]
   - 长列表虚拟滚动与分页加载
   - 图片与媒体资源懒加载
   - 减少不必要的重绘与布局抖动
-  - 课堂模式的课件内容预加载和缓存策略
-  - **更新** 通过UI优化减少渲染开销，提升页面响应速度
+  - 各AI模块的内容预加载和缓存策略
 - 云端
   - 合理设置缓存TTL与命中率监控
   - 批量请求合并与连接复用
   - 控制上下文长度，避免过长导致延迟与成本上升
   - 云函数冷启动优化与内存管理
-  - 课堂模式的课件内容缓存和CDN加速
+  - 课件内容的缓存和CDN加速
 - 传输
   - 压缩响应体
   - 使用CDN加速静态资源
   - 合理设置超时与重试阈值
-  - 课堂模式的大文件分块传输
+  - 大文件的分块传输
 
 ## 故障排查指南
 常见问题与定位思路
@@ -611,29 +779,36 @@ Cloud2 --> DB["学习数据库"]
   - 检查课件内容加载和缓存状态
   - 验证学习进度同步和数据一致性
   - 调试个性化推荐算法的参数配置
-- 双模式切换问题
-  - 检查模式间的数据共享和状态同步
-  - 验证用户权限在不同模式下的访问控制
-- **更新** UI相关问题
-  - 检查样式文件的兼容性和冲突
-  - 验证视图模板的结构完整性
-  - 调试用户交互事件的响应逻辑
+- AI Hub功能问题
+  - 检查工具调度和会话管理
+  - 验证多模态交互的兼容性
+  - 调试工具间的数据流转
+- 知识图谱模块问题
+  - 检查图谱数据的完整性和准确性
+  - 验证知识关联的计算逻辑
+  - 调试可视化渲染的性能问题
+- 模块间协同问题
+  - 检查各AI模块间的数据共享和状态同步
+  - 验证用户权限在不同模块下的访问控制
+  - 调试模块切换时的用户体验问题
 
 **章节来源**
-- [ai.js](file://miniprogram/pages/ai/ai.js)
 - [aiClassroom.js](file://miniprogram/pages/aiClassroom/aiClassroom.js)
+- [aiHub.js](file://miniprogram/pages/aiHub/aiHub.js)
+- [knowledgeGraph.js](file://miniprogram/pages/knowledgeGraph/knowledgeGraph.js)
 - [index.js](file://cloudfunctions/aiChat/index.js)
 - [index.js](file://cloudfunctions/aiCourseware/index.js)
 - [markdown.js](file://miniprogram/utils/markdown.js)
 
 ## 结论
-通过"双模式+云端智能"的架构，AI智能助手实现了稳定的对话体验和结构化的学习体验。**重大更新** 本次UI增强和集成改进显著提升了AI助手的用户体验，使界面更加友好直观，交互更加流畅自然。该架构的优势包括：
+通过"多模块+云端智能"的架构，AI智能助手实现了从单一聊天功能向综合性AI学习生态系统的转型。**重大更新** 本次架构调整将原有的独立AI聊天功能重新组织为AI课堂、AI Hub和知识图谱三个核心模块，形成了更加结构化和功能丰富的AI学习体系。该架构的优势包括：
 
-- **功能互补**：自由对话满足即时需求，结构化课堂提供系统学习
-- **数据互通**：学习进度和知识掌握情况在两个模式间无缝同步
+- **功能专业化**：每个模块专注于特定的AI学习场景，提供更专业的用户体验
+- **架构清晰化**：模块化的设计便于维护和扩展，降低了系统复杂度
+- **数据互通化**：各模块间的数据共享和状态同步，形成完整的用户学习画像
 - **智能升级**：基于用户行为数据的个性化推荐和自适应学习路径
 - **可扩展性**：模块化设计便于后续功能的持续扩展
-- **体验优化**：通过UI增强提供更好的视觉反馈和交互体验
+- **体验优化**：针对不同学习场景的专门优化，提升整体用户体验
 
 建议在后续迭代中持续完善：
 - 更精细的上下文管理与记忆机制
@@ -642,8 +817,9 @@ Cloud2 --> DB["学习数据库"]
 - 更系统的提示词工程与质量评估体系
 - 云函数性能监控与成本优化
 - AI课堂内容的质量控制和效果评估
-- 双模式间的数据一致性和用户体验优化
-- 持续优化UI性能和响应速度
+- 多模块间的数据一致性和用户体验优化
+- 知识图谱的深度挖掘和智能推荐
+- AI Hub的工具生态建设和第三方集成
 
 ## 附录
 
@@ -662,6 +838,12 @@ Cloud2 --> DB["学习数据库"]
   - 针对结构化学习的特殊提示词设计
   - 知识点讲解的难度分级提示词
   - 交互式学习元素的生成提示词
+- Hub模式提示词优化
+  - 多工具协作的提示词协调
+  - 任务分解和执行的提示词设计
+- 知识图谱提示词优化
+  - 知识关联发现的提示词设计
+  - 图谱结构的生成和优化提示词
 
 ### 对话质量评估方法
 - 自动化指标
@@ -679,10 +861,12 @@ Cloud2 --> DB["学习数据库"]
   - 学习完成率和时间投入分析
   - 知识点掌握度的前后测对比
   - 个性化推荐的有效性评估
-- 双模式协同效果评估
-  - 模式间切换频率和用户偏好分析
+- 多模块协同效果评估
+  - 模块间切换频率和用户偏好分析
   - 综合学习效果的对比研究
-- **更新** UI体验评估
-  - 界面响应时间和用户操作流畅度
-  - 视觉设计满意度和易用性评分
-  - 用户交互行为的分析和优化
+- 知识图谱学习效果评估
+  - 知识探索深度和学习路径合理性
+  - 知识关联理解度和迁移应用能力
+- AI Hub使用效率评估
+  - 工具使用频率和任务完成效率
+  - 多工具协作的用户接受度

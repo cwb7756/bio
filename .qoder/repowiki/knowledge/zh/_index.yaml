@@ -3,14 +3,16 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-23T03:05:42Z"
+exported_at: "2026-07-23T03:32:31Z"
 modules:
     "":
-        dir_name: 我的笔记本（自由画布拖拽排版）
-        title: 我的笔记本（自由画布拖拽排版）
+        dir_name: 高中生物学习助手（小程序 + 云函数全栈）
+        title: 高中生物学习助手（小程序 + 云函数全栈）
         scope: []
         source_files: []
-        children: []
+        children:
+            - cloudfunctions
+            - miniprogram
         depends_on: []
         related_to: []
     cloudfunctions:

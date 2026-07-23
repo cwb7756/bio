@@ -56,6 +56,10 @@
           wx:key="_id"
           id="kp-{{item._id}}"
           class="kp-card"
+          data-id="{{item._id}}"
+          bindtap="goKnowledgeGraph"
+          hover-class="kp-card-hover"
+          hover-stay-time="80"
         >
           <view class="kp-badge">
             <view class="icon {{item.icon}}"></view>
