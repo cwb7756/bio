@@ -3,33 +3,5 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-23T03:32:31Z"
-modules:
-    "":
-        dir_name: 高中生物学习助手（小程序 + 云函数全栈）
-        title: 高中生物学习助手（小程序 + 云函数全栈）
-        scope: []
-        source_files: []
-        children:
-            - cloudfunctions
-            - miniprogram
-        depends_on: []
-        related_to: []
-    cloudfunctions:
-        dir_name: 微信小程序云函数集合（业务后端）
-        title: 微信小程序云函数集合（业务后端）
-        scope:
-            - cloudfunctions/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to: []
-    miniprogram:
-        dir_name: 高中生物学习助手小程序前端
-        title: 高中生物学习助手小程序前端
-        scope:
-            - miniprogram/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to: []
+exported_at: "2026-07-24T03:23:04Z"
+modules: {}

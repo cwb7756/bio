@@ -9,11 +9,275 @@
   height: 36rpx;
 }
 
+.star-on {
+  color: var(--hl);
+}
+
 .loading-tip {
   text-align: center;
   color: var(--gray);
   font-size: 26rpx;
   padding: 80rpx 0;
+}
+
+/* ========== 概览模式 · 总考点页面 ========== */
+.kp-scroll-view {
+  height: calc(100vh - 180rpx);
+}
+
+/* 顶部统计栏 */
+.kp-stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  margin: 20rpx 32rpx;
+  padding: 24rpx 20rpx;
+  background: var(--paper);
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx 28rpx 34rpx 26rpx;
+  box-shadow: var(--sh-sm);
+}
+
+.kp-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.kp-stat-num {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--green-deep);
+  line-height: 1.2;
+}
+
+.kp-stat-progress {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: var(--green-accent);
+  line-height: 1.2;
+}
+
+.kp-stat-label {
+  font-size: 22rpx;
+  color: var(--gray);
+}
+
+.kp-stat-divider {
+  width: 3rpx;
+  height: 60rpx;
+  background: var(--gray-line);
+  border-radius: 2rpx;
+}
+
+/* 课程滑动选项卡 */
+.course-tabs-scroller {
+  width: 100%;
+  white-space: nowrap;
+  margin-bottom: 8rpx;
+}
+
+.course-tabs {
+  display: inline-flex;
+  gap: 16rpx;
+  padding: 8rpx 32rpx 16rpx;
+}
+
+.course-tab {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+  padding: 16rpx 32rpx;
+  background: var(--paper);
+  border: 3rpx solid var(--gray-line);
+  border-radius: 24rpx 20rpx 26rpx 18rpx;
+  transition: all 0.2s;
+}
+
+.course-tab.active {
+  background: var(--green-accent);
+  border-color: var(--green-deep);
+  box-shadow: var(--sh-green);
+}
+
+.tab-title {
+  font-size: 27rpx;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.course-tab.active .tab-title {
+  color: #fff;
+}
+
+.tab-stats {
+  font-size: 20rpx;
+  color: var(--gray);
+}
+
+.course-tab.active .tab-stats {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.tab-done {
+  font-weight: 700;
+}
+
+/* 知识点列表区域 */
+.kp-list-section {
+  padding: 0 32rpx 120rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-bottom: 20rpx;
+  margin-top: 8rpx;
+}
+
+.section-header .title {
+  font-size: 32rpx;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.section-header .sub-title {
+  font-size: 24rpx;
+  color: var(--gray);
+}
+
+/* 考点卡片 */
+.kp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.kp-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 28rpx 24rpx;
+  background: var(--paper);
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx 28rpx 34rpx 26rpx;
+  box-shadow: var(--sh-sm);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.kp-card.card-hover {
+  transform: translate(3rpx, 3rpx);
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.kp-card.card-done {
+  border-color: var(--green-accent);
+  background: var(--green-soft);
+}
+
+.card-icon {
+  width: 64rpx;
+  height: 64rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-soft2);
+  border-radius: 50%;
+}
+
+.card-done .card-icon {
+  background: var(--green-accent);
+}
+
+.card-icon .icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.card-done .card-icon .icon {
+  filter: brightness(0) invert(1);
+}
+
+.card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.card-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
+.card-badge {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--gray);
+  background: var(--bg);
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+}
+
+.card-badge.badge-done {
+  background: var(--green-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40rpx;
+  height: 40rpx;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.card-badge .icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.card-desc {
+  font-size: 24rpx;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.card-tags .tag {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: var(--green-deep);
+  background: var(--green-soft);
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
 }
 
 /* ========== 画布缩放漫游区域 ========== */
@@ -39,6 +303,13 @@
   z-index: 1;
   border-radius: 2rpx;
   pointer-events: none; /* 防止连线拦截节点触摸事件 */
+}
+
+/* 中心考点→第一层子节点：加粗连线 */
+.kg-line.thick {
+  height: 6rpx;
+  background: var(--green-deep);
+  opacity: 0.35;
 }
 
 /* ========== 根节点 ========== */

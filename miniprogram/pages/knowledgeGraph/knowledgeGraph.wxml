@@ -10,14 +10,93 @@
     <view class="icon-btn" bindtap="goBack">
       <view class="icon ic-back nav-icon"></view>
     </view>
-    <text class="nav-t">{{rootNode ? rootNode.title : '知识图谱'}}</text>
-    <view class="icon-btn" style="visibility: hidden;"></view>
+    <text class="nav-t">{{overviewMode ? '总考点' : (rootNode ? rootNode.title : '知识图谱')}}</text>
+    <view style="width: 36rpx;"></view>
   </view>
 
   <!-- 加载中 -->
   <view wx:if="{{loading}}" class="loading-tip">加载中...</view>
 
-  <!-- 画布区域：单指拖动漫游 + 双指捏合缩放（手写 touch，保证节点 tap 正常） -->
+  <!-- 概览模式：所有课程的考点列表 -->
+  <view wx:elif="{{overviewMode && !loading}}" class="page-body" style="padding-bottom: 0;">
+    <scroll-view scroll-y="true" enhanced="true" class="kp-scroll-view">
+      <!-- 顶部统计 -->
+      <view class="kp-stats-bar">
+        <view class="kp-stat-item">
+          <text class="kp-stat-num">{{allDoneCount}}</text>
+          <text class="kp-stat-label">已掌握</text>
+        </view>
+        <view class="kp-stat-divider"></view>
+        <view class="kp-stat-item">
+          <text class="kp-stat-num">{{allTotalCount}}</text>
+          <text class="kp-stat-label">总考点</text>
+        </view>
+        <view class="kp-stat-divider"></view>
+        <view class="kp-stat-item">
+          <text class="kp-stat-progress">{{overallPercent}}%</text>
+          <text class="kp-stat-label">完成率</text>
+        </view>
+      </view>
+
+      <!-- 课程滑动选项卡 -->
+      <scroll-view scroll-x="true" enable-flex="true" class="course-tabs-scroller">
+        <view class="course-tabs">
+          <view 
+            wx:for="{{courseTabs}}"
+            wx:key="id"
+            class="course-tab {{currentCourseTab === item.id ? 'active' : ''}}"
+            data-id="{{item.id}}"
+            bindtap="tapCourseTab">
+            <view class="tab-title">{{item.title}}</view>
+            <view class="tab-stats">
+              <text class="tab-done">{{item.doneCount}}</text>/{{item.totalCount}}
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+
+      <!-- 当前课程知识点列表 -->
+      <view class="kp-list-section">
+        <view class="section-header">
+          <view class="header-info">
+            <text class="title">{{courses[currentCourseTab].chapter || courses[currentCourseTab].title}}</text>
+            <text class="sub-title" wx:if="{{courses[currentCourseTab].tag}}"> · {{courses[currentCourseTab].tag}}</text>
+          </view>
+        </view>
+        
+        <view class="kp-list">
+          <view
+            wx:for="{{filteredNodes}}"
+            wx:key="_id"
+            class="kp-card {{item.status === 'done' ? 'card-done' : ''}}"
+            data-id="{{item._id}}"
+            data-node="{{item}}"
+            bindtap="tapKpCard"
+            hover-class="card-hover"
+            hover-stay-time="80">
+            <view class="card-icon">
+              <view class="icon {{item.icon}}"></view>
+            </view>
+            <view class="card-content">
+              <view class="card-top">
+                <text class="card-title">{{item.title}}</text>
+                <view class="card-badge {{item.status === 'done' ? 'badge-done' : ''}}">
+                  <view class="icon ic-check-white" wx:if="{{item.status === 'done'}}"></view>
+                  <text wx:else>{{item.difficulty}}/5</text>
+                </view>
+              </view>
+              <text class="card-desc">{{item.desc}}</text>
+              <view class="card-tags" wx:if="{{item.tags.length > 0}}">
+                <text class="tag" wx:for="{{item.tags}}" wx:key="*this">{{item}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 详细图谱模式 -->
   <view wx:else class="kg-area"
     bindtouchstart="onTouchStart"
     bindtouchmove="onTouchMove"
@@ -26,7 +105,7 @@
     <view class="kg-view" style="width: {{canvasWidth}}rpx; height: {{canvasHeight}}rpx; transform: translate({{tx}}px, {{ty}}px) scale({{scale}});">
 
       <!-- 连线层（在节点下方渲染） -->
-      <view class="kg-line" wx:for="{{lines}}" wx:key="index"
+      <view class="kg-line {{item.thick ? 'thick' : ''}}" wx:for="{{lines}}" wx:key="index"
         style="left: {{item.x}}rpx; top: {{item.y}}rpx; width: {{item.length}}rpx; transform: rotate({{item.angle}}deg);">
       </view>
 

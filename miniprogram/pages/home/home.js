@@ -14,7 +14,7 @@ Page({
     continueLearning: null,
     isLoggedIn: false,
     features: [
-      { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledge/knowledge' },
+      { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledgeGraph/knowledgeGraph' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/aiHub/aiHub' },
       { icon: 'ic-folder', name: '速记卡片', bg: 'g3', path: '/pages/flashcards/flashcards' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },

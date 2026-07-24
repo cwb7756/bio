@@ -942,26 +942,6 @@
   margin-top: 24rpx;
 }
 
-/* ---- 音色选择 ---- */
-.cl-voice-row {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  margin: 28rpx 4rpx 0;
-}
-
-.cl-voice-label {
-  flex-shrink: 0;
-  font-size: 26rpx;
-  color: var(--ink-soft);
-}
-
-.cl-voice-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16rpx;
-}
-
 /* ---- 末页完成课程按钮 ---- */
 .cl-finish-wrap {
   display: flex;

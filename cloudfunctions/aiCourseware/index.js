@@ -14,8 +14,6 @@ const COURSEWARES_LIMIT = 20;
 const TTS_SEGMENT_MAX = 140;
 // 默认音色：101001 智瑜（精品女声）
 const DEFAULT_VOICE = 101001;
-// 可选音色白名单（与前端选项一致，防止滥用未开通音色）
-const ALLOWED_VOICES = [101001, 101002, 101004];
 
 // ---------- 腾讯云 TTS ----------
 
@@ -74,11 +72,7 @@ async function tts(event) {
   if (!segments.length) {
     return { code: 400, msg: '缺少合成文本' };
   }
-  // 音色优先取前端选择（白名单校验），否则走环境变量或默认
-  const reqVoice = parseInt(event.voiceType, 10);
-  const voiceType = ALLOWED_VOICES.indexOf(reqVoice) >= 0
-    ? reqVoice
-    : (parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE);
+  const voiceType = parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE;
   const clips = [];
   try {
     for (let i = 0; i < segments.length; i++) {
@@ -175,6 +169,42 @@ async function genImage(event, openid) {
     return { code: -1, msg: '图片转存失败' };
   }
   return { code: 0, fileID: uploadRes.fileID };
+}
+
+// ---------- B 站课程视频匹配 ----------
+
+// 标题与关键词的 2-4 gram 命中加权评分
+function scoreTitle(title, keyword) {
+  let score = 0;
+  for (let len = 4; len >= 2; len--) {
+    for (let i = 0; i + len <= keyword.length; i++) {
+      if (title.indexOf(keyword.slice(i, i + len)) >= 0) score += len;
+    }
+  }
+  return score;
+}
+
+// matchVideos: 按课件问题/标题关键词匹配 videos 集合中的 B 站课程视频
+// 入参 { keyword } → { code: 0, videos: [{ _id, title, aid, cover, up }] }（最多 3 条）
+async function matchVideos(event) {
+  const keyword = String(event.keyword || '').replace(/[？？?，。！、,.!\s]/g, '').slice(0, 100);
+  if (!keyword) {
+    return { code: 0, videos: [] };
+  }
+  const { data } = await db.collection('videos').limit(100).get();
+  const scored = [];
+  data.forEach(function (v) {
+    const score = scoreTitle(String(v.title || ''), keyword);
+    if (score > 0) scored.push({ v: v, score: score });
+  });
+  scored.sort(function (a, b) { return b.score - a.score; });
+  return {
+    code: 0,
+    videos: scored.slice(0, 3).map(function (item) {
+      const v = item.v;
+      return { _id: v._id, title: v.title, aid: v.aid, cover: v.cover || '', up: v.up || '' };
+    })
+  };
 }
 
 // ---------- 课件 CRUD ----------
@@ -284,6 +314,8 @@ exports.main = async (event, context) => {
         return await tts(event);
       case 'genImage':
         return await genImage(event, OPENID);
+      case 'matchVideos':
+        return await matchVideos(event);
       case 'saveCourseware':
         return await saveCourseware(event, OPENID);
       case 'listCoursewares':

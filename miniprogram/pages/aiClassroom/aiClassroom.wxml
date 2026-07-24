@@ -37,14 +37,6 @@
         <view class="chip cl-sugg-chip" wx:for="{{suggestions}}" wx:key="*this" data-text="{{item}}" bindtap="onTapSuggestion">{{item}}</view>
       </view>
 
-      <!-- 音色选择（生成课件前） -->
-      <view class="cl-voice-row">
-        <text class="cl-voice-label">讲解音色</text>
-        <view class="cl-voice-chips">
-          <view wx:for="{{voices}}" wx:key="id" data-id="{{item.id}}" bindtap="onSelectVoice" class="chip cl-voice-chip {{voiceType === item.id ? 'on' : ''}}">{{item.name}}·{{item.desc}}</view>
-        </view>
-      </view>
-
       <!-- 历史课件 -->
       <block wx:if="{{historyList.length}}">
         <view class="sec-title"><text class="u">历史课件</text></view>

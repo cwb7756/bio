@@ -144,6 +144,117 @@ async function getMap(event, OPENID) {
   }
 }
 
+// ========== Action: getAllKnowledgePoints（新增）=============
+// 返回所有课程的知识点（总考点页面用）
+async function getAllKnowledgePoints(event, OPENID) {
+  try {
+    // 1. 查询所有课程
+    const { data: courses } = await db.collection('courses')
+      .orderBy('sort', 'asc')
+      .limit(10)
+      .get();
+
+    if (!courses || courses.length === 0) {
+      return { code: 0, data: { courseMap: {}, allNodes: [] } };
+    }
+
+    // 2. 收集所有 courseId
+    const courseIds = courses.map(c => c._id);
+
+    // 3. 批量查询所有知识点
+    const { data: allKnowledgePoints } = await db.collection('knowledge_points')
+      .where({ courseId: _.in(courseIds) })
+      .orderBy('sort', 'asc')
+      .limit(100)
+      .get();
+
+    // 4. 用户已完成课时（用于计算掌握度）
+    let completedLessons = [];
+    if (OPENID) {
+      const userID = await getServerUserID(OPENID);
+      const { data: progress } = await db.collection('study_progress')
+        .where(progressCond(OPENID, userID, { type: 'lesson' }))
+        .limit(1000)
+        .get();
+      completedLessons = progress.map(p => p.lessonId || '').filter(Boolean);
+    }
+
+    // 5. 按课程分组构建数据结构
+    const courseMap = {};
+    const allNodes = [];
+
+    courses.forEach(course => {
+      courseMap[course._id] = {
+        _id: course._id,
+        title: course.title,
+        chapter: course.chapter,
+        tag: course.tag || ''
+      };
+    });
+
+    allKnowledgePoints.forEach(kp => {
+      // 查找该课程已完成的课时
+      const linkedLessonIds = kpLessonMap[kp._id] || [];
+      let mastery = 0;
+      let status = 'todo';
+      
+      if (linkedLessonIds.length > 0 && completedLessons.length > 0) {
+        const doneCnt = linkedLessonIds.filter(id => completedLessons.includes(id)).length;
+        if (doneCnt === linkedLessonIds.length) {
+          mastery = 100;
+          status = 'done';
+        } else {
+          mastery = Math.round((doneCnt / linkedLessonIds.length) * 100);
+        }
+      }
+
+      const node = {
+        _id: kp._id,
+        kpId: kp._id,
+        courseId: kp.courseId,
+        title: kp.title,
+        desc: kp.desc || '',
+        icon: kp.icon || 'ic-target',
+        difficulty: kp.difficulty || 1,
+        tags: kp.tags || [],
+        mastery,
+        status
+      };
+
+      allNodes.push(node);
+      
+      // 添加到对应课程组
+      if (!courseMap[kp.courseId]) {
+        courseMap[kp.courseId] = { _id: kp.courseId, title: '', chapter: '', tag: '' };
+      }
+      if (!courseMap[kp.courseId].nodes) {
+        courseMap[kp.courseId].nodes = [];
+      }
+      courseMap[kp.courseId].nodes.push(node);
+    });
+
+    // 6. 统计各课程完成数
+    Object.values(courseMap).forEach(course => {
+      if (course.nodes) {
+        course.doneCount = course.nodes.filter(n => n.status === 'done').length;
+        course.totalCount = course.nodes.length;
+      }
+    });
+
+    return {
+      code: 0,
+      data: {
+        courseMap,
+        allNodes,
+        totalCount: allNodes.length
+      }
+    };
+  } catch (err) {
+    console.error('getAllKnowledgePoints error:', err);
+    return { code: -1, msg: '获取总考点失败' };
+  }
+}
+
 // ========== 自动种子化：首次调用时将种子数据写入数据库 ==========
 async function seedDatabase() {
   try {
@@ -359,6 +470,8 @@ exports.main = async (event, context) => {
   switch (action) {
     case 'getMap':
       return await getMap(event, OPENID);
+    case 'getAllKnowledgePoints':
+      return await getAllKnowledgePoints(event, OPENID);
     case 'getSubGraph':
       return await getSubGraph(event, OPENID);
     default:
