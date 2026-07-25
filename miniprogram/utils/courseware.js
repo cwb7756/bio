@@ -87,6 +87,7 @@ function buildSceneMessages(question, coursewareTitle, section, index, total) {
     '',
     '通用要求：',
     '- narration 为老师口头讲稿，口语化、亲切专业，不含任何 markdown 符号和表情',
+    '- dwellSeconds 为每场景建议停留时间（整数秒，短场景 2-4 秒，概念讲解 5-8 秒，长文本阅读约 10 秒，小测/封面/总结忽略此字段不用填；quiz 场景不返回该字段因为会自动暂停等作答）',
     '- 内容准确，面向高中生物人教版新教材',
     '- 不要用 markdown 代码块包裹，不要输出任何 JSON 以外的文字',
     '只输出 JSON。'
@@ -192,12 +193,19 @@ function normalizeScene(raw, sectionTitle) {
         type: 'cover',
         title: title,
         subtitle: isNonEmptyString(raw.subtitle) ? raw.subtitle.trim() : '',
-        narration: narration
+        narration: narration,
+        dwellSeconds: typeof raw.dwellSeconds === 'number' ? raw.dwellSeconds : 2
       };
     case 'concept': {
       var blocks = normalizeBlocks(raw.blocks);
       if (!blocks.length && !narration) return null;
-      return { type: 'concept', title: title, narration: narration, blocks: blocks };
+      return { 
+        type: 'concept', 
+        title: title, 
+        narration: narration, 
+        blocks: blocks,
+        dwellSeconds: typeof raw.dwellSeconds === 'number' ? raw.dwellSeconds : 5
+      };
     }
     case 'diagram': {
       if (!isNonEmptyString(raw.visual)) return null;
@@ -206,7 +214,8 @@ function normalizeScene(raw, sectionTitle) {
         title: title,
         narration: narration,
         visual: raw.visual.trim(),
-        caption: isNonEmptyString(raw.caption) ? raw.caption.trim() : ''
+        caption: isNonEmptyString(raw.caption) ? raw.caption.trim() : '',
+        dwellSeconds: typeof raw.dwellSeconds === 'number' ? raw.dwellSeconds : 5
       };
     }
     case 'sim': {
@@ -220,7 +229,13 @@ function normalizeScene(raw, sectionTitle) {
         };
       }) : [];
       if (frames.length < 2) return null;
-      return { type: 'sim', title: title, narration: narration, frames: frames.slice(0, 6) };
+      return { 
+        type: 'sim', 
+        title: title, 
+        narration: narration, 
+        frames: frames.slice(0, 6),
+        dwellSeconds: typeof raw.dwellSeconds === 'number' ? raw.dwellSeconds : 6
+      };
     }
     case 'quiz': {
       var options = toStringArray(raw.options);
@@ -241,7 +256,13 @@ function normalizeScene(raw, sectionTitle) {
     case 'summary': {
       var points = toStringArray(raw.points);
       if (!points.length && !narration) return null;
-      return { type: 'summary', title: title, narration: narration, points: points };
+      return { 
+        type: 'summary', 
+        title: title, 
+        narration: narration, 
+        points: points,
+        dwellSeconds: typeof raw.dwellSeconds === 'number' ? raw.dwellSeconds : 3
+      };
     }
   }
   return null;

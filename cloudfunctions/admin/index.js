@@ -1,5 +1,6 @@
 // cloudfunctions/admin/index.js
 const cloud = require('wx-server-sdk');
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
 // Import modules
@@ -82,9 +83,19 @@ const ROUTES = {
 
 // Main entry point
 exports.main = async (event, context) => {
+  // å…¼å®¹ç½‘å…³ HTTP è®¿é—®ï¼šå¦‚æœ body æ˜¯å­—ç¬¦ä¸²åˆ™è§£æåˆå¹¶åˆ° event
+  if (event.body && typeof event.body === 'string') {
+    try {
+      const parsed = JSON.parse(event.body);
+      event = Object.assign({}, parsed, event);
+    } catch (e) {
+      // body ä¸æ˜¯åˆæ³• JSONï¼Œå¿½ç•¥
+    }
+  }
+
   const { action } = event;
   
-  if (!action) return { code: 400, msg: 'È±ÉÙ action ²ÎÊı' };
+  if (!action) return { code: 400, msg: 'ç¼ºå°‘ action å‚æ•°' };
   
   // Validate params
   const validErr = validateParams(event);
@@ -97,7 +108,7 @@ exports.main = async (event, context) => {
   
   // Route to handler
   const handler = ROUTES[action];
-  if (!handler) return { code: -1, msg: 'Î´ÖªµÄ²Ù×÷ÀàĞÍ£º' + action };
+  if (!handler) return { code: -1, msg: 'æœªçŸ¥çš„æ“ä½œç±»å‹ï¼š' + action };
   
   // Execute business logic
   try {
@@ -106,8 +117,8 @@ exports.main = async (event, context) => {
     console.error('admin error [' + action + ']:', err);
     const msg = String(err && (err.errMsg || err.message) || '');
     if (msg.includes('duplicate key')) {
-      return { code: -1, msg: 'Êı¾İ³åÍ»£¬ÇëÖØÊÔ' };
+      return { code: -1, msg: 'æ•°æ®å†²çªï¼Œè¯·é‡è¯•' };
     }
-    return { code: -1, msg: '·şÎñÆ÷Òì³££º' + (err.message || 'Î´Öª´íÎó') };
+    return { code: -1, msg: 'æœåŠ¡å™¨å¼‚å¸¸ï¼š' + (err.message || 'æœªçŸ¥é”™è¯¯') };
   }
 };

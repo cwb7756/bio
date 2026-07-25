@@ -5,6 +5,11 @@ const cw = require('../../utils/courseware.js');
 const sound = require('../../utils/sound.js');
 const genJob = require('../../utils/courseGenJob.js');
 
+// 默认 TTS 音色：101001 智瑜·女声（与云函数 DEFAULT_VOICE 一致）
+const DEFAULT_VOICE = 101001;
+// 音色选择本地持久化 key
+const VOICE_STORAGE_KEY = 'ai_classroom_voice';
+
 // 场景类型中文标签
 const TYPE_LABELS = {
   cover: '封面',
@@ -24,23 +29,41 @@ const SUGGESTIONS = [
   '生态系统的能量流动'
 ];
 
-// LLM 调用：流式累加全文 → 解析 JSON；失败 reject 供重试
+// LLM 调用：流式累加全文 → 解析 JSON
+// 429 限流/空响应等失败按退避延迟自动重试（最多 2 次：3s → 7s）
 function llmJson(messages) {
   return new Promise(function (resolve, reject) {
-    const model = wx.cloud.extend.AI.createModel('cloudbase');
-    let full = '';
-    model.streamText({
-      data: { model: 'hy3', messages: messages },
-      onText: function (delta) { full += delta; },
-      onFinish: function (finalText) {
-        full = finalText || full;
-        try {
-          resolve(cw.extractJson(full));
-        } catch (e) {
-          reject(e);
+    function attempt(retriesLeft, delay) {
+      const model = wx.cloud.extend.AI.createModel('cloudbase');
+      let full = '';
+      let settled = false;
+      function onFail(err) {
+        if (settled) return;
+        if (retriesLeft > 0) {
+          console.warn('llmJson retry in ' + delay + 'ms:', (err && err.message) || err);
+          setTimeout(function () { attempt(retriesLeft - 1, delay * 2 + 1000); }, delay);
+        } else {
+          settled = true;
+          reject(err);
         }
       }
-    }).catch(reject);
+      model.streamText({
+        data: { model: 'hy3', messages: messages },
+        onText: function (delta) { full += delta; },
+        onFinish: function (finalText) {
+          if (settled) return;
+          full = finalText || full;
+          try {
+            const result = cw.extractJson(full);
+            settled = true;
+            resolve(result);
+          } catch (e) {
+            onFail(e);
+          }
+        }
+      }).catch(onFail);
+    }
+    attempt(2, 3000);
   });
 }
 
@@ -92,12 +115,32 @@ Page({
     showSubtitle: true,
     quizPicked: '',          // quiz 已选选项 key
     isLastScene: false,
+    nextDwellCountdown: null,  // 数字 | null，底部按钮显示的剩余秒数
+    dwellTimer: null,           // 倒计时定时器 ID
     // 课程完成反馈
     showComplete: false,
     quizRight: 0,
+    // 音色选择
+    currentVoice: DEFAULT_VOICE,  // 当前选择的音色，初始从 storage 加载
+    currentVoiceName: '智瑜·女声', // 当前音色名称（WXML 绑定用，不支持 find 表达式）
+    voiceOptions: [
+      { id: 101001, name: '智瑜·女声' },
+      { id: 101002, name: '智聆·女声' },
+      { id: 101004, name: '智云·男声' }
+    ],
+    showVoiceSelector: false,       // 音色选择弹窗开关
     quizTotal: 0,
     // 相关 B 站课程视频（末页推荐）
     relatedVideos: []
+  },
+
+  // 按音色 id 取名称
+  _voiceNameById(id) {
+    const list = this.data.voiceOptions || [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i].name;
+    }
+    return '智瑜·女声';
   },
 
   onLoad(options) {
@@ -117,6 +160,17 @@ Page({
     this._clipEndedCb = null;    // 当前音频片段结束回调指针
     this._clipErrorCb = null;    // 当前音频片段错误回调指针
     this._ttsConfigToastShown = false;
+
+    // 加载上次选择的音色
+    try {
+      const savedVoice = wx.getStorageSync(VOICE_STORAGE_KEY);
+      if (savedVoice) {
+        const vid = parseInt(savedVoice, 10);
+        this.setData({ currentVoice: vid, currentVoiceName: this._voiceNameById(vid) });
+      }
+    } catch (err) {
+      console.warn('load voice from storage error:', err);
+    }
 
     // 订阅全局生成任务（页面销毁后任务仍在后台运行，回来时恢复）
     this._jobListener = this.onJobUpdate.bind(this);
@@ -182,6 +236,10 @@ Page({
   onUnload() {
     genJob.unsubscribe(this._jobListener);
     this.stopPlayback();
+    if (this._dwellTimer) {
+      clearInterval(this._dwellTimer);
+      this._dwellTimer = null;
+    }
     if (this._audio) {
       this._audio.destroy();
       this._audio = null;
@@ -252,6 +310,7 @@ Page({
 
     this.setData({ phase: 'outline', outlineLoading: true, sections: [], outlineTitle: '' });
     try {
+      // llmJson 内置退避重试，此处单次调用即可
       const raw = await llmJson(cw.buildOutlineMessages(question));
       const outline = cw.normalizeOutline(raw, question);
       const sections = outline.sections.map(function (s) {
@@ -260,7 +319,7 @@ Page({
       this.setData({ outlineTitle: outline.title, sections: sections, outlineLoading: false });
     } catch (err) {
       console.error('outline error:', err);
-      wx.showToast({ title: '大纲生成失败，请重试', icon: 'none' });
+      wx.showToast({ title: 'AI服务繁忙，请稍后重试', icon: 'none' });
       this.setData({ phase: 'input', outlineLoading: false });
     }
   },
@@ -291,7 +350,7 @@ Page({
     const question = this.data.inputValue.trim();
     const title = this.data.outlineTitle || '生物小课堂';
 
-    const ok = genJob.start(question, title, sections);
+    const ok = genJob.start(question, title, sections, this.data.currentVoice);
     if (!ok) {
       wx.showToast({ title: '上一份课件正在生成中', icon: 'none' });
       return;
@@ -325,16 +384,9 @@ Page({
       if (res) this.enterPlay(res.scenesRaw, res.title, res.question);
     } else if (s.failed) {
       genJob.clearFailed();
-      wx.showToast({ title: '课件生成失败，请重试', icon: 'none' });
+      wx.showToast({ title: 'AI服务繁忙，请稍后重试', icon: 'none' });
       this.setData({ phase: 'input' });
     }
-  },
-
-  // 先播放已完成部分（生成中途取走部分结果，任务标记中断）
-  onPlayPartial() {
-    const res = genJob.consumePartial();
-    if (!res) return;
-    this.enterPlay(res.scenesRaw, res.title, res.question);
   },
 
   // 取消生成：中断全局任务
@@ -387,6 +439,10 @@ Page({
         wx.showToast({ title: '课件内容为空', icon: 'none' });
         return;
       }
+      // 设置该课件的历史音色
+      if (c.voiceType) {
+        this.setData({ currentVoice: c.voiceType, currentVoiceName: this._voiceNameById(c.voiceType) });
+      }
       this.enterPlay(c.scenes, c.title, c.question);
     } catch (err) {
       wx.hideLoading();
@@ -418,6 +474,22 @@ Page({
         });
       }
     });
+  },
+
+  // ---------- 音色选择 ----------
+
+  onVoiceChange(e) {
+    const voiceId = e.currentTarget.dataset.id;
+    this.setData({ currentVoice: voiceId, currentVoiceName: this._voiceNameById(voiceId), showVoiceSelector: false });
+    wx.setStorageSync(VOICE_STORAGE_KEY, voiceId);  // 持久化选择
+  },
+
+  onShowVoiceSelector() {
+    this.setData({ showVoiceSelector: true });
+  },
+
+  onHideVoiceSelector() {
+    this.setData({ showVoiceSelector: false });
   },
 
   // ---------- 播放准备 ----------
@@ -462,6 +534,7 @@ Page({
   enterPlay(scenesRaw, title, question) {
     const scenes = scenesRaw.map(this.prepareScene, this);
     this._playToken = null;
+    this._ttsCache = {};  // 清空 TTS 缓存：历史课件音色可能不同，避免复用旧音色音频
     this.setData({
       phase: 'playing',
       coursewareTitle: title || '生物小课堂',
@@ -530,7 +603,9 @@ Page({
       frameIndex: 0,
       quizPicked: '',
       subtitle: scene.narration || '',
-      isLastScene: index >= scenes.length - 1
+      isLastScene: index >= scenes.length - 1,
+      nextDwellCountdown: null,   // 清零
+      dwellTimer: null             // 清掉旧定时器
     });
     // 预取下一场景音频
     if (index + 1 < scenes.length) {
@@ -562,7 +637,11 @@ Page({
     const self = this;
     const p = wx.cloud.callFunction({
       name: 'aiCourseware',
-      data: { action: 'tts', text: clean }
+      data: { 
+        action: 'tts', 
+        text: clean,
+        voiceType: this.data.currentVoice  // 传入当前音色
+      }
     }).then(function (res) {
       if (res.result && res.result.code === 0 && res.result.clips && res.result.clips.length) {
         return res.result.clips;
@@ -732,20 +811,51 @@ Page({
   // 当前场景音频播完
   onSceneAudioDone() {
     const scene = this.data.currentScene;
+
     // quiz 场景讲完不自动翻页，等待学生作答后手动继续
     if (scene && scene.type === 'quiz') {
       this.setData({ playing: false });
       return;
     }
+
     if (!this.data.autoPlay) {
       this.setData({ playing: false });
       return;
     }
-    if (this.data.current < this.data.scenes.length - 1) {
-      this.enterScene(this.data.current + 1);
-    } else {
+
+    // 末页：直接进入完成反馈，不计停留
+    if (this.data.isLastScene) {
       this.showCompletion();
+      return;
     }
+
+    // 非末页：取 AI 决定的停留时长，启动倒计时（结束自动翻页）
+    let dwellSeconds = scene && scene.dwellSeconds;
+    if (typeof dwellSeconds !== 'number' || dwellSeconds <= 0) dwellSeconds = 3;  // 默认 3 秒
+    dwellSeconds = Math.min(15, dwellSeconds);  // 上限 15 秒防误生成过长停留
+    this.setData({ nextDwellCountdown: Math.round(dwellSeconds) });
+    this._startDwellCountdown();
+  },
+
+  // 启动/重启停留倒计时（剩余秒数存于 nextDwellCountdown，归零自动翻页）
+  _startDwellCountdown() {
+    const self = this;
+    if (this._dwellTimer) {
+      clearInterval(this._dwellTimer);
+      this._dwellTimer = null;
+    }
+    this._dwellTimer = setInterval(function () {
+      const remaining = parseInt(self.data.nextDwellCountdown, 10) - 1;
+      if (remaining <= 0) {
+        clearInterval(self._dwellTimer);
+        self._dwellTimer = null;
+        self.setData({ nextDwellCountdown: null });
+        // 自动翻页
+        self.enterScene(self.data.current + 1);
+      } else {
+        self.setData({ nextDwellCountdown: remaining });
+      }
+    }, 1000);
   },
 
   // 课程完成反馈：弹层 + 完成音效
@@ -784,6 +894,10 @@ Page({
       clearTimeout(this._silentTimer);
       this._silentTimer = null;
     }
+    if (this._dwellTimer) {
+      clearInterval(this._dwellTimer);
+      this._dwellTimer = null;
+    }
     if (this._audio) {
       this._audio.stop();
     }
@@ -811,6 +925,9 @@ Page({
         const sp = this._silentPending;
         this._silentPending = null;
         this.silentWait(sp.text, sp.onDone);
+      } else if (this.data.nextDwellCountdown != null) {
+        // 停留倒计时暂停后恢复 → 重启倒计时
+        this._startDwellCountdown();
       } else if (this._audio) {
         this._audio.play();
       }
@@ -818,6 +935,11 @@ Page({
       if (this._silentTimer) {
         clearTimeout(this._silentTimer);
         this._silentTimer = null;
+      }
+      // 暂停停留倒计时（保留剩余秒数显示，恢复时重启）
+      if (this._dwellTimer) {
+        clearInterval(this._dwellTimer);
+        this._dwellTimer = null;
       }
       if (this._audio) {
         this._audio.pause();
@@ -831,6 +953,17 @@ Page({
   },
 
   onNextScene() {
+    // 末页：点击等于完成课程
+    if (this.data.isLastScene) {
+      this.onFinishCourse();
+      return;
+    }
+    // 如果正在倒计时，停止倒计时
+    if (this._dwellTimer) {
+      clearInterval(this._dwellTimer);
+      this._dwellTimer = null;
+      this.setData({ nextDwellCountdown: null });
+    }
     if (this.data.current >= this.data.scenes.length - 1) return;
     this.enterScene(this.data.current + 1);
   },

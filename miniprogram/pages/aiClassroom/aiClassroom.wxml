@@ -26,6 +26,12 @@
       <!-- 输入卡片 -->
       <view class="cl-input-card">
         <textarea class="cl-textarea" value="{{inputValue}}" bindinput="onInput" placeholder="例如：什么是光合作用？" auto-height maxlength="200" />
+        <!-- 音色选择器 -->
+        <view class="cl-voice-selector" bindtap="onShowVoiceSelector">
+          <view class="icon ic-volume"></view>
+          <text>{{currentVoiceName}}</text>
+          <view class="icon ic-chevron-down"></view>
+        </view>
         <view class="cl-input-actions">
           <text class="cl-input-count">{{inputValue.length}}/200</text>
           <view class="btn deep cl-gen-btn" bindtap="onStartOutline">生成课件</view>
@@ -51,6 +57,22 @@
       </block>
     </view>
   </scroll-view>
+
+  <!-- 音色选择弹窗 -->
+  <view wx:if="{{showVoiceSelector}}" class="cl-voice-mask" bindtap="onHideVoiceSelector"></view>
+  <view wx:if="{{showVoiceSelector}}" class="cl-voice-popup">
+    <text class="cl-voice-title">选择 TTS 音色</text>
+    <view class="cl-voice-options">
+      <view class="cl-voice-item {{currentVoice === item.id ? 'cl-voice-active' : ''}}" 
+            data-id="{{item.id}}" 
+            bindtap="onVoiceChange"
+            wx:for="{{voiceOptions}}" 
+            wx:key="id">
+        <text>{{item.name}}</text>
+        <view wx:if="{{currentVoice === item.id}}" class="icon ic-check-circle"></view>
+      </view>
+    </view>
+  </view>
 
   <!-- ===== outline 态 ===== -->
   <scroll-view wx:if="{{phase === 'outline'}}" scroll-y class="cl-body">
@@ -108,7 +130,6 @@
       </view>
       <view class="cl-gen-actions">
         <view class="btn ghost" bindtap="onAbortGenerate">取消</view>
-        <view wx:if="{{genDoneList.length}}" class="btn deep" bindtap="onPlayPartial">先播已完成 {{genDoneList.length}} 节</view>
       </view>
     </view>
   </view>
@@ -217,7 +238,7 @@
 
         <!-- 末页：完成课程按钮 -->
         <view wx:if="{{isLastScene && !showComplete}}" class="cl-finish-wrap">
-          <view class="btn deep cl-finish-btn" bindtap="onFinishCourse">完成课程</view>
+          <view class="btn deep cl-finish-btn-lg" bindtap="onFinishCourse">完成课程</view>
         </view>
 
         <!-- 底部留白，避免被字幕/控制栏遮挡 -->
@@ -241,8 +262,10 @@
       <view class="cl-ctrl cl-ctrl-main" bindtap="onTogglePlay" hover-class="cl-ctrl-hover">
         <view class="icon {{playing ? 'ic-pause' : 'ic-play'}}"></view>
       </view>
-      <view class="cl-ctrl" bindtap="onNextScene" hover-class="cl-ctrl-hover">
-        <view class="icon ic-arrow-right"></view>
+      <!-- 末页显示完成图标，非末页显示下一节图标；倒计时期间显示剩余秒数 -->
+      <view class="cl-ctrl {{isLastScene ? 'cl-ctrl-done' : ''}}" bindtap="onNextScene" hover-class="cl-ctrl-hover">
+        <text wx:if="{{!isLastScene && nextDwellCountdown !== null}}" class="cl-ctrl-countdown">{{nextDwellCountdown}}</text>
+        <view wx:else class="icon {{isLastScene ? 'ic-check-circle-w' : 'ic-arrow-right'}}"></view>
       </view>
       <view class="cl-ctrl" bindtap="onReplay" hover-class="cl-ctrl-hover">
         <view class="icon ic-refresh"></view>

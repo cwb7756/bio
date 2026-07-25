@@ -952,3 +952,103 @@
 .cl-finish-btn {
   padding: 0 96rpx;
 }
+
+/* ---- 末页完成课程按钮加大版 ---- */
+.cl-finish-btn-lg {
+  padding: 16rpx 96rpx;
+  font-size: 32rpx;
+  border-radius: 52rpx;
+}
+
+/* ---- 末页控制栏完成图标加大 ---- */
+.cl-ctrl-done {
+  background: var(--green-accent);
+  box-shadow: var(--sh-green);
+}
+
+.cl-ctrl-done .icon {
+  width: 52rpx;
+  height: 52rpx;
+}
+
+/* ---- 下一节按钮停留倒计时 ---- */
+.cl-ctrl-countdown {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: var(--green-deep);
+}
+
+/* ---- 音色选择器（输入态）---- */
+.cl-voice-selector {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: var(--gray);
+  margin-bottom: 16rpx;
+  padding: 0 12rpx;
+}
+
+.cl-voice-selector .icon {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+.cl-voice-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 900;
+}
+
+.cl-voice-popup {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border-top-left-radius: 20rpx;
+  border-top-right-radius: 20rpx;
+  padding: 36rpx 40rpx;
+  z-index: 1000;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+}
+
+.cl-voice-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: var(--ink);
+  display: block;
+  margin-bottom: 24rpx;
+}
+
+.cl-voice-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.cl-voice-item {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  background: var(--bg);
+  border-radius: 16rpx;
+  font-size: 26rpx;
+  color: var(--ink);
+  border: 4rpx solid transparent;
+}
+
+.cl-voice-item.cl-voice-active {
+  border-color: var(--green-accent);
+  background: var(--green-soft);
+}
+
+.cl-voice-item .icon {
+  width: 32rpx;
+  height: 32rpx;
+}

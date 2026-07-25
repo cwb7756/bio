@@ -11,6 +11,7 @@ const state = {
   failed: false,       // 全部场景生成失败
   question: '',
   title: '',
+  voice: 101001,       // 课件音色（随课件保存到历史记录）
   genCurrent: 0,       // 正在生成第几节（1-based）
   genTotal: 0,
   genDoneList: [],     // [{ title, sceneType }]
@@ -57,23 +58,41 @@ function unsubscribe(fn) {
 
 // ---------- LLM / 生图调用 ----------
 
-// LLM 调用：流式累加全文 → 解析 JSON；失败 reject 供重试
+// LLM 调用：流式累加全文 → 解析 JSON
+// 429 限流/空响应等失败按退避延迟自动重试（最多 2 次：3s → 7s）
 function llmJson(messages) {
   return new Promise(function (resolve, reject) {
-    const model = wx.cloud.extend.AI.createModel('cloudbase');
-    let full = '';
-    model.streamText({
-      data: { model: 'hy3', messages: messages },
-      onText: function (delta) { full += delta; },
-      onFinish: function (finalText) {
-        full = finalText || full;
-        try {
-          resolve(cw.extractJson(full));
-        } catch (e) {
-          reject(e);
+    function attempt(retriesLeft, delay) {
+      const model = wx.cloud.extend.AI.createModel('cloudbase');
+      let full = '';
+      let settled = false;
+      function onFail(err) {
+        if (settled) return;
+        if (retriesLeft > 0) {
+          console.warn('llmJson retry in ' + delay + 'ms:', (err && err.message) || err);
+          setTimeout(function () { attempt(retriesLeft - 1, delay * 2 + 1000); }, delay);
+        } else {
+          settled = true;
+          reject(err);
         }
       }
-    }).catch(reject);
+      model.streamText({
+        data: { model: 'hy3', messages: messages },
+        onText: function (delta) { full += delta; },
+        onFinish: function (finalText) {
+          if (settled) return;
+          full = finalText || full;
+          try {
+            const result = cw.extractJson(full);
+            settled = true;
+            resolve(result);
+          } catch (e) {
+            onFail(e);
+          }
+        }
+      }).catch(onFail);
+    }
+    attempt(2, 3000);
   });
 }
 
@@ -94,7 +113,7 @@ function genImage(visual) {
   });
 }
 
-// 生成单个场景：失败重试 1 次 → 降级 concept 文字页
+// 生成单个场景：失败重试 1 次（含 3 秒退避）→ 降级 concept 文字页
 async function genOneScene(question, coursewareTitle, section, index, total) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -103,6 +122,8 @@ async function genOneScene(question, coursewareTitle, section, index, total) {
       if (scene) return scene;
     } catch (err) {
       console.error('scene gen error (attempt ' + attempt + '):', err);
+      // 失败后稍作等待再重试，缓解网关限流
+      if (attempt === 0) await new Promise(function (r) { setTimeout(r, 3000); });
     }
   }
   return cw.fallbackScene(section.title, section.goal);
@@ -128,7 +149,7 @@ function scheduleSceneImages(imageJobs, scene) {
 // ---------- 任务控制 ----------
 
 // 启动生成任务；已有任务运行中返回 false
-function start(question, title, sections) {
+function start(question, title, sections, voice) {
   if (state.running) return false;
   aborted = false;
   state.running = true;
@@ -136,6 +157,7 @@ function start(question, title, sections) {
   state.failed = false;
   state.question = question;
   state.title = title;
+  state.voice = typeof voice === 'number' ? voice : 101001;
   state.genCurrent = 1;
   state.genTotal = sections.length;
   state.genDoneList = [];
@@ -177,13 +199,14 @@ async function run(question, title, sections) {
   }
   if (aborted) return finish(false);
 
-  // 保存课件（best-effort，失败不影响播放）
+  // 保存课件（best-effort，失败不影响播放）；voiceType 随课件保存供历史回放使用
   wx.cloud.callFunction({
     name: 'aiCourseware',
     data: {
       action: 'saveCourseware',
       title: title,
       question: question,
+      voiceType: state.voice,
       scenes: state.scenesRaw
     }
   }).catch(function (err) {
@@ -201,7 +224,7 @@ function finish(failed, done) {
   notify();
 }
 
-// 中断任务（保留已生成部分供 consumePartial 取用）
+// 中断任务
 function abort() {
   aborted = true;
 }
@@ -212,20 +235,6 @@ function consumeResult() {
   const result = { scenesRaw: state.scenesRaw, title: state.title, question: state.question };
   state.done = false;
   state.scenesRaw = [];
-  return result;
-}
-
-// 生成中途取走已完成部分（「先播已完成」）；任务标记中断
-function consumePartial() {
-  aborted = true;
-  const scenes = state.scenesRaw.slice();
-  if (!scenes.length) return null;
-  const result = { scenesRaw: scenes, title: state.title, question: state.question };
-  state.scenesRaw = [];
-  state.running = false;
-  state.done = false;
-  state.failed = false;
-  notify();
   return result;
 }
 
@@ -241,6 +250,5 @@ module.exports = {
   subscribe: subscribe,
   unsubscribe: unsubscribe,
   consumeResult: consumeResult,
-  consumePartial: consumePartial,
   clearFailed: clearFailed
 };

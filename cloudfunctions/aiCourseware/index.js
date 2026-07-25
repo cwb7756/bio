@@ -62,17 +62,27 @@ function splitText(text) {
 }
 
 // tts: 文本转语音
-// 入参 { text } → { code: 0, clips: [{ text, audioBase64 }] }
+// 入参 { text, voiceType } → { code: 0, clips: [{ text, audioBase64 }] }
 async function tts(event) {
   const client = getTtsClient();
   if (!client) {
-    return { code: 503, msg: 'TTS未配置' };
+    return { code: 503, msg: 'TTS 未配置' };
   }
   const segments = splitText(event.text);
   if (!segments.length) {
     return { code: 400, msg: '缺少合成文本' };
   }
-  const voiceType = parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE;
+  
+  // 优先使用事件中的 voiceType，若无则用环境变量默认值
+  let voiceType = parseInt(process.env.TTS_VOICE, 10) || DEFAULT_VOICE;
+  if (typeof event.voiceType === 'number') {
+    // 白名单校验
+    const ALLOWED_VOICES = [101001, 101002, 101004];
+    if (ALLOWED_VOICES.indexOf(event.voiceType) < 0) {
+      return { code: 400, msg: '无效音色' };
+    }
+    voiceType = event.voiceType;
+  }
   const clips = [];
   try {
     for (let i = 0; i < segments.length; i++) {
@@ -210,7 +220,7 @@ async function matchVideos(event) {
 // ---------- 课件 CRUD ----------
 
 // saveCourseware: 保存新课件
-// 入参 { title, question, scenes } → { code: 0, coursewareId }
+// 入参 { title, question, scenes, voiceType } → { code: 0, coursewareId }
 async function saveCourseware(event, openid) {
   const title = String(event.title || '未命名课件').slice(0, 30);
   const question = String(event.question || '').slice(0, 200);
@@ -224,6 +234,7 @@ async function saveCourseware(event, openid) {
       _openid: openid,
       title: title,
       question: question,
+      voiceType: event.voiceType || DEFAULT_VOICE,  // 新增
       scenes: scenes,
       createdAt: now,
       updatedAt: now
@@ -233,7 +244,7 @@ async function saveCourseware(event, openid) {
 }
 
 // listCoursewares: 列出当前用户的课件（不含 scenes 正文，节省流量）
-// → { code: 0, coursewares: [{ _id, title, question, sceneCount, updatedAt, createdAt }] }
+// → { code: 0, coursewares: [{ _id, title, question, sceneCount, voiceType, updatedAt, createdAt }] }
 async function listCoursewares(openid) {
   const { data } = await db.collection('ai_coursewares')
     .where({ _openid: openid })
@@ -245,6 +256,7 @@ async function listCoursewares(openid) {
       _id: c._id,
       title: c.title || '未命名课件',
       question: c.question || '',
+      voiceType: c.voiceType || DEFAULT_VOICE,  // 新增
       sceneCount: Array.isArray(c.scenes) ? c.scenes.length : 0,
       createdAt: c.createdAt,
       updatedAt: c.updatedAt
@@ -273,6 +285,7 @@ async function getCourseware(event, openid) {
       _id: c._id,
       title: c.title || '未命名课件',
       question: c.question || '',
+      voiceType: c.voiceType || DEFAULT_VOICE,  // 新增
       scenes: c.scenes || [],
       createdAt: c.createdAt,
       updatedAt: c.updatedAt

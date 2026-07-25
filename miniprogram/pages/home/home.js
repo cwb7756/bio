@@ -171,7 +171,14 @@ Page({
   },
 
   goAllTopics() {
-    wx.showToast({ title: '更多考点即将上线', icon: 'none' });
+    if (!app.globalData.isLoggedIn) {
+      wx.showToast({ title: '请先登录后查看全部考点', icon: 'none' });
+      setTimeout(function () {
+        wx.navigateTo({ url: '/pages/login/login' });
+      }, 1000);
+      return;
+    }
+    wx.navigateTo({ url: '/pages/knowledgeGraph/knowledgeGraph' });
   },
 
   // 分享给好友
