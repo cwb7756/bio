@@ -24,50 +24,32 @@ const TYPE_LABELS = {
 const SUGGESTIONS = [
   '什么是光合作用？',
   '减数分裂的过程',
-  'DNA是如何复制的？',
+  'DNA 是如何复制的？',
   '兴奋在神经纤维上的传导',
   '生态系统的能量流动'
 ];
 
-// LLM 调用：流式累加全文 → 解析 JSON
-// 429 限流/空响应等失败按退避延迟自动重试（最多 2 次：3s → 7s）
-function llmJson(messages) {
-  return new Promise(function (resolve, reject) {
-    function attempt(retriesLeft, delay) {
-      const model = wx.cloud.extend.AI.createModel('cloudbase');
-      let full = '';
-      let settled = false;
-      function onFail(err) {
-        if (settled) return;
-        if (retriesLeft > 0) {
-          console.warn('llmJson retry in ' + delay + 'ms:', (err && err.message) || err);
-          setTimeout(function () { attempt(retriesLeft - 1, delay * 2 + 1000); }, delay);
-        } else {
-          settled = true;
-          reject(err);
-        }
-      }
-      model.streamText({
-        data: { model: 'hy3', messages: messages },
-        onText: function (delta) { full += delta; },
-        onFinish: function (finalText) {
-          if (settled) return;
-          full = finalText || full;
-          try {
-            const result = cw.extractJson(full);
-            settled = true;
-            resolve(result);
-          } catch (e) {
-            onFail(e);
-          }
-        }
-      }).catch(onFail);
-    }
-    attempt(2, 3000);
-  });
-}
+// 大纲生成等待期动态提示（轮播缓解等待焦虑）
+const OUTLINE_TIPS = [
+  'AI 老师正在分析你的问题',
+  '正在拆解知识点结构',
+  '正在规划讲解顺序',
+  '正在挑选合适的教学方式',
+  '大纲即将完成'
+];
 
-// 相对时间格式化：刚刚 / x分钟前 / x小时前 / 昨天 / MM-DD
+// 课件生成等待期动态提示
+const GEN_TIPS = [
+  '好的课程需要耐心打磨',
+  'AI 老师正在奋笔疾书',
+  '讲稿与插图为每节精心准备',
+  '知识点正在有序编排中',
+  '完成后即可自动播放学习'
+];
+
+// LLM 调用统一走 cw.llmJson（内置限流感知退避重试与全局节流）
+
+// 相对时间格式化：刚刚 / x 分钟前 / x 小时前 / 昨天 / MM-DD
 function formatRelativeTime(ts) {
   if (!ts) return '';
   const now = Date.now();
@@ -83,6 +65,54 @@ function formatRelativeTime(ts) {
   return pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
 
+// 从流式 JSON 文本中增量提取大纲：title + 已闭合的 section 对象（大括号配对扫描，容忍未完成的尾部）
+function parseStreamedOutline(text) {
+  var result = { title: '', sections: [] };
+  if (!text) return result;
+  var tm = String(text).match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  if (tm) {
+    try { result.title = JSON.parse('"' + tm[1] + '"'); } catch (e) { result.title = tm[1]; }
+  }
+  var keyIdx = String(text).indexOf('"sections"');
+  if (keyIdx < 0) return result;
+  var arrStart = String(text).indexOf('[', keyIdx);
+  if (arrStart < 0) return result;
+  var depth = 0;
+  var objStart = -1;
+  var inStr = false;
+  var esc = false;
+  for (var i = arrStart; i < text.length; i++) {
+    var ch = text.charAt(i);
+    if (inStr) {
+      if (esc) { esc = false; }
+      else if (ch === '\\') { esc = true; }
+      else if (ch === '"') { inStr = false; }
+      continue;
+    }
+    if (ch === '"') { inStr = true; continue; }
+    if (ch === '{') {
+      if (depth === 0) objStart = i;
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0 && objStart >= 0) {
+        try {
+          var s = JSON.parse(text.slice(objStart, i + 1));
+          if (s && typeof s.title === 'string' && s.title.trim()) {
+            result.sections.push({
+              title: s.title.trim().slice(0, 20),
+              sceneType: TYPE_LABELS[s.sceneType] ? s.sceneType : 'concept',
+              goal: typeof s.goal === 'string' ? s.goal.trim().slice(0, 40) : ''
+            });
+          }
+        } catch (e) { }
+        objStart = -1;
+      }
+    }
+  }
+  return result;
+}
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -96,12 +126,16 @@ Page({
     outlineLoading: false,
     outlineTitle: '',
     sections: [],
+    outlineTip: OUTLINE_TIPS[0],  // 大纲等待轮播提示
     // generating 态
     genCurrent: 0,           // 正在生成第几节（1-based）
     genTotal: 0,
     genDoneList: [],         // [{ title, sceneType }]
     genProgress: '0%',       // 进度条宽度（含单位，规避内联样式 }}% 校验误报）
     genStage: '',            // 生成阶段提示（如「正在绘制插图…」）
+    genTip: GEN_TIPS[0],     // 生成等待轮播提示
+    genList: [],             // 章节清单 [{ title, sceneType, status: done|doing|pending }]
+    tipAlt: false,           // 提示语交替动画类开关
     // playing 态
     coursewareTitle: '',
     scenes: [],
@@ -143,6 +177,37 @@ Page({
     return '智瑜·女声';
   },
 
+  // 等待提示轮播：dataKey 为要更新的 data 字段，tips 为文案数组
+  _startTipRotation(dataKey, tips) {
+    this._stopTipRotation();
+    const self = this;
+    let i = 0;
+    this._tipTimer = setInterval(function () {
+      i = (i + 1) % tips.length;
+      const updates = { tipAlt: !self.data.tipAlt };
+      updates[dataKey] = tips[i];
+      self.setData(updates);
+    }, 2800);
+  },
+
+  _stopTipRotation() {
+    if (this._tipTimer) {
+      clearInterval(this._tipTimer);
+      this._tipTimer = null;
+    }
+  },
+
+  // 生成页章节清单：根据已完成数推导每节状态（done/doing/pending）
+  _buildGenList(sections, doneCount) {
+    return (sections || []).map(function (sec, i) {
+      return {
+        title: sec.title,
+        sceneType: sec.sceneType,
+        status: i < doneCount ? 'done' : (i === doneCount ? 'doing' : 'pending')
+      };
+    });
+  },
+
   onLoad(options) {
     const sys = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sys.statusBarHeight });
@@ -160,6 +225,11 @@ Page({
     this._clipEndedCb = null;    // 当前音频片段结束回调指针
     this._clipErrorCb = null;    // 当前音频片段错误回调指针
     this._ttsConfigToastShown = false;
+
+    // 等待提示轮播定时器
+    this._tipTimer = null;
+    // 大纲流式解析中
+    this._outlineStreaming = false;
 
     // 加载上次选择的音色
     try {
@@ -200,8 +270,11 @@ Page({
         genTotal: js.genTotal,
         genDoneList: js.genDoneList,
         genProgress: js.genProgress,
-        genStage: js.genStage
+        genStage: js.genStage,
+        genList: this._buildGenList(js.sections, js.genDoneList.length),
+        genTip: GEN_TIPS[0]
       });
+      this._startTipRotation('genTip', GEN_TIPS);
     } else if (js.done) {
       const res = genJob.consumeResult();
       if (res) this.enterPlay(res.scenesRaw, res.title, res.question);
@@ -228,12 +301,16 @@ Page({
         genTotal: js.genTotal,
         genDoneList: js.genDoneList,
         genProgress: js.genProgress,
-        genStage: js.genStage
+        genStage: js.genStage,
+        genList: this._buildGenList(js.sections, js.genDoneList.length),
+        genTip: GEN_TIPS[0]
       });
+      this._startTipRotation('genTip', GEN_TIPS);
     }
   },
 
   onUnload() {
+    this._stopTipRotation();
     genJob.unsubscribe(this._jobListener);
     this.stopPlayback();
     if (this._dwellTimer) {
@@ -307,19 +384,49 @@ Page({
       wx.showToast({ title: '上一份课件正在生成中', icon: 'none' });
       return;
     }
-
-    this.setData({ phase: 'outline', outlineLoading: true, sections: [], outlineTitle: '' });
+  
+    this._stopTipRotation();
+    this.setData({
+      phase: 'outline',
+      outlineLoading: true,
+      sections: [],
+      outlineTitle: '',
+      outlineTip: OUTLINE_TIPS[0]
+    });
+    this._startTipRotation('outlineTip', OUTLINE_TIPS);
+    this._outlineStreaming = true;
     try {
-      // llmJson 内置退避重试，此处单次调用即可
-      const raw = await llmJson(cw.buildOutlineMessages(question));
+      const self = this;
+      // 流式回调：边接收边解析，解析出一节立即上屏
+      const raw = await cw.llmJson(cw.buildOutlineMessages(question), function (full) {
+        if (!self._outlineStreaming) return;
+        if (!full) {
+          // 重试重置
+          self.setData({ sections: [], outlineTitle: '' });
+          return;
+        }
+        const parsed = parseStreamedOutline(full);
+        const updates = {};
+        if (parsed.title && parsed.title !== self.data.outlineTitle) {
+          updates.outlineTitle = parsed.title;
+        }
+        if (parsed.sections.length > self.data.sections.length) {
+          updates.sections = parsed.sections;
+        }
+        if (Object.keys(updates).length) self.setData(updates);
+      });
       const outline = cw.normalizeOutline(raw, question);
       const sections = outline.sections.map(function (s) {
         return { title: s.title, sceneType: s.sceneType, goal: s.goal };
       });
+      this._outlineStreaming = false;
+      this._stopTipRotation();
       this.setData({ outlineTitle: outline.title, sections: sections, outlineLoading: false });
     } catch (err) {
+      this._outlineStreaming = false;
+      this._stopTipRotation();
       console.error('outline error:', err);
-      wx.showToast({ title: 'AI服务繁忙，请稍后重试', icon: 'none' });
+      wx.showToast({ title: 'AI 服务繁忙，请稍后重试', icon: 'none' });
       this.setData({ phase: 'input', outlineLoading: false });
     }
   },
@@ -361,8 +468,11 @@ Page({
       genTotal: sections.length,
       genDoneList: [],
       genProgress: '0%',
-      genStage: ''
+      genStage: '',
+      genTip: GEN_TIPS[0],
+      genList: this._buildGenList(sections, 0)
     });
+    this._startTipRotation('genTip', GEN_TIPS);
   },
 
   // 全局生成任务状态同步：进度刷新；完成/失败时页面在前台则立即处理
@@ -373,7 +483,8 @@ Page({
         genTotal: s.genTotal,
         genDoneList: s.genDoneList,
         genProgress: s.genProgress,
-        genStage: s.genStage
+        genStage: s.genStage,
+        genList: this._buildGenList(s.sections && s.sections.length ? s.sections : this.data.sections, s.genDoneList.length)
       });
     }
     const pages = getCurrentPages();
@@ -383,14 +494,16 @@ Page({
       const res = genJob.consumeResult();
       if (res) this.enterPlay(res.scenesRaw, res.title, res.question);
     } else if (s.failed) {
+      this._stopTipRotation();
       genJob.clearFailed();
-      wx.showToast({ title: 'AI服务繁忙，请稍后重试', icon: 'none' });
+      wx.showToast({ title: 'AI 服务繁忙，请稍后重试', icon: 'none' });
       this.setData({ phase: 'input' });
     }
   },
 
   // 取消生成：中断全局任务
   onAbortGenerate() {
+    this._stopTipRotation();
     genJob.abort();
     this.setData({ phase: 'input' });
   },
@@ -532,6 +645,7 @@ Page({
 
   // 进入播放态
   enterPlay(scenesRaw, title, question) {
+    this._stopTipRotation();
     const scenes = scenesRaw.map(this.prepareScene, this);
     this._playToken = null;
     this._ttsCache = {};  // 清空 TTS 缓存：历史课件音色可能不同，避免复用旧音色音频

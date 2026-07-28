@@ -6,6 +6,34 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// ========== 内存缓存管理 ==========
+// 注意：home 返回的数据包含用户个人信息，缓存必须按 OPENID 隔离，
+// 否则会把 A 用户的数据返回给 B 用户。仅热门考点（无用户数据）全局缓存。
+let hotTopicsCache = null;
+const HOT_TOPICS_TTL = 5 * 60 * 1000; // 热门考点 5 分钟 TTL
+
+const userCacheMap = new Map(); // OPENID -> { timestamp, data }
+const USER_CACHE_TTL = 30 * 1000; // 用户数据 30 秒 TTL
+const USER_CACHE_MAX = 500; // 防止内存无限增长
+
+function getUserCache(openid) {
+  const entry = userCacheMap.get(openid);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > USER_CACHE_TTL) {
+    userCacheMap.delete(openid);
+    return null;
+  }
+  return entry.data;
+}
+
+function setUserCache(openid, data) {
+  if (userCacheMap.size >= USER_CACHE_MAX) {
+    // 简单淘汰：清空全部（实例内存有限，避免复杂 LRU）
+    userCacheMap.clear();
+  }
+  userCacheMap.set(openid, { timestamp: Date.now(), data });
+}
+
 // study_progress 身份兼容条件：旧数据用 userID，新数据用 _openid
 // 安全前提：此处的 userID 必须且只能来自服务端 users 表（按 _openid 查询）的结果，
 // 绝不可源自客户端 event 传入——否则将构成越权查询他人学习数据。main 入口已加防御断言拦截。
@@ -106,15 +134,19 @@ async function getContinueLearning(openid, userID) {
 }
 
 /**
- * 获取热门考点（取 courses 前 3 条）
+ * 获取热门考点（取 courses 前 3 条），静态数据带 5 分钟内存缓存
  */
 async function getHotTopics() {
+  if (hotTopicsCache && Date.now() - hotTopicsCache.timestamp < HOT_TOPICS_TTL) {
+    return hotTopicsCache.data;
+  }
+
   const { data: courses } = await db.collection('courses')
     .orderBy('sort', 'asc')
     .limit(3)
     .get();
 
-  return courses.map((c, i) => ({
+  const topics = courses.map((c, i) => ({
     no: i + 1,
     title: c.tag,
     desc: c.chapter + ' · ' + c.level + ' · ' + c.totalLessons + '课时',
@@ -122,6 +154,9 @@ async function getHotTopics() {
     hot: i === 1,
     courseId: c._id
   }));
+
+  hotTopicsCache = { timestamp: Date.now(), data: topics };
+  return topics;
 }
 
 /**
@@ -141,6 +176,16 @@ exports.main = async (event, context) => {
   const validErr = validateParams(event);
   if (validErr) return validErr;
 
+  // 检查按用户隔离的缓存
+  if (OPENID) {
+    const cachedResult = getUserCache(OPENID);
+    if (cachedResult) {
+      console.log('home: cache hit');
+      return cachedResult;
+    }
+  }
+  console.log('home: cache miss, querying DB...');
+
   try {
     // 并行获取用户信息 + 热门考点（无依赖关系）
     const [userInfo, hotTopics] = await Promise.all([
@@ -154,7 +199,7 @@ exports.main = async (event, context) => {
       continueLearning = await getContinueLearning(OPENID, userInfo.userID);
     }
 
-    return {
+    const result = {
       code: 0,
       data: {
         user: userInfo,
@@ -162,6 +207,13 @@ exports.main = async (event, context) => {
         hotTopics
       }
     };
+
+    // 成功后写入按用户隔离的缓存
+    if (OPENID) {
+      setUserCache(OPENID, result);
+    }
+
+    return result;
   } catch (err) {
     console.error('home cloud function error:', err);
     return { code: -1, msg: '获取首页数据失败' };

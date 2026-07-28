@@ -1,5 +1,78 @@
 // utils/courseware.js
-// AI课堂课件工具层：大纲/场景 prompt 模板、健壮 JSON 解析、场景规范化、TTS 文本清洗
+// AI课堂课件工具层：大纲/场景 prompt 模板、健壮 JSON 解析、场景规范化、TTS 文本清洗、LLM 调用封装
+
+// ---------- LLM 调用 ----------
+
+// 判断是否为网关限流类错误：
+// CloudBase AI 网关 429 时 streamText 的 onFinish 常收到空文本，extractJson 抛 "empty response"
+function isRateLimitError(err) {
+  var msg = ((err && err.message) || String(err || '')).toLowerCase();
+  return msg.indexOf('empty response') >= 0 ||
+    msg.indexOf('429') >= 0 ||
+    msg.indexOf('too many') >= 0 ||
+    msg.indexOf('rate') >= 0;
+}
+
+// 全局节流：两次 LLM 请求发起至少间隔 1.5s，降低触发网关限流的概率
+var lastLlmCallAt = 0;
+var LLM_MIN_INTERVAL = 1500;
+
+// LLM 调用：流式累加全文 → 解析 JSON
+// onText(full) 可选：每次收到增量文本时回调累计全文，用于流式展示；每次（重）发起请求前先回调 '' 通知重置
+// 失败自动重试（最多 3 次）；限流类错误使用长退避（8s → ~18s → ~38s，带随机抖动）
+// 以跨过分钟级限流窗口；普通错误使用短退避（3s → 7s → 15s）
+function llmJson(messages, onText) {
+  var notifyText = typeof onText === 'function' ? function (t) {
+    try { onText(t); } catch (e) { }
+  } : null;
+  return new Promise(function (resolve, reject) {
+    function attempt(retriesLeft, delay) {
+      var wait = Math.max(0, LLM_MIN_INTERVAL - (Date.now() - lastLlmCallAt));
+      setTimeout(function () {
+        lastLlmCallAt = Date.now();
+        if (notifyText) notifyText('');
+        var model = wx.cloud.extend.AI.createModel('cloudbase');
+        var full = '';
+        var settled = false;
+        function onFail(err) {
+          if (settled) return;
+          if (retriesLeft > 0) {
+            var nextDelay;
+            if (isRateLimitError(err)) {
+              nextDelay = (delay < 8000 ? 8000 : delay * 2) + Math.floor(Math.random() * 2000);
+            } else {
+              nextDelay = delay * 2 + 1000;
+            }
+            console.warn('llmJson retry in ' + nextDelay + 'ms:', (err && err.message) || err);
+            setTimeout(function () { attempt(retriesLeft - 1, nextDelay); }, nextDelay);
+          } else {
+            settled = true;
+            reject(err);
+          }
+        }
+        model.streamText({
+          data: { model: 'hy3', messages: messages },
+          onText: function (delta) {
+            full += delta;
+            if (notifyText) notifyText(full);
+          },
+          onFinish: function (finalText) {
+            if (settled) return;
+            full = finalText || full;
+            try {
+              var result = extractJson(full);
+              settled = true;
+              resolve(result);
+            } catch (e) {
+              onFail(e);
+            }
+          }
+        }).catch(onFail);
+      }, wait);
+    }
+    attempt(3, 3000);
+  });
+}
 
 // ---------- 常量 ----------
 
@@ -325,6 +398,8 @@ function normalizeOutline(raw, question) {
 
 module.exports = {
   SCENE_TYPES: SCENE_TYPES,
+  llmJson: llmJson,
+  isRateLimitError: isRateLimitError,
   buildOutlineMessages: buildOutlineMessages,
   buildSceneMessages: buildSceneMessages,
   extractJson: extractJson,

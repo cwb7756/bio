@@ -5,8 +5,61 @@ on:
     branches: ['*']
   pull_request:
     branches: ['*']
+    paths-ignore:
+      - 'docs/**'
+      - 'pictures/**'
+      - '*.md'
+      - '*.png'
+      - '*.jpg'
+
+# 添加路径过滤器以实现按区域的验证
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  lint-cloudfunctions:
+    # 仅在 cloudfunctions 目录有更改时运行
+    if: |
+      contains(github.event.pull_request.files.*.filename, 'cloudfunctions/') ||
+      github.event_name == 'push'
+    name: Lint Cloud Functions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint on cloudfunctions
+        run: npm run lint:cf
+
+  lint-miniprogram:
+    # 仅在 miniprogram 目录有更改时运行
+    if: |
+      contains(github.event.pull_request.files.*.filename, 'miniprogram/') ||
+      github.event_name == 'push'
+    name: Lint Mini Program
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint on miniprogram
+        run: npm run lint:mp
+
   syntax-check:
     name: Syntax Check
     runs-on: ubuntu-latest
@@ -26,5 +79,62 @@ jobs:
           while IFS= read -r file; do
             node --check "$file"
             count=$((count + 1))
-          done < <(git ls-files '*.js')
+          done < <(git ls-files '*.js' | grep -E '(cloudfunctions|miniprogram)/.*\.js$')
           echo "All $count JS files passed syntax check"
+
+  test-login:
+    # 仅在 login 云函数相关路径有更改时运行
+    if: |
+      contains(github.event.pull_request.files.*.filename, 'cloudfunctions/login/') ||
+      github.event_name == 'push'
+    name: Test Login Cloud Function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and run tests
+        working-directory: cloudfunctions/login
+        run: npm install && npm test
+
+  test-quiz:
+    # 仅在 quiz 云函数相关路径有更改时运行
+    if: |
+      contains(github.event.pull_request.files.*.filename, 'cloudfunctions/quiz/') ||
+      github.event_name == 'push'
+    name: Test Quiz Cloud Function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and run tests
+        working-directory: cloudfunctions/quiz
+        run: npm install && npm test
+
+  test-aiChat:
+    # 仅在 aiChat 云函数相关路径有更改时运行
+    if: |
+      contains(github.event.pull_request.files.*.filename, 'cloudfunctions/aiChat/') ||
+      github.event_name == 'push'
+    name: Test AI Chat Cloud Function
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies and run tests
+        working-directory: cloudfunctions/aiChat
+        run: npm install && npm test

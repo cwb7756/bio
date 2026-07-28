@@ -17,6 +17,7 @@ const state = {
   genDoneList: [],     // [{ title, sceneType }]
   genProgress: '0%',
   genStage: '',        // 阶段提示（如「正在绘制插图…」）
+  sections: [],       // 大纲快照（生成页章节清单展示）
   scenesRaw: []        // 已生成的场景（含生图 fileID 写回）
 };
 
@@ -34,7 +35,8 @@ function getState() {
     genTotal: state.genTotal,
     genDoneList: state.genDoneList,
     genProgress: state.genProgress,
-    genStage: state.genStage
+    genStage: state.genStage,
+    sections: state.sections
   };
 }
 
@@ -58,43 +60,7 @@ function unsubscribe(fn) {
 
 // ---------- LLM / 生图调用 ----------
 
-// LLM 调用：流式累加全文 → 解析 JSON
-// 429 限流/空响应等失败按退避延迟自动重试（最多 2 次：3s → 7s）
-function llmJson(messages) {
-  return new Promise(function (resolve, reject) {
-    function attempt(retriesLeft, delay) {
-      const model = wx.cloud.extend.AI.createModel('cloudbase');
-      let full = '';
-      let settled = false;
-      function onFail(err) {
-        if (settled) return;
-        if (retriesLeft > 0) {
-          console.warn('llmJson retry in ' + delay + 'ms:', (err && err.message) || err);
-          setTimeout(function () { attempt(retriesLeft - 1, delay * 2 + 1000); }, delay);
-        } else {
-          settled = true;
-          reject(err);
-        }
-      }
-      model.streamText({
-        data: { model: 'hy3', messages: messages },
-        onText: function (delta) { full += delta; },
-        onFinish: function (finalText) {
-          if (settled) return;
-          full = finalText || full;
-          try {
-            const result = cw.extractJson(full);
-            settled = true;
-            resolve(result);
-          } catch (e) {
-            onFail(e);
-          }
-        }
-      }).catch(onFail);
-    }
-    attempt(2, 3000);
-  });
-}
+// LLM 调用统一走 cw.llmJson（内置限流感知退避重试与全局节流）
 
 // 调云函数文生图；失败返回 ''（不 throw，走降级）
 function genImage(visual) {
@@ -113,17 +79,20 @@ function genImage(visual) {
   });
 }
 
-// 生成单个场景：失败重试 1 次（含 3 秒退避）→ 降级 concept 文字页
+// 生成单个场景：失败重试 1 次（普通错误等 3s，限流错误等 15s）→ 降级 concept 文字页
 async function genOneScene(question, coursewareTitle, section, index, total) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const raw = await llmJson(cw.buildSceneMessages(question, coursewareTitle, section, index + 1, total));
+      const raw = await cw.llmJson(cw.buildSceneMessages(question, coursewareTitle, section, index + 1, total));
       const scene = cw.normalizeScene(raw, section.title);
       if (scene) return scene;
     } catch (err) {
       console.error('scene gen error (attempt ' + attempt + '):', err);
-      // 失败后稍作等待再重试，缓解网关限流
-      if (attempt === 0) await new Promise(function (r) { setTimeout(r, 3000); });
+      // 失败后稍作等待再重试；限流时等待更久以跨过限流窗口
+      if (attempt === 0) {
+        const waitMs = cw.isRateLimitError(err) ? 15000 : 3000;
+        await new Promise(function (r) { setTimeout(r, waitMs); });
+      }
     }
   }
   return cw.fallbackScene(section.title, section.goal);
@@ -163,6 +132,9 @@ function start(question, title, sections, voice) {
   state.genDoneList = [];
   state.genProgress = '0%';
   state.genStage = '';
+  state.sections = sections.map(function (s) {
+    return { title: s.title, sceneType: s.sceneType };
+  });
   state.scenesRaw = [];
   notify();
   // 异步执行，不阻塞调用方

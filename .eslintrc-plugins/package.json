@@ -1,0 +1,15 @@
+{
+  "name": "@bio/eslint-plugin-security",
+  "version": "1.0.0",
+  "description": "Custom ESLint rules for OpenID isolation and security enforcement",
+  "main": "index.js",
+  "files": [
+    "rules/"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "peerDependencies": {
+    "eslint": ">=7.0.0"
+  }
+}

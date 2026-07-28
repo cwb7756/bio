@@ -1,8 +1,12 @@
 // pages/home/home.js
 const app = getApp();
+import cache from '../../utils/cache';
 
 // tabBar 页面路径集合，跳转时需用 switchTab
 const TAB_PAGES = ['/pages/aiHub/aiHub', '/pages/study/study'];
+
+// 首页数据缓存有效期：30 秒
+const HOME_CACHE_TTL = 30 * 1000;
 
 Page({
   data: {
@@ -48,9 +52,19 @@ Page({
     } else {
       this.setData({ userName: '同学' });
     }
-    // 同步登录态，驱动"开始第一节课 / 请登录"文案切换
+    // 同步登录态，驱动“开始第一节课 / 请登录”文案切换
     this.setData({ isLoggedIn: !!app.globalData.isLoggedIn });
-    // 拉取最新云端数据
+      
+    // 优先从缓存读取首页数据
+    const cachedHome = cache.get('home', { action: 'main' }, HOME_CACHE_TTL);
+    if (cachedHome) {
+      console.log('home page: using cached data');
+      this.applyHomeData(cachedHome);
+    } else {
+      this.setData({ loading: true });
+    }
+      
+    // 异步更新云端最新数据
     this.loadHomeData();
     // 同步猫咪等级样式（与猫咪页面一致）
     this.syncPetCat();
@@ -61,6 +75,32 @@ Page({
     if (level >= 5) return '/images/cat-lv5.png';
     if (level >= 3) return '/images/cat-lv3.png';
     return '/images/cat-lv1.png';
+  },
+
+  // 应用首页数据（从缓存或云端）
+  applyHomeData(data) {
+    const { user, continueLearning, hotTopics } = data;
+    const loggedIn = app.globalData.isLoggedIn;
+    
+    const cl = loggedIn && continueLearning
+      ? Object.assign({}, continueLearning, { progressText: continueLearning.progress + '%' })
+      : null;
+    
+    const updateData = {
+      continueLearning: cl,
+      hotTopics,
+      loading: false
+    };
+
+    if (user && loggedIn) {
+      updateData.userName = user.nickname || '同学';
+      // 同步更新本地缓存
+      const cached = wx.getStorageSync('userInfo') || {};
+      wx.setStorageSync('userInfo', { ...cached, ...user });
+      app.globalData.userInfo = { ...cached, ...user };
+    }
+
+    this.setData(updateData);
   },
 
   // 获取宠物等级，同步搜索框上的猫咪样式；失败保持默认随机图
@@ -80,13 +120,14 @@ Page({
 
   // 调用 home 云函数获取首页数据
   loadHomeData() {
-    this.setData({ loading: true });
-
     wx.cloud.callFunction({
       name: 'home',
       success: (res) => {
         if (res.result && res.result.code === 0) {
           const { user, continueLearning, hotTopics } = res.result.data;
+
+          // 更新本地缓存（30 秒有效）
+          cache.set('home', { user, continueLearning, hotTopics }, { action: 'main' }, HOME_CACHE_TTL);
 
           // 用户数据（昵称 / 继续学习）仅登录态下应用；
           // 未登录时云端可能仍通过 openid 返回 users 记录，需前端门控，避免退出登录后数据复活

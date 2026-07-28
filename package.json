@@ -6,7 +6,10 @@
   "scripts": {
     "lint": "eslint .",
     "lint:cf": "eslint cloudfunctions",
-    "lint:mp": "eslint miniprogram"
+    "lint:mp": "eslint miniprogram",
+    "deploy:home": "cd cloudfunctions/home && wxdevcli cf deploy",
+    "deploy:course": "cd cloudfunctions/getCourseList && wxdevcli cf deploy",
+    "deploy:all": "npm run deploy:home; npm run deploy:course"
   },
   "devDependencies": {
     "eslint": "^8.57.0"

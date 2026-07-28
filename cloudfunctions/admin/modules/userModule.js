@@ -2,7 +2,7 @@
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// user.list: ·ÖÒ³²éÑ¯ÓÃ»§ÁĞ±í
+// user.list: æŸ¥è¯¢ç”¨æˆ·åˆ—è¡¨
 async function list(db, event, admin) {
   const _ = db.command;
   const { skip, limit, page, pageSize } = parsePagination(event);
@@ -30,13 +30,13 @@ async function list(db, event, admin) {
 
   const list = data.map((u) => ({
     _id: u._id,
-    nickname: u.nickname || '',
+    nickName: u.nickname || '',
     avatar: u.avatar || '',
     email: u.email || '',
     grade: u.grade || '',
     streakDays: u.streakDays || 0,
     totalStudyMinutes: u.totalStudyMinutes || 0,
-    banned: u.banned || false,
+    status: u.banned ? 'banned' : 'active',
     createdAt: u.createdAt || 0,
     lastLoginAt: u.updatedAt || 0
   }));
@@ -44,15 +44,15 @@ async function list(db, event, admin) {
   return { code: 0, data: { list, total, page, pageSize } };
 }
 
-// user.detail: ÓÃ»§ÏêÇé
+// user.detail: ç”¨æˆ·è¯¦æƒ…
 async function detail(db, event, admin) {
   const { userId } = event;
-  if (!userId) return { code: 400, msg: 'È±ÉÙ userId' };
+  if (!userId) return { code: 400, msg: 'ç¼ºå°‘ userId' };
 
   const { data: user } = await db.collection('users').doc(userId).get();
-  if (!user) return { code: 404, msg: 'ÓÃ»§²»´æÔÚ' };
+  if (!user) return { code: 404, msg: 'ç”¨æˆ·ä¸å­˜åœ¨' };
 
-  // ²éÑ¯ÓÃ»§Ñ§Ï°½ø¶ÈÍ³¼Æ
+  // æŸ¥è¯¢å­¦ç”Ÿå­¦ä¹ è¿›åº¦ç»Ÿè®¡
   const _ = db.command;
   const userID = user.userID || '';
   const progressCond = userID
@@ -65,55 +65,70 @@ async function detail(db, event, admin) {
     db.collection('mistakes').where(progressCond).count()
   ]);
 
+  // è·å–æœ€è¿‘å­¦ä¹ è®°å½•
+  const { data: progressRecords } = await db.collection('study_progress')
+    .where(progressCond)
+    .orderBy('updatedAt', 'desc')
+    .limit(10)
+    .get();
+
+  const records = progressRecords.map(p => ({
+    courseName: p.courseName || p.chapter,
+    progress: p.progress || 0,
+    lastStudyTime: p.updatedAt
+  }));
+
   return {
     code: 0,
     data: {
       user: {
         _id: user._id,
-        nickname: user.nickname || '',
+        nickName: user.nickname || '',
         avatar: user.avatar || '',
         email: user.email || '',
         grade: user.grade || '',
         streakDays: user.streakDays || 0,
         totalStudyMinutes: user.totalStudyMinutes || 0,
-        banned: user.banned || false,
+        status: user.banned ? 'banned' : 'active',
         createdAt: user.createdAt || 0,
-        updatedAt: user.updatedAt || 0
+        updatedAt: user.updatedAt || 0,
+        lastLoginAt: user.updatedAt || 0
       },
       stats: {
         quizCount: quizCount.total,
         lessonCount: lessonCount.total,
         mistakeCount: mistakeCount.total
-      }
+      },
+      records: records
     }
   };
 }
 
-// user.updateStatus: ·â½û/½â·âÓÃ»§
+// user.updateStatus: å°ç¦/è§£å°ç”¨æˆ·
 async function updateStatus(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { userId, banned } = event;
-  if (!userId) return { code: 400, msg: 'È±ÉÙ userId' };
+  if (!userId) return { code: 400, msg: 'ç¼ºå°‘ userId' };
 
   await db.collection('users').doc(userId).update({
     data: { banned: !!banned, updatedAt: Date.now() }
   });
 
-  return { code: 0, msg: banned ? 'ÒÑ·â½û' : 'ÒÑ½â·â' };
+  return { code: 0, msg: banned ? 'å·²å°ç¦' : 'å·²è§£å°' };
 }
 
-// user.resetProgress: ÖØÖÃÓÃ»§Ñ§Ï°½ø¶È
+// user.resetProgress: é‡ç½®å­¦ç”Ÿå­¦ä¹ è¿›åº¦
 async function resetProgress(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { userId } = event;
-  if (!userId) return { code: 400, msg: 'È±ÉÙ userId' };
+  if (!userId) return { code: 400, msg: 'ç¼ºå°‘ userId' };
 
   const { data: user } = await db.collection('users').doc(userId).get();
-  if (!user) return { code: 404, msg: 'ÓÃ»§²»´æÔÚ' };
+  if (!user) return { code: 404, msg: 'ç”¨æˆ·ä¸å­˜åœ¨' };
 
   const _ = db.command;
   const userID = user.userID || '';
@@ -121,7 +136,7 @@ async function resetProgress(db, event, admin) {
     ? _.or([{ _openid: user._openid || '' }, { userID: userID }])
     : { _openid: user._openid || '' };
 
-  // É¾³ıÑ§Ï°½ø¶È¼ÇÂ¼
+  // åˆ é™¤å­¦ä¹ è¿›åº¦è®°å½•
   const { data: progressRecords } = await db.collection('study_progress')
     .where(cond)
     .field({ _id: true })
@@ -132,12 +147,12 @@ async function resetProgress(db, event, admin) {
     await db.collection('study_progress').doc(progressRecords[i]._id).remove();
   }
 
-  // ÖØÖÃÓÃ»§±íÍ³¼Æ×Ö¶Î
+  // é‡ç½®ç”¨æˆ·ç»Ÿè®¡å­—æ®µ
   await db.collection('users').doc(userId).update({
     data: { streakDays: 0, totalStudyMinutes: 0, updatedAt: Date.now() }
   });
 
-  return { code: 0, msg: 'Ñ§Ï°½ø¶ÈÒÑÖØÖÃ' };
+  return { code: 0, msg: 'å­¦ä¹ è¿›åº¦å·²é‡ç½®' };
 }
 
 module.exports = { list, detail, updateStatus, resetProgress };

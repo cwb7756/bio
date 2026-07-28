@@ -7,6 +7,7 @@
     "ecmaVersion": 2022
   },
   "extends": "eslint:recommended",
+  "plugins": ["bio-security"],
   "globals": {
     "wx": "readonly",
     "App": "readonly",
@@ -15,7 +16,10 @@
     "getApp": "readonly",
     "getCurrentPages": "readonly"
   },
-  "rules": {},
+  "rules": {
+    "bio-security/no-trust-userid": "error",
+    "bio-security/require-openid-isolation": "error"
+  },
   "overrides": [
     {
       "files": ["cloudfunctions/**/*.js"],
@@ -47,6 +51,12 @@
       "env": {
         "node": true,
         "es2022": true
+      }
+    },
+    {
+      "files": ["**/test/**/*.test.js"],
+      "env": {
+        "jest": true
       }
     }
   ]

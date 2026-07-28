@@ -26,15 +26,17 @@
       <!-- 输入卡片 -->
       <view class="cl-input-card">
         <textarea class="cl-textarea" value="{{inputValue}}" bindinput="onInput" placeholder="例如：什么是光合作用？" auto-height maxlength="200" />
-        <!-- 音色选择器 -->
-        <view class="cl-voice-selector" bindtap="onShowVoiceSelector">
-          <view class="icon ic-volume"></view>
-          <text>{{currentVoiceName}}</text>
-          <view class="icon ic-chevron-down"></view>
-        </view>
         <view class="cl-input-actions">
           <text class="cl-input-count">{{inputValue.length}}/200</text>
-          <view class="btn deep cl-gen-btn" bindtap="onStartOutline">生成课件</view>
+          <view class="cl-actions-right">
+            <!-- 音色选择器 -->
+            <view class="cl-voice-selector" bindtap="onShowVoiceSelector">
+              <view class="icon ic-volume"></view>
+              <text>{{currentVoiceName}}</text>
+              <view class="icon ic-chevron-down"></view>
+            </view>
+            <view class="btn deep cl-gen-btn" bindtap="onStartOutline">生成课件</view>
+          </view>
         </view>
       </view>
 
@@ -79,17 +81,47 @@
     <view class="page-pad">
       <view class="page-header">
         <text class="page-title">课件大纲</text>
-        <text class="page-subtitle">确认或调整章节，然后开始生成</text>
+        <text class="page-subtitle">{{outlineLoading ? '大纲正在逐节生成中' : '确认或调整章节，然后开始生成'}}</text>
       </view>
-
-      <view wx:if="{{outlineLoading}}" class="cl-loading">
-        <view class="icon ic-bot cl-loading-icon"></view>
-        <text class="cl-loading-text">AI老师正在备课，生成大纲中…</text>
-      </view>
-
+  
+      <!-- 大纲生成中：动态等待 + 流式章节 -->
+      <block wx:if="{{outlineLoading}}">
+        <view class="cl-loading">
+          <view class="cl-orb">
+            <view class="cl-orb-ring"></view>
+            <view class="icon ic-bot cl-loading-icon"></view>
+          </view>
+          <view class="cl-loading-text">
+            <text>{{outlineTip}}</text><text class="cl-adot">.</text><text class="cl-adot cl-adot-2">.</text><text class="cl-adot cl-adot-3">.</text>
+          </view>
+        </view>
+  
+        <!-- 流式大纲：解析出一节立即上屏 -->
+        <view wx:if="{{outlineTitle}}" class="cl-outline-title cl-pop-in">{{outlineTitle}}</view>
+        <view class="cl-sec-card cl-pop-in" wx:for="{{sections}}" wx:key="index">
+          <view class="cl-sec-index">{{index + 1}}</view>
+          <view class="cl-sec-main">
+            <text class="cl-sec-static-title">{{item.title}}</text>
+            <view class="cl-sec-meta">
+              <text class="cl-sec-type cl-type-{{item.sceneType}}">{{typeLabels[item.sceneType]}}</text>
+              <text class="cl-sec-goal">{{item.goal}}</text>
+            </view>
+          </view>
+        </view>
+        <!-- 骨架占位：后续章节生成中 -->
+        <view class="cl-sec-card cl-sec-skeleton">
+          <view class="cl-skeleton-circle"></view>
+          <view class="cl-skeleton-body">
+            <view class="cl-skeleton-line cl-w60"></view>
+            <view class="cl-skeleton-line cl-w40"></view>
+          </view>
+        </view>
+      </block>
+  
+      <!-- 大纲就绪：可编辑确认 -->
       <block wx:else>
-        <view class="cl-outline-title">{{outlineTitle}}</view>
-        <view class="cl-sec-card" wx:for="{{sections}}" wx:key="index">
+        <view class="cl-outline-title cl-pop-in">{{outlineTitle}}</view>
+        <view class="cl-sec-card cl-pop-in" style="animation-delay: {{index * 70}}ms;" wx:for="{{sections}}" wx:key="index">
           <view class="cl-sec-index">{{index + 1}}</view>
           <view class="cl-sec-main">
             <input class="cl-sec-input" value="{{item.title}}" data-index="{{index}}" bindinput="onEditSection" maxlength="20" />
@@ -102,8 +134,8 @@
             <view class="icon ic-close"></view>
           </view>
         </view>
-
-        <view class="cl-outline-actions">
+  
+        <view class="cl-outline-actions cl-pop-in" style="animation-delay: {{sections.length * 70}}ms;">
           <view class="btn ghost" bindtap="onStartOutline">重新生成</view>
           <view class="btn deep" bindtap="onConfirmOutline">开始生成课件</view>
         </view>
@@ -114,20 +146,39 @@
   <!-- ===== generating 态 ===== -->
   <view wx:if="{{phase === 'generating'}}" class="cl-body cl-center-body">
     <view class="cl-gen-card">
-      <view class="icon ic-bot cl-gen-icon"></view>
-      <text class="cl-gen-title">AI老师正在制作课件</text>
+      <view class="cl-orb">
+        <view class="cl-orb-ring"></view>
+        <view class="icon ic-bot cl-gen-icon"></view>
+      </view>
+      <text class="cl-gen-title">AI 老师正在制作课件</text>
       <text class="cl-gen-progress-text">正在生成 第{{genCurrent}}节 / 共{{genTotal}}节</text>
       <text wx:if="{{genStage}}" class="cl-gen-stage">{{genStage}}</text>
       <view class="cl-progress">
-        <view class="cl-progress-bar" style="width: {{genProgress}};"></view>
+        <view class="cl-progress-bar" style="width: {{genProgress}};">
+          <view class="cl-progress-shine"></view>
+        </view>
       </view>
-      <view class="cl-gen-list" wx:if="{{genDoneList.length}}">
-        <view class="cl-gen-item" wx:for="{{genDoneList}}" wx:key="index">
+      <text class="cl-gen-tip {{tipAlt ? 'cl-tip-a' : 'cl-tip-b'}}">{{genTip}}</text>
+  
+      <!-- 章节清单：已完成打勾 / 生成中转圈 / 待生成置灰，逐节跳动 -->
+      <view class="cl-gen-list" wx:if="{{genList.length}}">
+        <view class="cl-gen-item cl-gen-item-{{item.status}} {{item.status === 'done' ? 'cl-pop-in' : ''}}" wx:for="{{genList}}" wx:key="index">
+          <view wx:if="{{item.status === 'done'}}" class="icon ic-check-circle cl-gen-check"></view>
+          <view wx:elif="{{item.status === 'doing'}}" class="cl-gen-spinner"></view>
+          <view wx:else class="cl-gen-todo"></view>
+          <text class="cl-gen-item-title">{{item.title}}</text>
+          <text class="cl-sec-type cl-type-{{item.sceneType}}">{{typeLabels[item.sceneType]}}</text>
+        </view>
+      </view>
+      <!-- 兜底：无大纲快照时仅列出已完成章节 -->
+      <view class="cl-gen-list" wx:elif="{{genDoneList.length}}">
+        <view class="cl-gen-item cl-pop-in" wx:for="{{genDoneList}}" wx:key="index">
           <view class="icon ic-check-circle cl-gen-check"></view>
           <text class="cl-gen-item-title">{{item.title}}</text>
           <text class="cl-sec-type cl-type-{{item.sceneType}}">{{typeLabels[item.sceneType]}}</text>
         </view>
       </view>
+  
       <view class="cl-gen-actions">
         <view class="btn ghost" bindtap="onAbortGenerate">取消</view>
       </view>

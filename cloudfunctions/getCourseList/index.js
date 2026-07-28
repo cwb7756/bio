@@ -7,6 +7,31 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const _ = db.command;
 
+// ========== 内存缓存管理 ==========
+// 注意：返回的章节进度是用户相关数据，缓存必须按 OPENID + textbook 隔离，
+// 否则会把 A 用户的学习进度返回给 B 用户。
+const userCacheMap = new Map(); // `${OPENID}|${textbook}` -> { timestamp, data }
+const CACHE_TTL = 60 * 1000; // 1 分钟 TTL（进度数据需较快刷新）
+const CACHE_MAX = 500; // 防止内存无限增长
+
+function getFromCache(openid, textbook) {
+  const key = openid + '|' + textbook;
+  const entry = userCacheMap.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL) {
+    userCacheMap.delete(key);
+    return null;
+  }
+  return entry.data;
+}
+
+function setInCache(openid, textbook, data) {
+  if (userCacheMap.size >= CACHE_MAX) {
+    userCacheMap.clear();
+  }
+  userCacheMap.set(openid + '|' + textbook, { timestamp: Date.now(), data });
+}
+
 // 参数校验：字符串长度不超过10000，数组长度不超过100
 function validateParams(obj) {
   for (const key in obj) {
@@ -27,6 +52,16 @@ exports.main = async (event, context) => {
 
   const validErr = validateParams(event);
   if (validErr) return validErr;
+
+  // 检查按用户隔离的缓存
+  if (OPENID) {
+    const cachedResult = getFromCache(OPENID, textbook);
+    if (cachedResult) {
+      console.log(`getCourseList: cache hit for textbook=${textbook}`);
+      return cachedResult;
+    }
+  }
+  console.log(`getCourseList: cache miss for textbook=${textbook}, querying DB...`);
 
   try {
     // 构建查询条件："选择性必修" 匹配所有选择性必修课程；"全部" 不加教材条件
@@ -123,7 +158,7 @@ exports.main = async (event, context) => {
       ? Math.round((completedAll / totalLessonsAll) * 100)
       : 0;
 
-    return {
+    const result = {
       code: 0,
       data: {
         chapters,
@@ -134,6 +169,13 @@ exports.main = async (event, context) => {
         }
       }
     };
+
+    // 成功后写入按用户隔离的缓存
+    if (OPENID) {
+      setInCache(OPENID, textbook, result);
+    }
+
+    return result;
   } catch (err) {
     console.error('getCourseList error:', err);
     return { code: -1, msg: '获取课程列表失败' };

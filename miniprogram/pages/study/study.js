@@ -1,5 +1,9 @@
 // pages/study/study.js
 const app = getApp();
+import cache from '../../utils/cache';
+
+// 课程列表缓存有效期：1 分钟
+const COURSE_LIST_CACHE_TTL = 60 * 1000;
 const { addToNotebook } = require('../../utils/notebook.js');
 
 Page({
@@ -49,7 +53,15 @@ Page({
     // 每次进入随机一张趴姿猫咪（cat-lying-1~5）
     const catIdx = Math.floor(Math.random() * 5) + 1;
     this.setData({ catImage: '/images/cat-lying-' + catIdx + '.png' });
-    this.loadCourseList();
+    
+    // 优先读取缓存
+    const cachedCourseList = cache.get('courseList', { textbook: '全部' }, COURSE_LIST_CACHE_TTL);
+    if (cachedCourseList) {
+      console.log('study page: using cached course list');
+      this.setData({ chapters: cachedCourseList.chapters, overview: cachedCourseList.overview, loading: false });
+    } else {
+      this.loadCourseList();
+    }
   },
 
   // 去登录
@@ -59,16 +71,19 @@ Page({
 
   // 调用 getCourseList 云函数获取全部课程章节
   loadCourseList() {
-    this.setData({ loading: true });
-
     wx.cloud.callFunction({
       name: 'getCourseList',
       data: { textbook: '全部' },
       success: (res) => {
         if (res.result && res.result.code === 0) {
+          const { chapters, overview } = res.result.data;
+          
+          // 写入缓存（1 分钟有效）
+          cache.set('courseList', { chapters, overview }, { textbook: '全部' }, COURSE_LIST_CACHE_TTL);
+          
           this.setData({
-            chapters: res.result.data.chapters,
-            overview: res.result.data.overview,
+            chapters,
+            overview,
             loading: false
           });
           // 加载知识地图入口概览
