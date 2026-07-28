@@ -1,0 +1,19 @@
+{
+  "repo": {
+    "id": "MDEwOlJlcG9zaXRvcnkxMDkzMjY0NTA=",
+    "full_name": "cwb7756/bio"
+  },
+  "fields": [
+    "*insertions:added",
+    "*deletions:removed",
+    "*loc:net",
+    "commits.addition_loc:added",
+    "commits.deletion_loc:removed",
+    "issues:created+closed",
+    "pull_requests:merged+closed",
+    "releases:published"
+  ],
+  "include_commits": false,
+  "exclude_automated_pull_requests": true,
+  "show_activity": true
+}

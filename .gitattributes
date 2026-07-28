@@ -1,0 +1,29 @@
+# Git attributes file for cross-platform compatibility
+
+# Ensure LF line endings on Unix/Linux/Mac, CRLF on Windows
+* text=auto eol=lf
+*.js text eol=lf
+*.wxml text eol=lf
+*.wxss text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.sh text eol=lf executable
+
+# Binary files that should not have line ending conversion
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.bmp binary
+
+# SVG files
+*.svg text
+
+# Node.js files
+package*.json text
+
+# Config files
+*.config.js text
+*.config.json text
+eslint*.* text
