@@ -2,7 +2,7 @@
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// achievement.list: 成就列表
+// achievement.list: 鎴愬氨鍒楄〃
 async function list(db, event, admin) {
   const { skip, limit, page, pageSize } = parsePagination(event);
 
@@ -16,13 +16,13 @@ async function list(db, event, admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
-// achievement.save: 新建/编辑成就
+// achievement.save: 鏂板缓/缂栬緫鎴愬氨
 async function save(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { achievementId, name, description, icon, condition, sort } = event;
-  if (!name) return { code: -1, msg: '成就名称不能为空' };
+  if (!name) return { code: -1, msg: '鎴愬氨鍚嶇О涓嶈兘涓虹┖' };
 
   const now = Date.now();
   const data = {
@@ -32,7 +32,7 @@ async function save(db, event, admin) {
 
   if (achievementId) {
     await db.collection('achievements').doc(achievementId).update({ data });
-    return { code: 0, msg: '更新成功' };
+    return { code: 0, msg: '鏇存柊鎴愬姛' };
   }
 
   data.createdAt = now;
@@ -40,19 +40,19 @@ async function save(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// achievement.delete: 删除成就
+// achievement.delete: 鍒犻櫎鎴愬氨
 async function del(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { achievementId } = event;
-  if (!achievementId) return { code: -1, msg: '缺少 achievementId' };
+  if (!achievementId) return { code: -1, msg: '缂哄皯 achievementId' };
 
   await db.collection('achievements').doc(achievementId).remove();
-  return { code: 0, msg: '删除成功' };
+  return { code: 0, msg: '鍒犻櫎鎴愬姛' };
 }
 
-// achievement.grantList: 成就发放记录
+// achievement.grantList: 鎴愬氨鍙戞斁璁板綍
 async function grantList(db, event, admin) {
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { achievementId } = event;

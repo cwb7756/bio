@@ -1,31 +1,31 @@
 // cloudfunctions/admin/modules/settingsModule.js
 const { requireRole } = require('../lib/middleware');
 
-// settings.get: »ñÈ¡ÏµÍ³ÅäÖÃ
-async function get(db, event, admin) {
+// settings.get: è·å–ç³»ç»Ÿé…ç½®
+async function get(db, _event, _admin) {
   const { data } = await db.collection('system_config').limit(1).get();
 
   if (data.length === 0) {
-    // ·µ»ØÄ¬ÈÏÅäÖÃ
+    // è¿”å›é»˜è®¤é…ç½®
     return {
       code: 0,
       data: {
-        grades: ['¸ßÒ»', '¸ß¶ş', '¸ßÈı'],
-        textbooks: ['±ØĞŞÒ»', '±ØĞŞ¶ş', 'Ñ¡ÔñĞÔ±ØĞŞÒ»', 'Ñ¡ÔñĞÔ±ØĞŞ¶ş', 'Ñ¡ÔñĞÔ±ØĞŞÈı'],
+        grades: ['é«˜ä¸€', 'é«˜äºŒ', 'é«˜ä¸‰'],
+        textbooks: ['å¿…ä¿®ä¸€', 'å¿…ä¿®äºŒ', 'é€‰æ‹©æ€§å¿…ä¿®ä¸€', 'é€‰æ‹©æ€§å¿…ä¿®äºŒ', 'é€‰æ‹©æ€§å¿…ä¿®ä¸‰'],
         aiModel: 'hunyuan-v3',
         globalEnabled: true
       }
     };
   }
 
-  // ÅÅ³ı _id ºÍ _openid
+  // æ’é™¤ _id å’Œ _openid
   const config = Object.assign({}, data[0]);
   delete config._id;
   delete config._openid;
   return { code: 0, data: config };
 }
 
-// settings.update: ¸üĞÂÏµÍ³ÅäÖÃ
+// settings.update: æ›´æ–°ç³»ç»Ÿé…ç½®
 async function update(db, event, admin) {
   const roleErr = requireRole(admin, 'superadmin');
   if (roleErr) return roleErr;
@@ -38,7 +38,7 @@ async function update(db, event, admin) {
   if (aiModel !== undefined) data.aiModel = aiModel;
   if (globalEnabled !== undefined) data.globalEnabled = !!globalEnabled;
 
-  // ¼ì²éÊÇ·ñÒÑÓĞÅäÖÃ¼ÇÂ¼
+  // æ£€æŸ¥æ˜¯å¦å·²æœ‰é…ç½®è®°å½•
   const { data: existing } = await db.collection('system_config').limit(1).get();
 
   if (existing.length > 0) {
@@ -48,7 +48,7 @@ async function update(db, event, admin) {
     await db.collection('system_config').add({ data });
   }
 
-  return { code: 0, msg: 'ÅäÖÃ¸üĞÂ³É¹¦' };
+  return { code: 0, msg: 'é…ç½®æ›´æ–°æˆåŠŸ' };
 }
 
 module.exports = { get, update };

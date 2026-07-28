@@ -2,8 +2,8 @@
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// quiz.list: ÌâÄ¿·ÖÒ³ÁĞ±í
-async function list(db, event, admin) {
+// quiz.list: é¢˜ç›®åˆ†é¡µåˆ—è¡¨
+async function list(db, event, _admin) {
   const _ = db.command;
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { chapter = '', topic = '', search = '' } = event;
@@ -26,23 +26,23 @@ async function list(db, event, admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
-// quiz.create: ĞÂ½¨ÌâÄ¿
+// quiz.create: æ–°å»ºé¢˜ç›®
 async function create(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { stem, options, answer, explanation, type, chapter, topic } = event;
-  if (!stem) return { code: -1, msg: 'Ìâ¸É²»ÄÜÎª¿Õ' };
+  if (!stem) return { code: -1, msg: 'é¢˜å¹²ä¸èƒ½ä¸ºç©º' };
   if (!options || !Array.isArray(options) || options.length === 0) {
-    return { code: -1, msg: 'Ñ¡Ïî²»ÄÜÎª¿Õ' };
+    return { code: -1, msg: 'é€‰é¡¹ä¸èƒ½ä¸ºç©º' };
   }
-  if (!answer) return { code: -1, msg: '´ğ°¸²»ÄÜÎª¿Õ' };
+  if (!answer) return { code: -1, msg: 'ç­”æ¡ˆä¸èƒ½ä¸ºç©º' };
 
   const now = Date.now();
   const { _id } = await db.collection('quiz_questions').add({
     data: {
       stem, options, answer, explanation: explanation || '',
-      type: type || 'Ñ¡ÔñÌâ', chapter: chapter || '', topic: topic || '',
+      type: type || 'é€‰æ‹©é¢˜', chapter: chapter || '', topic: topic || '',
       createdAt: now, updatedAt: now
     }
   });
@@ -50,13 +50,13 @@ async function create(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// quiz.update: ±à¼­ÌâÄ¿
+// quiz.update: ç¼–è¾‘é¢˜ç›®
 async function update(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { questionId, ...updates } = event;
-  if (!questionId) return { code: -1, msg: 'È±ÉÙ questionId' };
+  if (!questionId) return { code: -1, msg: 'ç¼ºå°‘ questionId' };
 
   const allowed = ['stem', 'options', 'answer', 'explanation', 'type', 'chapter', 'topic'];
   const data = {};
@@ -66,29 +66,29 @@ async function update(db, event, admin) {
   data.updatedAt = Date.now();
 
   await db.collection('quiz_questions').doc(questionId).update({ data });
-  return { code: 0, msg: '¸üĞÂ³É¹¦' };
+  return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
 }
 
-// quiz.delete: É¾³ıÌâÄ¿
+// quiz.delete: åˆ é™¤é¢˜ç›®
 async function del(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { questionId } = event;
-  if (!questionId) return { code: -1, msg: 'È±ÉÙ questionId' };
+  if (!questionId) return { code: -1, msg: 'ç¼ºå°‘ questionId' };
 
   await db.collection('quiz_questions').doc(questionId).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
-// quiz.batchImport: ÅúÁ¿µ¼Èë
+// quiz.batchImport: æ‰¹é‡å¯¼å…¥
 async function batchImport(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { questions } = event;
   if (!Array.isArray(questions) || questions.length === 0) {
-    return { code: -1, msg: 'ÌâÄ¿Êı¾İ²»ÄÜÎª¿Õ' };
+    return { code: -1, msg: 'é¢˜ç›®æ•°æ®ä¸èƒ½ä¸ºç©º' };
   }
 
   const now = Date.now();
@@ -100,7 +100,7 @@ async function batchImport(db, event, admin) {
     const q = questions[i];
     if (!q.stem || !q.options || !q.answer) {
       failed++;
-      errors.push('µÚ ' + (i + 1) + ' ÌõÊı¾İ²»ÍêÕû');
+      errors.push('ç¬¬ ' + (i + 1) + ' æ¡æ•°æ®ä¸å®Œæ•´');
       continue;
     }
     try {
@@ -110,7 +110,7 @@ async function batchImport(db, event, admin) {
           options: q.options,
           answer: q.answer,
           explanation: q.explanation || '',
-          type: q.type || 'Ñ¡ÔñÌâ',
+          type: q.type || 'é€‰æ‹©é¢˜',
           chapter: q.chapter || '',
           topic: q.topic || '',
           createdAt: now,
@@ -120,7 +120,7 @@ async function batchImport(db, event, admin) {
       added++;
     } catch (err) {
       failed++;
-      errors.push('µÚ ' + (i + 1) + ' Ìõµ¼ÈëÊ§°Ü£º' + (err.message || ''));
+      errors.push('ç¬¬ ' + (i + 1) + ' æ¡å¯¼å…¥å¤±è´¥ï¼š' + (err.message || ''));
     }
   }
 

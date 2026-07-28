@@ -111,7 +111,9 @@ async function refreshAchievements(OPENID) {
 
   const progressRecords = progressRes.data;
   const petLevel = (petRes.data[0] || {}).level || 0;
-  const mistakeCount = mistakeCountRes.total;
+  // Note: mistakeCount is calculated but not used in achievements calculation
+  // Keeping the query for potential future use
+  const _mistakeCount = mistakeCountRes.total;
   const aiChatCount = aiChatCountRes.total;
   const defs = defsRes.data;
   const existingRecords = existingRes.data;

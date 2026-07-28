@@ -1,13 +1,13 @@
 // cloudfunctions/admin/modules/dashboardModule.js
 const { todayStart, lastNDays } = require('../lib/helpers');
 
-// dashboard.stats: ºËĞÄÍ³¼ÆÊı¾İ
-async function stats(db, event, admin) {
+// dashboard.stats: æ ¸å¿ƒç»Ÿè®¡æ•°æ®
+async function stats(db, _event, _admin) {
   const _ = db.command;
   const ts = todayStart();
   const sevenDaysAgo = ts - 6 * 86400000;
 
-  // ²¢ĞĞ²éÑ¯ËùÓĞÍ³¼Æ
+  // å¹¶è¡ŒæŸ¥è¯¢æ‰€æœ‰ç»Ÿè®¡
   const [
     usersCount,
     todayNewUsers,
@@ -17,13 +17,13 @@ async function stats(db, event, admin) {
     quizQuestionsCount,
     feedbackPending
   ] = await Promise.all([
-    // ×ÜÓÃ»§Êı
+    // æ€»ç”¨æˆ·æ•°
     db.collection('users').count(),
 
-    // ½ñÈÕĞÂÔöÓÃ»§
+    // ä»Šæ—¥æ–°å¢ç”¨æˆ·
     db.collection('users').where({ createdAt: _.gte(ts) }).count(),
 
-    // »îÔ¾ÓÃ»§£¨½ü 7 ÌìÓĞ study_progress ¼ÇÂ¼µÄÓÃ»§Êı£©
+    // æ´»è·ƒç”¨æˆ·ï¼ˆè¿‘ 7 å¤©æœ‰ study_progress è®°å½•çš„ç”¨æˆ·æ•°ï¼‰
     db.collection('study_progress')
       .aggregate()
       .match({ updatedAt: _.gte(sevenDaysAgo) })
@@ -33,22 +33,22 @@ async function stats(db, event, admin) {
       .then((r) => (r.list.length > 0 ? r.list[0].total : 0))
       .catch(() => 0),
 
-    // Ë¢Ìâ×ÜÁ¿
+    // åˆ·é¢˜æ€»é‡
     db.collection('study_progress').where({ type: 'quiz' }).count(),
 
-    // ¿Î³Ì×ÜÊı
+    // è¯¾ç¨‹æ€»æ•°
     db.collection('courses').count(),
 
-    // ÌâÄ¿×ÜÊı
+    // é¢˜ç›®æ€»æ•°
     db.collection('quiz_questions').count(),
 
-    // ´ı´¦Àí·´À¡Êı
+    // å¾…å¤„ç†åé¦ˆæ•°
     db.collection('feedbacks').where({ status: 'pending' }).count()
   ]);
 
-  // ½ü 7 ÌìÃ¿ÈÕ»îÔ¾ÕÛÏßÊı¾İ
+  // è¿‘ 7 å¤©æ¯æ—¥æ´»è·ƒæŠ˜çº¿æ•°æ®
   const days = lastNDays(7);
-  const weekLabels = ['ÈÕ', 'Ò»', '¶ş', 'Èı', 'ËÄ', 'Îå', 'Áù'];
+  const weekLabels = ['æ—¥', 'ä¸€', 'äºŒ', 'ä¸‰', 'å››', 'äº”', 'å…­'];
   const weekData = await Promise.all(
     days.map((start) =>
       db.collection('study_progress')
@@ -58,7 +58,7 @@ async function stats(db, event, admin) {
     )
   );
 
-  // Ë¢ÌâÕıÈ·ÂÊ
+  // åˆ·é¢˜æ­£ç¡®ç‡
   let quizRate = 0;
   try {
     const $ = db.command.aggregate;
@@ -76,7 +76,7 @@ async function stats(db, event, admin) {
       quizRate = item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0;
     }
   } catch (e) {
-    // ¾ÛºÏÊ§°ÜÊ±Ìø¹ı
+    // èšåˆå¤±è´¥æ—¶è·³è¿‡
   }
 
   return {

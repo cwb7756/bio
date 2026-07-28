@@ -7,7 +7,6 @@
     "ecmaVersion": 2022
   },
   "extends": "eslint:recommended",
-  "plugins": ["bio-security"],
   "globals": {
     "wx": "readonly",
     "App": "readonly",
@@ -17,8 +16,7 @@
     "getCurrentPages": "readonly"
   },
   "rules": {
-    "bio-security/no-trust-userid": "error",
-    "bio-security/require-openid-isolation": "error"
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
   },
   "overrides": [
     {

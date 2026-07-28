@@ -15,7 +15,7 @@ const feedbackModule = require('./modules/feedbackModule');
 const settingsModule = require('./modules/settingsModule');
 
 // Import middlewares
-const { authMiddleware, paramsMiddleware } = require('./lib/middleware');
+const { authMiddleware } = require('./lib/middleware');
 const { validateParams } = require('./lib/helpers');
 
 // Action -> handler router
@@ -82,7 +82,7 @@ const ROUTES = {
 };
 
 // Main entry point
-exports.main = async (event, context) => {
+exports.main = async (event) => {
   // 兼容网关 HTTP 访问：如果 body 是字符串则解析合并到 event
   if (event.body && typeof event.body === 'string') {
     try {
@@ -104,7 +104,7 @@ exports.main = async (event, context) => {
   // JWT auth
   const authResult = authMiddleware(event);
   if (!authResult.ok) return authResult.error;
-  const admin = authResult.admin;
+  const admin = authResult.admin; // Admin info passed to handlers
   
   // Route to handler
   const handler = ROUTES[action];

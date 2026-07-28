@@ -177,7 +177,7 @@ async function submitAnswer(event) {
 
 // ---------- 云函数入口 ----------
 
-exports.main = async (event, context) => {
+exports.main = async (event) => {
   var { OPENID } = cloud.getWXContext();
   var action = event.action || 'list';
 

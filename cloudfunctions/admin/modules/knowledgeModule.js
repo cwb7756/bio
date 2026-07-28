@@ -2,10 +2,10 @@
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// --- ÖªÊ¶µã ---
+// --- çŸ¥è¯†ç‚¹ ---
 
-// knowledge.listPoints: ÖªÊ¶µãÁĞ±í
-async function listPoints(db, event, admin) {
+// knowledge.listPoints: çŸ¥è¯†ç‚¹åˆ—è¡¨
+async function listPoints(db, event, _admin) {
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { search = '', chapter = '' } = event;
 
@@ -29,20 +29,20 @@ async function listPoints(db, event, admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
-// knowledge.savePoint: ĞÂ½¨/±à¼­ÖªÊ¶µã
+// knowledge.savePoint: æ–°å»º/ç¼–è¾‘çŸ¥è¯†ç‚¹
 async function savePoint(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { pointId, title, content, chapter, topic, sort } = event;
-  if (!title) return { code: -1, msg: '±êÌâ²»ÄÜÎª¿Õ' };
+  if (!title) return { code: -1, msg: 'æ ‡é¢˜ä¸èƒ½ä¸ºç©º' };
 
   const now = Date.now();
   const data = { title, content: content || '', chapter: chapter || '', topic: topic || '', sort: sort || 0, updatedAt: now };
 
   if (pointId) {
     await db.collection('knowledge_points').doc(pointId).update({ data });
-    return { code: 0, msg: '¸üĞÂ³É¹¦' };
+    return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
   }
 
   data.createdAt = now;
@@ -50,22 +50,22 @@ async function savePoint(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// knowledge.deletePoint: É¾³ıÖªÊ¶µã
+// knowledge.deletePoint: åˆ é™¤çŸ¥è¯†ç‚¹
 async function deletePoint(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { pointId } = event;
-  if (!pointId) return { code: -1, msg: 'È±ÉÙ pointId' };
+  if (!pointId) return { code: -1, msg: 'ç¼ºå°‘ pointId' };
 
   await db.collection('knowledge_points').doc(pointId).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
-// --- ÖªÊ¶Í¼Æ× ---
+// --- çŸ¥è¯†å›¾è°± ---
 
-// knowledge.listGraph: Í¼Æ×½ÚµãºÍ±ßÁĞ±í
-async function listGraph(db, event, admin) {
+// knowledge.listGraph: å›¾è°±èŠ‚ç‚¹å’Œè¾¹åˆ—è¡¨
+async function listGraph(db, event, _admin) {
   const { courseId } = event;
 
   let query = {};
@@ -79,7 +79,7 @@ async function listGraph(db, event, admin) {
   return { code: 0, data: { nodes: nodesRes.data, edges: edgesRes.data } };
 }
 
-// knowledge.saveGraph: ĞÂ½¨/±à¼­½Úµã»ò±ß
+// knowledge.saveGraph: æ–°å»º/ç¼–è¾‘èŠ‚ç‚¹æˆ–è¾¹
 async function saveGraph(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
@@ -87,7 +87,7 @@ async function saveGraph(db, event, admin) {
   const { type, id, ...data } = event;
   // type: 'node' | 'edge'
   if (type !== 'node' && type !== 'edge') {
-    return { code: -1, msg: 'type ±ØĞëÎª node »ò edge' };
+    return { code: -1, msg: 'type å¿…é¡»ä¸º node æˆ– edge' };
   }
 
   const collection = type === 'node' ? 'knowledge_graph_nodes' : 'knowledge_graph_edges';
@@ -96,7 +96,7 @@ async function saveGraph(db, event, admin) {
 
   if (id) {
     await db.collection(collection).doc(id).update({ data });
-    return { code: 0, msg: '¸üĞÂ³É¹¦' };
+    return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
   }
 
   data.createdAt = now;
@@ -104,25 +104,25 @@ async function saveGraph(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// knowledge.deleteGraph: É¾³ı½Úµã»ò±ß
+// knowledge.deleteGraph: åˆ é™¤èŠ‚ç‚¹æˆ–è¾¹
 async function deleteGraph(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { type, id } = event;
   if (type !== 'node' && type !== 'edge') {
-    return { code: -1, msg: 'type ±ØĞëÎª node »ò edge' };
+    return { code: -1, msg: 'type å¿…é¡»ä¸º node æˆ– edge' };
   }
-  if (!id) return { code: -1, msg: 'È±ÉÙ id' };
+  if (!id) return { code: -1, msg: 'ç¼ºå°‘ id' };
 
   const collection = type === 'node' ? 'knowledge_graph_nodes' : 'knowledge_graph_edges';
   await db.collection(collection).doc(id).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
-// --- ÉÁ¹â¿¨ ---
+// --- é—ªå…‰å¡ ---
 
-// flashcard.list: ÉÁ¹â¿¨ÁĞ±í
+// flashcard.list: é—ªå…‰å¡åˆ—è¡¨
 async function listFlashcards(db, event, admin) {
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { scope = '', chapter = '' } = event;
@@ -141,20 +141,20 @@ async function listFlashcards(db, event, admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
-// flashcard.save: ĞÂ½¨/±à¼­ÉÁ¹â¿¨
+// flashcard.save: æ–°å»º/ç¼–è¾‘é—ªå…‰å¡
 async function saveFlashcard(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { flashcardId, front, back, chapter, scope } = event;
-  if (!front) return { code: -1, msg: 'ÕıÃæÄÚÈİ²»ÄÜÎª¿Õ' };
+  if (!front) return { code: -1, msg: 'æ­£é¢å†…å®¹ä¸èƒ½ä¸ºç©º' };
 
   const now = Date.now();
   const data = { front, back: back || '', chapter: chapter || '', scope: scope || 'system', updatedAt: now };
 
   if (flashcardId) {
     await db.collection('flashcards').doc(flashcardId).update({ data });
-    return { code: 0, msg: '¸üĞÂ³É¹¦' };
+    return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
   }
 
   data.createdAt = now;
@@ -162,16 +162,16 @@ async function saveFlashcard(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// flashcard.delete: É¾³ıÉÁ¹â¿¨
+// flashcard.delete: åˆ é™¤é—ªå…‰å¡
 async function deleteFlashcard(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { flashcardId } = event;
-  if (!flashcardId) return { code: -1, msg: 'È±ÉÙ flashcardId' };
+  if (!flashcardId) return { code: -1, msg: 'ç¼ºå°‘ flashcardId' };
 
   await db.collection('flashcards').doc(flashcardId).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
 module.exports = {

@@ -2,9 +2,8 @@
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// course.list: ¿Î³ÌÁĞ±í
-async function listCourses(db, event, admin) {
-  const _ = db.command;
+// course.list: è¯¾ç¨‹åˆ—è¡¨
+async function listCourses(db, event) {
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { search = '', chapter = '' } = event;
 
@@ -27,13 +26,13 @@ async function listCourses(db, event, admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
-// course.create: ĞÂ½¨¿Î³Ì
+// course.create: æ–°å»ºè¯¾ç¨‹
 async function createCourse(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { title, chapter, tag, level, duration, totalLessons, sort, icon, demoCompleted } = event;
-  if (!title) return { code: -1, msg: '¿Î³Ì±êÌâ²»ÄÜÎª¿Õ' };
+  if (!title) return { code: -1, msg: 'è¯¾ç¨‹æ ‡é¢˜ä¸èƒ½ä¸ºç©º' };
 
   const now = Date.now();
   const { _id } = await db.collection('courses').add({
@@ -48,13 +47,13 @@ async function createCourse(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// course.update: ±à¼­¿Î³Ì
+// course.update: ç¼–è¾‘è¯¾ç¨‹
 async function updateCourse(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { courseId, ...updates } = event;
-  if (!courseId) return { code: -1, msg: 'È±ÉÙ courseId' };
+  if (!courseId) return { code: -1, msg: 'ç¼ºå°‘ courseId' };
 
   const allowed = ['title', 'chapter', 'tag', 'level', 'duration', 'totalLessons', 'sort', 'icon', 'demoCompleted'];
   const data = {};
@@ -64,25 +63,25 @@ async function updateCourse(db, event, admin) {
   data.updatedAt = Date.now();
 
   await db.collection('courses').doc(courseId).update({ data });
-  return { code: 0, msg: '¸üĞÂ³É¹¦' };
+  return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
 }
 
-// course.delete: É¾³ı¿Î³Ì
+// course.delete: åˆ é™¤è¯¾ç¨‹
 async function deleteCourse(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { courseId } = event;
-  if (!courseId) return { code: -1, msg: 'È±ÉÙ courseId' };
+  if (!courseId) return { code: -1, msg: 'ç¼ºå°‘ courseId' };
 
   await db.collection('courses').doc(courseId).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
-// lesson.list: ¿ÎÊ±ÁĞ±í
-async function listLessons(db, event, admin) {
+// lesson.list: è¯¾æ—¶åˆ—è¡¨
+async function listLessons(db, event, _admin) {
   const { courseId } = event;
-  if (!courseId) return { code: -1, msg: 'È±ÉÙ courseId' };
+  if (!courseId) return { code: -1, msg: 'ç¼ºå°‘ courseId' };
 
   const { data } = await db.collection('lessons')
     .where({ courseId })
@@ -92,13 +91,13 @@ async function listLessons(db, event, admin) {
   return { code: 0, data: { list: data } };
 }
 
-// lesson.create: ĞÂ½¨¿ÎÊ±
+// lesson.create: æ–°å»ºè¯¾æ—¶
 async function createLesson(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { courseId, title, sort, videoId, content } = event;
-  if (!courseId || !title) return { code: -1, msg: 'courseId ºÍ title ²»ÄÜÎª¿Õ' };
+  if (!courseId || !title) return { code: -1, msg: 'courseId å’Œ title ä¸èƒ½ä¸ºç©º' };
 
   const now = Date.now();
   const { _id } = await db.collection('lessons').add({
@@ -108,13 +107,13 @@ async function createLesson(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
-// lesson.update: ±à¼­¿ÎÊ±
+// lesson.update: ç¼–è¾‘è¯¾æ—¶
 async function updateLesson(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { lessonId, ...updates } = event;
-  if (!lessonId) return { code: -1, msg: 'È±ÉÙ lessonId' };
+  if (!lessonId) return { code: -1, msg: 'ç¼ºå°‘ lessonId' };
 
   const allowed = ['title', 'sort', 'videoId', 'content'];
   const data = {};
@@ -124,19 +123,19 @@ async function updateLesson(db, event, admin) {
   data.updatedAt = Date.now();
 
   await db.collection('lessons').doc(lessonId).update({ data });
-  return { code: 0, msg: '¸üĞÂ³É¹¦' };
+  return { code: 0, msg: 'æ›´æ–°æˆåŠŸ' };
 }
 
-// lesson.delete: É¾³ı¿ÎÊ±
+// lesson.delete: åˆ é™¤è¯¾æ—¶
 async function deleteLesson(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { lessonId } = event;
-  if (!lessonId) return { code: -1, msg: 'È±ÉÙ lessonId' };
+  if (!lessonId) return { code: -1, msg: 'ç¼ºå°‘ lessonId' };
 
   await db.collection('lessons').doc(lessonId).remove();
-  return { code: 0, msg: 'É¾³ı³É¹¦' };
+  return { code: 0, msg: 'åˆ é™¤æˆåŠŸ' };
 }
 
 module.exports = {

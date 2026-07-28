@@ -3,8 +3,8 @@ const cloud = require('wx-server-sdk');
 const { parsePagination } = require('../lib/helpers');
 const { requireRole } = require('../lib/middleware');
 
-// feedback.list: ·´À¡ÁĞ±í
-async function list(db, event, admin) {
+// feedback.list: åé¦ˆåˆ—è¡¨
+async function list(db, event, _admin) {
   const _ = db.command;
   const { skip, limit, page, pageSize } = parsePagination(event);
   const { status = '', type = '' } = event;
@@ -21,7 +21,7 @@ async function list(db, event, admin) {
     .limit(limit)
     .get();
 
-  // ÅúÁ¿»ñÈ¡ÁÙÊ±Í¼Æ¬ URL
+  // æ‰¹é‡è·å–ä¸´æ—¶å›¾ç‰‡ URL
   const fileIDs = [];
   data.forEach((item) => {
     (item.images || []).forEach((f) => {
@@ -58,41 +58,41 @@ async function list(db, event, admin) {
   return { code: 0, data: { list: listData, total, page, pageSize } };
 }
 
-// feedback.reply: »Ø¸´·´À¡
+// feedback.reply: å›å¤åé¦ˆ
 async function reply(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { feedbackId, replyContent } = event;
   if (!feedbackId || !replyContent) {
-    return { code: -1, msg: '·´À¡ ID ºÍ»Ø¸´ÄÚÈİ²»ÄÜÎª¿Õ' };
+    return { code: -1, msg: 'åé¦ˆ ID å’Œå›å¤å†…å®¹ä¸èƒ½ä¸ºç©º' };
   }
 
   await db.collection('feedbacks').doc(feedbackId).update({
     data: { reply: replyContent, status: 'replied', repliedAt: Date.now() }
   });
 
-  return { code: 0, msg: '»Ø¸´³É¹¦' };
+  return { code: 0, msg: 'å›å¤æˆåŠŸ' };
 }
 
-// feedback.updateStatus: ¸üĞÂ·´À¡×´Ì¬
+// feedback.updateStatus: æ›´æ–°åé¦ˆçŠ¶æ€
 async function updateStatus(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
   const { feedbackId, status } = event;
-  if (!feedbackId) return { code: -1, msg: 'È±ÉÙ feedbackId' };
+  if (!feedbackId) return { code: -1, msg: 'ç¼ºå°‘ feedbackId' };
 
   const validStatuses = ['pending', 'replied', 'resolved', 'closed'];
   if (validStatuses.indexOf(status) < 0) {
-    return { code: -1, msg: 'ÎŞĞ§µÄ×´Ì¬' };
+    return { code: -1, msg: 'æ— æ•ˆçš„çŠ¶æ€' };
   }
 
   await db.collection('feedbacks').doc(feedbackId).update({
     data: { status }
   });
 
-  return { code: 0, msg: '×´Ì¬¸üĞÂ³É¹¦' };
+  return { code: 0, msg: 'çŠ¶æ€æ›´æ–°æˆåŠŸ' };
 }
 
 module.exports = { list, reply, updateStatus };

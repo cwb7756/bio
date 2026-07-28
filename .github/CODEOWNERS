@@ -1,0 +1,60 @@
+# =============================================
+# Bio Repository Code Owners
+# =============================================
+# This file designates reviewers for changes in specific paths.
+# Maintainers and collaborators will be automatically requested for review.
+# =============================================
+
+# =============================================
+# Project Maintainer
+# =============================================
+@cwb7756 *
+
+# =============================================
+# Cloud Functions (Backend)
+# =============================================
+cloudfunctions/* @cwb7756
+
+# =============================================
+# Mini-program Frontend
+# =============================================
+miniprogram/* @cwb7756
+
+# =============================================
+# CI/CD Configuration
+# =============================================
+.github/workflows/* @cwb7756
+.github/*.yml @cwb7756
+
+# =============================================
+# Documentation
+# =============================================
+*.md @cwb7756
+docs/* @cwb7756
+README.md @cwb7756
+CONTRIBUTING.md @cwb7756
+CHANGELOG.md @cwb7756
+
+# =============================================
+# ESLint Configuration
+# =============================================
+.eslintrc.json @cwb7756
+.eslintignore @cwb7756
+.eslintrc-plugins/* @cwb7756
+
+# =============================================
+# Project Configuration
+# =============================================
+project.config.json @cwb7756
+database.json @cwb7756
+package.json @cwb7756
+package-lock.json @cwb7756
+
+# =============================================
+# AI Features
+# =============================================
+cloudfunctions/aiChat/* @cwb7756
+cloudfunctions/aiCourseware/* @cwb7756
+miniprogram/pages/ai/* @cwb7756
+miniprogram/pages/aiClassroom/* @cwb7756
+miniprogram/utils/courseware.js @cwb7756
