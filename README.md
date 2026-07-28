@@ -1,6 +1,8 @@
-# Bio - 高中生物学习助手 🧬
+# 生物自学打卡 (Bio) - 高中生物学习助手 🧬
 
 <div align="center">
+
+<img src="logo.png" alt="Bio Logo" width="200" />
 
 **AI 赋能的个性化生物学习系统 · 知识图谱 · 智能刷题 · 错题本 · AI 答疑 · 学习成就**
 
@@ -10,6 +12,37 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-339933?logo=node.js)](https://nodejs.org/)
 [![ESLint](https://img.shields.io/badge/ESLint-8.x-4B32C3)](https://eslint.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
+
+</div>
+
+---
+
+## 📱 立即体验
+
+<div align="center">
+
+<table>
+<tr>
+<td align="center" width="50%">
+
+### 🔍 方式一：搜索小程序
+
+打开微信 → 发现 → 小程序 → 搜索
+
+# 「生物自学打卡」
+
+</td>
+<td align="center" width="50%">
+
+### 📷 方式二：扫码进入
+
+<img src="mini-program-qr.jpg" alt="小程序码" width="200" />
+
+微信扫一扫，即刻开始学习
+
+</td>
+</tr>
+</table>
 
 </div>
 
