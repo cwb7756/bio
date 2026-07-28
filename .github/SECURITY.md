@@ -102,19 +102,6 @@ We encourage responsible security research:
 
 ---
 
-## PGP Keys
-
-For encrypted communications, please use the following PGP key:
-
-```
-PGP Key ID: [TODO - Add Your Key ID]
-Fingerprint: [TODO - Add Fingerprint]
-```
-
-Contact us at `cwb7756@example.com` for the full public key.
-
----
-
 <div align="center">
 
 Thank you for helping keep Bio safe! 🛡️
