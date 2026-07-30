@@ -1,7 +1,0 @@
-page {
-  background: #f8f9fa;
-}
-
-.container {
-  padding: 20rpx;
-}

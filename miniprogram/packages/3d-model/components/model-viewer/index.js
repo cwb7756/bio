@@ -69,7 +69,7 @@ Component({
         })
         this._renderer.setSize(width, height)
         this._renderer.setPixelRatio(pixelRatio)
-        this._renderer.setClearColor(0x1a1a2e, 1)
+        this._renderer.setClearColor(0xf1f6f0, 1) // 与全局 --bg 一致的纸感浅绿底
 
         this._scene = new THREE.Scene()
 
@@ -84,12 +84,12 @@ Component({
         dirLight.position.set(5, 10, 7)
         this._scene.add(dirLight)
 
-        const backLight = new THREE.DirectionalLight(0x8899ff, 0.4)
+        const backLight = new THREE.DirectionalLight(0x8fd3a8, 0.4)
         backLight.position.set(-5, -3, -5)
         this._scene.add(backLight)
 
         // 网格地面
-        this._scene.add(new THREE.GridHelper(10, 20, 0x444466, 0x333355))
+        this._scene.add(new THREE.GridHelper(10, 20, 0x98a29b, 0xd5ded8))
 
         this.setData({ ready: true })
 
@@ -180,7 +180,7 @@ Component({
       if (!this._scene) return
       const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5)
       const material = new THREE.MeshPhongMaterial({
-        color: 0x1890ff,
+        color: 0x5fb894,
         transparent: true,
         opacity: 0.85
       })

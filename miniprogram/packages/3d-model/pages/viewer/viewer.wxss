@@ -1,13 +1,15 @@
 /* miniprogram/packages/3d-model/pages/viewer/viewer.wxss */
+/* 手绘风格，复用全局 CSS 变量（app.wxss） */
 .viewer-page {
   min-height: 100vh;
-  background: #1a1a2e;
-  color: white;
+  background: var(--bg, #F1F6F0);
+  color: var(--ink, #1E2621);
 }
 
 .header {
-  padding: 30rpx;
-  background: rgba(0, 0, 0, 0.4);
+  padding: 24rpx 30rpx;
+  background: rgba(252, 253, 251, 0.92);
+  border-bottom: 3rpx solid var(--gray-line, #D5DED8);
   position: absolute;
   top: 0;
   left: 0;
@@ -17,7 +19,8 @@
 
 .model-name {
   font-size: 36rpx;
-  font-weight: 600;
+  font-weight: 800;
+  color: var(--ink, #1E2621);
 }
 
 .canvas-container {
@@ -37,14 +40,16 @@
   bottom: 240rpx;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 16rpx 36rpx;
-  border-radius: 30rpx;
+  background: var(--paper, #FCFDFB);
+  border: 3rpx solid var(--line, #4A5852);
+  padding: 12rpx 36rpx;
+  border-radius: 40rpx;
+  box-shadow: var(--sh-sm, 3rpx 3rpx 1rpx rgba(74, 88, 82, .34));
 }
 
 .hint {
   font-size: 24rpx;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--ink-soft, #4A554E);
 }
 
 /* 加载中 */
@@ -63,8 +68,8 @@
 .loading-spinner {
   width: 80rpx;
   height: 80rpx;
-  border: 6rpx solid rgba(255, 255, 255, 0.15);
-  border-top: 6rpx solid #1890ff;
+  border: 6rpx solid var(--gray-line, #D5DED8);
+  border-top: 6rpx solid var(--green-accent, #5FB894);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 30rpx;
@@ -77,14 +82,15 @@
 
 .loading-text {
   font-size: 28rpx;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--gray, #98A29B);
 }
 
 /* 下载卡片 */
 .download-card {
-  background: rgba(30, 30, 50, 0.95);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
-  border-radius: 24rpx;
+  background: var(--paper, #FCFDFB);
+  border: 4rpx solid var(--line, #4A5852);
+  border-radius: 40rpx;
+  box-shadow: var(--sh, 5rpx 5rpx 1rpx rgba(74, 88, 82, .42));
   padding: 50rpx 60rpx;
   display: flex;
   flex-direction: column;
@@ -94,36 +100,38 @@
 
 .download-title {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 800;
+  color: var(--ink, #1E2621);
   margin-bottom: 30rpx;
 }
 
 .progress {
   width: 100%;
-  height: 12rpx;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 6rpx;
+  height: 14rpx;
+  background: var(--green-soft, #E8F5EE);
+  border: 2rpx solid var(--gray-line, #D5DED8);
+  border-radius: 8rpx;
   overflow: hidden;
   margin-bottom: 16rpx;
 }
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #1890ff, #36cfc9);
-  border-radius: 6rpx;
+  background: linear-gradient(90deg, var(--green, #8FD3A8), var(--green-accent, #5FB894));
+  border-radius: 8rpx;
   transition: width 0.3s ease;
 }
 
 .progress-text {
   font-size: 30rpx;
-  color: #36cfc9;
-  font-weight: 600;
+  color: var(--green-deep, #3D9970);
+  font-weight: 700;
   margin-bottom: 10rpx;
 }
 
 .download-hint {
   font-size: 22rpx;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--gray, #98A29B);
 }
 
 /* 下载确认弹窗 */
@@ -133,7 +141,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(30, 38, 33, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -142,8 +150,10 @@
 
 .modal-content {
   width: 600rpx;
-  background: #ffffff;
-  border-radius: 24rpx;
+  background: var(--paper, #FCFDFB);
+  border: 4rpx solid var(--line, #4A5852);
+  border-radius: 40rpx;
+  box-shadow: var(--sh, 5rpx 5rpx 1rpx rgba(74, 88, 82, .42));
   padding: 50rpx 40rpx 40rpx;
   display: flex;
   flex-direction: column;
@@ -153,27 +163,29 @@
 .modal-icon {
   width: 100rpx;
   height: 100rpx;
-  border-radius: 24rpx;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: #fff;
+  border: 4rpx solid var(--line, #4A5852);
+  border-radius: 32rpx 26rpx 34rpx 24rpx;
+  background: var(--green, #8FD3A8);
+  color: var(--ink, #1E2621);
   font-size: 36rpx;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 30rpx;
+  box-shadow: var(--sh-sm, 3rpx 3rpx 1rpx rgba(74, 88, 82, .34));
 }
 
 .modal-title {
   font-size: 34rpx;
-  font-weight: 600;
-  color: #1f2937;
+  font-weight: 800;
+  color: var(--ink, #1E2621);
   margin-bottom: 16rpx;
 }
 
 .modal-desc {
   font-size: 26rpx;
-  color: #6b7280;
+  color: var(--ink-soft, #4A554E);
   text-align: center;
   line-height: 1.6;
   margin-bottom: 40rpx;
@@ -189,20 +201,30 @@
 .btn-confirm {
   flex: 1;
   height: 88rpx;
-  border-radius: 44rpx;
+  border: 4rpx solid var(--line, #4A5852);
+  border-radius: 32rpx 28rpx 34rpx 26rpx;
   font-size: 30rpx;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--sh-sm, 3rpx 3rpx 1rpx rgba(74, 88, 82, .34));
+  transition: transform .12s, box-shadow .12s;
+}
+
+.btn-cancel:active,
+.btn-confirm:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 0 0 0 var(--ink, #1E2621);
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--paper, #FCFDFB);
+  color: var(--ink-soft, #4A554E);
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: var(--green-accent, #5FB894);
   color: #ffffff;
 }
 
@@ -217,9 +239,10 @@
   bottom: 40rpx;
   left: 30rpx;
   right: 30rpx;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1rpx solid rgba(255, 255, 255, 0.08);
-  border-radius: 20rpx;
+  background: rgba(252, 253, 251, 0.92);
+  border: 3rpx solid var(--line, #4A5852);
+  border-radius: 30rpx 24rpx 32rpx 22rpx;
+  box-shadow: var(--sh-sm, 3rpx 3rpx 1rpx rgba(74, 88, 82, .34));
   padding: 28rpx 32rpx;
   z-index: 10;
 }
@@ -235,12 +258,12 @@
 }
 
 .label {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--gray, #98A29B);
   font-size: 26rpx;
 }
 
 .value {
-  color: #fff;
+  color: var(--ink, #1E2621);
   font-size: 26rpx;
   max-width: 420rpx;
   overflow: hidden;
