@@ -1,6 +1,6 @@
 // miniprogram/packages/3d-model/pages/viewer/viewer.js
 // 3D 模型查看器页面：流程编排（获取信息 -> 下载提示 -> 下载/缓存 -> 渲染组件）
-// 渲染逻辑见 components/model-viewer，下载与缓存逻辑见 utils/model-loader
+// 渲染逻辑见 components/xr-model-viewer（xr-frame），下载与缓存逻辑见 utils/model-loader
 import { modelLoader, ModelLoader } from '../../utils/model-loader'
 
 Page({
@@ -10,20 +10,31 @@ Page({
     fileSize: 0,
     fileName: '',
     fileSizeText: '',
-    modelPath: '',        // 本地模型文件路径，传给 model-viewer 组件
+    modelPath: '',        // 模型文件路径（本地缓存或云端 URL），传给 xr-model-viewer 组件
     downloading: false,
     downloadProgress: 0,
     isReady: false,
     loading: true,
     showDownloadTip: false,
-    tipFileSize: ''
+    tipFileSize: '',
+    viewWidth: 375,       // xr-frame 画布 CSS 尺寸（px）
+    viewHeight: 667,
+    renderWidth: 750,     // xr-frame 渲染缓冲尺寸（CSS 尺寸 × pixelRatio）
+    renderHeight: 1334
   },
 
   onLoad: function (options) {
     const { id, name } = options
+
+    // xr-frame 画布全屏尺寸
+    const winInfo = wx.getWindowInfo()
     this.setData({
       modelId: id,
-      modelName: decodeURIComponent(name || '3D 模型')
+      modelName: decodeURIComponent(name || '3D 模型'),
+      viewWidth: winInfo.windowWidth,
+      viewHeight: winInfo.windowHeight,
+      renderWidth: Math.round(winInfo.windowWidth * winInfo.pixelRatio),
+      renderHeight: Math.round(winInfo.windowHeight * winInfo.pixelRatio)
     })
 
     // 命中本地缓存则直接渲染
@@ -103,9 +114,27 @@ Page({
     wx.hideLoading()
   },
 
-  // 组件错误
+  // 组件错误：本地缓存路径加载失败时，先回退到云端临时 URL 重试一次
   onModelError: function (e) {
     wx.hideLoading()
+
+    if (!this._triedRemote) {
+      this._triedRemote = true
+      modelLoader.clearCache(this.data.modelId)
+      modelLoader.fetchModelInfo(this.data.modelId)
+        .then(info => {
+          this.setData({ modelPath: info.url })
+        })
+        .catch(() => {
+          this._showModelError(e)
+        })
+      return
+    }
+
+    this._showModelError(e)
+  },
+
+  _showModelError: function (e) {
     wx.showToast({
       title: (e.detail && e.detail.message) || '模型加载失败',
       icon: 'error'

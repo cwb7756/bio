@@ -1,9 +1,0 @@
-<!-- miniprogram/packages/3d-model/components/model-viewer/index.wxml -->
-<canvas
-  type="webgl"
-  id="modelViewerCanvas"
-  class="viewer-canvas"
-  bindtouchstart="onTouchStart"
-  bindtouchmove="onTouchMove"
-  bindtouchend="onTouchEnd"
-></canvas>

@@ -6,7 +6,8 @@
 //   const info = await loader.fetchModelInfo(modelId)        // 获取下载链接与文件信息
 //   const path = await loader.ensureLocal(modelId, info, cb) // 命中缓存或下载后返回本地路径
 
-const CACHE_PREFIX = 'model_'
+// v2: 模型格式迁移 OBJ -> glb（xr-frame），旧前缀缓存的 obj 路径不再可用
+const CACHE_PREFIX = 'model_v2_'
 const CACHE_TTL = 7 * 24 * 60 * 60 * 1000 // 缓存 7 天
 
 export class ModelLoader {

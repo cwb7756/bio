@@ -4,14 +4,18 @@
     <text class="model-name">{{modelName}}</text>
   </view>
 
-  <!-- 3D 画布（model-viewer 组件） -->
+  <!-- 3D 画布（xr-frame 组件） -->
   <view class="canvas-container" wx:if="{{isReady}}">
-    <model-viewer
+    <xr-model-viewer
+      id="xr-viewer"
+      disable-scroll
+      width="{{renderWidth}}"
+      height="{{renderHeight}}"
+      style="width:{{viewWidth}}px;height:{{viewHeight}}px;display:block;"
       model-path="{{modelPath}}"
-      file-name="{{fileName}}"
       bind:loaded="onModelLoaded"
       bind:error="onModelError"
-    ></model-viewer>
+    ></xr-model-viewer>
 
     <view class="controls">
       <text class="hint">单指拖动旋转模型 · 松手自动旋转</text>

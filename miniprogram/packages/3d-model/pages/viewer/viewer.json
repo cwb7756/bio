@@ -2,6 +2,6 @@
   "navigationBarTitleText": "3D 模型查看器",
   "enablePullDownRefresh": false,
   "usingComponents": {
-    "model-viewer": "../../components/model-viewer/index"
+    "xr-model-viewer": "../../components/xr-model-viewer/index"
   }
 }

@@ -1,0 +1,33 @@
+<!-- miniprogram/packages/3d-model/components/xr-model-viewer/index.wxml -->
+<!-- xr-frame 场景：gltf 资产加载 + 环绕相机（拖动旋转/双指缩放）+ 双光源 -->
+<xr-scene bind:ready="handleReady">
+  <xr-assets bind:loaded="handleAssetsLoaded">
+    <xr-asset-load
+      wx:if="{{src}}"
+      type="gltf"
+      asset-id="model"
+      src="{{src}}"
+      bind:error="handleAssetError"
+    />
+  </xr-assets>
+
+  <!-- 模型挂载节点：tick 中绕 y 轴自动旋转 -->
+  <xr-node node-id="model-wrap">
+    <xr-gltf wx:if="{{loaded}}" model="model" scale="0.3 0.3 0.3" />
+  </xr-node>
+
+  <!-- clear-color 对应全局 --bg #F1F6F0 纸感浅绿底 -->
+  <xr-camera
+    id="camera"
+    node-id="camera"
+    position="0 0.6 4.5"
+    target="model-wrap"
+    clear-color="0.945 0.965 0.941 1"
+    camera-orbit-control
+  />
+
+  <xr-node node-id="lights">
+    <xr-light type="ambient" color="1 1 1" intensity="0.9" />
+    <xr-light type="directional" rotation="40 70 0" color="1 1 1" intensity="1.6" />
+  </xr-node>
+</xr-scene>
