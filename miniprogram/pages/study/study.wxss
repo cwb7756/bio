@@ -83,12 +83,6 @@
   margin-top: 24rpx;
 }
 
-.map-entry-percent {
-  font-size: 28rpx;
-  font-weight: 700;
-  color: var(--green-deep);
-}
-
 .map-entry-arrow {
   width: 32rpx;
   height: 32rpx;
@@ -200,25 +194,6 @@
 .ch-icon {
   width: 52rpx;
   height: 52rpx;
-}
-
-.ch-badge {
-  position: absolute;
-  top: -12rpx;
-  right: -12rpx;
-  width: 40rpx;
-  height: 40rpx;
-  border-radius: 50%;
-  background: var(--green-accent);
-  border: 3rpx solid var(--line);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.ch-badge .icon {
-  width: 20rpx;
-  height: 20rpx;
 }
 
 .ch-info {

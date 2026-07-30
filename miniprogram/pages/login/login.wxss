@@ -62,9 +62,9 @@
   margin-bottom: 8rpx;
 }
 
-.hero-flask {
-  width: 56rpx;
-  height: 56rpx;
+.hero-logo-img {
+  width: 72rpx;
+  height: 72rpx;
   filter: brightness(0) invert(1);
 }
 

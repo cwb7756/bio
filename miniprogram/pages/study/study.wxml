@@ -41,22 +41,6 @@
         </view>
       </view>
 
-      <!-- 知识地图入口 -->
-      <view class="map-entry" bindtap="goMap">
-        <view class="map-entry-left">
-          <view class="icon ic-target map-entry-icon"></view>
-          <view class="map-entry-text">
-            <text class="map-entry-title">知识地图</text>
-            <text class="map-entry-desc" wx:if="{{mapOverview.loaded}}">已点亮 {{mapOverview.doneCount}}/{{mapOverview.totalCount}} 个知识点</text>
-            <text class="map-entry-desc" wx:else>闯关式点亮知识点</text>
-          </view>
-        </view>
-        <view class="map-entry-right">
-          <text class="map-entry-percent" wx:if="{{mapOverview.loaded}}">{{mapOverview.overallPercent}}%</text>
-          <view class="icon ic-chevron-right map-entry-arrow"></view>
-        </view>
-      </view>
-
       <!-- 3D 模型库入口 -->
       <view class="map-entry model-entry" bindtap="go3DModels">
         <view class="map-entry-left">
@@ -92,9 +76,6 @@
         >
           <view class="ch-icon-wrap">
             <view class="icon {{item.icon}} ch-icon"></view>
-            <view class="ch-badge" wx:if="{{item.color === 'done'}}">
-              <view class="icon ic-check-white"></view>
-            </view>
           </view>
           <view class="ch-info">
             <text class="ch-title">{{item.title}}</text>

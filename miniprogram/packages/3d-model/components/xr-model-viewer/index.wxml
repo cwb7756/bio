@@ -1,5 +1,5 @@
 <!-- miniprogram/packages/3d-model/components/xr-model-viewer/index.wxml -->
-<!-- xr-frame 场景：gltf 资产加载 + 环绕相机（拖动旋转/双指缩放）+ 双光源 -->
+<!-- xr-frame 场景：gltf 资产加载 + 固定相机 + 双光源；手势（旋转/惯性/缩放）由 index.js 自定义实现 -->
 <xr-scene bind:ready="handleReady">
   <xr-assets bind:loaded="handleAssetsLoaded">
     <xr-asset-load
@@ -11,9 +11,10 @@
     />
   </xr-assets>
 
-  <!-- 模型挂载节点：tick 中绕 y 轴自动旋转 -->
-  <xr-node node-id="model-wrap">
-    <xr-gltf wx:if="{{loaded}}" model="model" scale="0.3 0.3 0.3" />
+  <!-- 模型挂载节点：tick 中绕 y 轴自动旋转；资产真正加载完成后才创建 xr-gltf -->
+  <!-- 注意：getElementById 查的是 id 属性，camera target 查的是 node-id，两者必须都设 -->
+  <xr-node id="model-wrap" node-id="model-wrap">
+    <xr-gltf wx:if="{{src && loaded}}" model="model" scale="0.3 0.3 0.3" />
   </xr-node>
 
   <!-- clear-color 对应全局 --bg #F1F6F0 纸感浅绿底 -->
@@ -23,7 +24,6 @@
     position="0 0.6 4.5"
     target="model-wrap"
     clear-color="0.945 0.965 0.941 1"
-    camera-orbit-control
   />
 
   <xr-node node-id="lights">

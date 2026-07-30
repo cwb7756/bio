@@ -15,13 +15,6 @@ Page({
       totalLessons: 0,
       completionRate: 0
     },
-    // 知识地图入口概览（当前教材第一门课程，与 goMap 跳转一致）
-    mapOverview: {
-      loaded: false,
-      doneCount: 0,
-      totalCount: 0,
-      overallPercent: 0
-    },
     loading: true,
     needLogin: false,
     // 学习概览卡片猫咪装饰图（每次进入随机一张趴姿猫）
@@ -86,8 +79,6 @@ Page({
             overview,
             loading: false
           });
-          // 加载知识地图入口概览
-          this.loadMapOverview();
         } else {
           this.setData({ loading: false });
           wx.showToast({ title: '加载失败', icon: 'none' });
@@ -97,37 +88,6 @@ Page({
         console.error('getCourseList error:', err);
         this.setData({ loading: false });
         wx.showToast({ title: '网络异常', icon: 'none' });
-      }
-    });
-  },
-
-  // 加载知识地图入口概览（当前教材第一门课程，与 goMap 跳转一致）
-  loadMapOverview() {
-    if (!this.data.chapters || this.data.chapters.length === 0) {
-      this.setData({ 'mapOverview.loaded': false });
-      return;
-    }
-    const courseId = this.data.chapters[0]._id;
-    wx.cloud.callFunction({
-      name: 'knowledgeMap',
-      data: { courseId },
-      success: (res) => {
-        if (res.result && res.result.code === 0) {
-          const d = res.result.data;
-          // isDemo 时 doneCount/overallPercent 为示例值，真实进度应为 0
-          this.setData({
-            mapOverview: {
-              loaded: true,
-              doneCount: d.isDemo ? 0 : d.doneCount,
-              totalCount: d.totalCount,
-              overallPercent: d.isDemo ? 0 : d.overallPercent
-            }
-          });
-        }
-      },
-      fail: (err) => {
-        console.error('knowledgeMap overview error:', err);
-        // 静默降级，保持静态文案
       }
     });
   },
@@ -153,17 +113,6 @@ Page({
       content: '已学' + ch.completed + '/' + ch.lessons + '课时，完成率' + ch.progress + '%',
       meta: { courseId: ch._id }
     });
-  },
-
-  // 知识地图：默认展示当前教材第一门课程
-  goMap() {
-    if (!this.data.chapters || this.data.chapters.length === 0) {
-      wx.showToast({ title: '暂无课程', icon: 'none' });
-      return;
-    }
-    const first = this.data.chapters[0];
-    const courseId = first ? first._id : 'course_required_1';
-    wx.navigateTo({ url: '/pages/map/map?courseId=' + courseId });
   },
 
   // 3D 模型库（分包页面）

@@ -12,7 +12,7 @@
       <view class="icon ic-leaf hero-leaf"></view>
     </view>
     <view class="hero-logo">
-      <view class="icon ic-flask hero-flask"></view>
+      <image class="hero-logo-img" src="/images/logo.png" mode="aspectFit"></image>
     </view>
     <text class="hero-title">高中生物</text>
     <text class="hero-tagline">探索生命的奥秘</text>

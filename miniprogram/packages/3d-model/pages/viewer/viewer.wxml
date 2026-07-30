@@ -1,7 +1,14 @@
 <!-- miniprogram/packages/3d-model/pages/viewer/viewer.wxml -->
 <view class="viewer-page">
   <view class="header">
-    <text class="model-name">{{modelName}}</text>
+    <!-- 状态栏占位 -->
+    <view style="height: {{statusBarHeight}}px;"></view>
+    <view class="header-row">
+      <view class="icon-btn back-btn" bindtap="goBack">
+        <view class="icon ic-back nav-icon"></view>
+      </view>
+      <text class="model-name">{{modelName}}</text>
+    </view>
   </view>
 
   <!-- 3D 画布（xr-frame 组件） -->
@@ -18,7 +25,7 @@
     ></xr-model-viewer>
 
     <view class="controls">
-      <text class="hint">单指拖动旋转模型 · 松手自动旋转</text>
+      <text class="hint">单指拖动旋转 · 双指缩放 · 松手惯性滑动</text>
     </view>
   </view>
 

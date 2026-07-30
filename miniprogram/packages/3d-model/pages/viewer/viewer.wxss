@@ -7,7 +7,7 @@
 }
 
 .header {
-  padding: 24rpx 30rpx;
+  padding: 0 30rpx 20rpx;
   background: rgba(252, 253, 251, 0.92);
   border-bottom: 3rpx solid var(--gray-line, #D5DED8);
   position: absolute;
@@ -15,6 +15,27 @@
   left: 0;
   right: 0;
   z-index: 10;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding-top: 16rpx;
+}
+
+.back-btn {
+  flex-shrink: 0;
+}
+
+.back-btn:active {
+  transform: translate(3rpx, 3rpx);
+  box-shadow: 0 0 0 var(--line, #4A5852);
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .model-name {

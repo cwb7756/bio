@@ -5,6 +5,7 @@ import { modelLoader, ModelLoader } from '../../utils/model-loader'
 
 Page({
   data: {
+    statusBarHeight: 20,
     modelName: '',
     modelId: '',
     fileSize: 0,
@@ -29,6 +30,7 @@ Page({
     // xr-frame 画布全屏尺寸
     const winInfo = wx.getWindowInfo()
     this.setData({
+      statusBarHeight: winInfo.statusBarHeight,
       modelId: id,
       modelName: decodeURIComponent(name || '3D 模型'),
       viewWidth: winInfo.windowWidth,
@@ -94,6 +96,11 @@ Page({
 
   // 取消下载
   cancelDownload: function () {
+    wx.navigateBack()
+  },
+
+  // 返回上一页
+  goBack: function () {
     wx.navigateBack()
   },
 

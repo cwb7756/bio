@@ -46,7 +46,7 @@
   },
   "appid": "wx4c5f356832d6af06",
   "projectname": "bio",
-  "libVersion": "3.15.1",
+  "libVersion": "3.17.0",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {
     "search": {
