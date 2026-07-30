@@ -35,6 +35,7 @@ const ROUTES = {
   'user.list': userModule.list,
   'user.detail': userModule.detail,
   'user.updateStatus': userModule.updateStatus,
+  'user.batchUpdateStatus': userModule.batchUpdateStatus,
   'user.resetProgress': userModule.resetProgress,
   
   // Course management
@@ -52,6 +53,7 @@ const ROUTES = {
   'quiz.create': quizModule.create,
   'quiz.update': quizModule.update,
   'quiz.delete': quizModule.del,
+  'quiz.batchDelete': quizModule.batchDelete,
   'quiz.batchImport': quizModule.batchImport,
   
   // Knowledge management

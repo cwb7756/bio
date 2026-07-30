@@ -104,22 +104,47 @@ async function detail(db, event, admin) {
   };
 }
 
-// user.updateStatus: 封禁/解封用户
+// user.updateStatus: 封禁/解封用户（接受 status 字段以适配前端）
 async function updateStatus(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
-  const { userId, banned } = event;
-  if (!userId) return { code: 400, msg: '缺少 userId' };
+  const { userId, status, banned } = event;
+  // 兼容旧参数 banned 和新参数 status
+  const isBanned = banned !== undefined ? !!banned : status === 'banned';
 
   await db.collection('users').doc(userId).update({
-    data: { banned: !!banned, updatedAt: Date.now() }
+    data: { banned: isBanned, updatedAt: Date.now() }
   });
 
-  return { code: 0, msg: banned ? '已封禁' : '已解封' };
+  return { code: 0, msg: isBanned ? '已封禁' : '已解封' };
 }
 
-// user.resetProgress: 重置学生学习进度
+// user.batchUpdateStatus: 批量封禁/解封用户
+async function batchUpdateStatus(db, event, admin) {
+  const roleErr = requireRole(admin, 'superadmin');
+  if (roleErr) return roleErr;
+
+  const { userIds, status } = event;
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return { code: -1, msg: '缺少 userIds' };
+  }
+  if (!['active', 'banned'].includes(status)) {
+    return { code: -1, msg: '状态无效' };
+  }
+  if (userIds.length > 100) {
+    return { code: -1, msg: '单次最多处理 100 个用户' };
+  }
+
+  const _ = db.command;
+  const { stats } = await db.collection('users')
+    .where({ _id: _.in(userIds) })
+    .update({ data: { banned: status === 'banned', updatedAt: Date.now() } });
+
+  return { code: 0, data: { updated: stats.updated }, msg: '已更新 ' + stats.updated + ' 个用户' };
+}
+
+// user.resetProgress: 重置学生学习进度（优化为批量删除）
 async function resetProgress(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
@@ -136,15 +161,21 @@ async function resetProgress(db, event, admin) {
     ? _.or([{ _openid: user._openid || '' }, { userID: userID }])
     : { _openid: user._openid || '' };
 
-  // 删除学习进度记录
+  // 批量删除学习进度记录（使用批量操作减少调用）
   const { data: progressRecords } = await db.collection('study_progress')
     .where(cond)
     .field({ _id: true })
     .limit(1000)
     .get();
 
-  for (let i = 0; i < progressRecords.length; i++) {
-    await db.collection('study_progress').doc(progressRecords[i]._id).remove();
+  if (progressRecords.length > 0) {
+    // 分批删除，每批不超过 100 条
+    const batchSize = 50;
+    for (let i = 0; i < progressRecords.length; i += batchSize) {
+      const batch = progressRecords.slice(i, i + batchSize);
+      const ids = batch.map(r => r._id);
+      await db.collection('study_progress').where({ _id: _.in(ids) }).remove();
+    }
   }
 
   // 重置用户统计字段
@@ -155,4 +186,4 @@ async function resetProgress(db, event, admin) {
   return { code: 0, msg: '学习进度已重置' };
 }
 
-module.exports = { list, detail, updateStatus, resetProgress };
+module.exports = { list, detail, updateStatus, batchUpdateStatus, resetProgress };

@@ -391,7 +391,7 @@ Get-ChildItem cloudfunctions -Directory | ForEach-Object { Set-Location $_.FullN
 
 1. 打开项目，点击「云开发」按钮
 2. 创建新环境或选择现有环境
-3. 记录环境 ID（如 `bio-d9gzmnqrif819033f`）
+3. 记录环境 ID
 4. 更新 `miniprogram/app.js` 第 8 行中的 `env` 字段
 
 #### 4️⃣ 上传并部署云函数

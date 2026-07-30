@@ -5,15 +5,15 @@ import { quizApi } from '../../lib/api'
 import { useQuizzes, cancelAndSetQueryData, rollbackPreviousData } from '../../hooks/useApi'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
-import { Card, CardContent } from '../../components/ui/card'
-import { Button } from '../../components/ui/button'
-import { Input } from '../../components/ui/input'
-import { Select } from '../../components/ui/select'
-import DataTable from '../../components/DataTable'
-import Pagination from '../../components/Pagination'
-import PageHeader from '../../components/PageHeader'
-import ConfirmDialog from '../../components/ConfirmDialog'
-import { Plus, Search, Edit, Trash2, RefreshCw } from 'lucide-react'
+import { Card, CardContent } from '../components/ui/card'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Select } from '../components/ui/select'
+import DataTable from '../components/DataTable'
+import Pagination from '../components/Pagination'
+import PageHeader from '../components/PageHeader'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X } from 'lucide-react'
 
 const questionTypes = {
   single: '单选题',
@@ -33,6 +33,8 @@ export default function QuizList() {
   const [typeFilter, setTypeFilter] = useState('')
   const [chapterFilter, setChapterFilter] = useState('')
   const [deleteId, setDeleteId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState([])
+  const [currentPageSelected, setCurrentPageSelected] = useState([])
 
   const pageSize = 20
 
@@ -42,7 +44,7 @@ export default function QuizList() {
     {}
   )
 
-  // Optimistic update for delete operation
+  // Single delete mutation
   const deleteMutation = useMutation({
     mutationFn: (quizId) => quizApi.delete(quizId),
     onMutate: async (quizId) => {
@@ -78,11 +80,63 @@ export default function QuizList() {
     },
   })
 
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (quizIds) => quizApi.batchDelete(quizIds),
+    onSuccess: () => {
+      success('已批量删除题目')
+      queryClient.invalidateQueries(['quiz'])
+      setSelectedIds([])
+      setCurrentPageSelected([])
+    },
+    onError: (err) => showError(err.message || '批量删除失败'),
+  })
+
   const handleRefresh = () => {
     refetch();
   }
 
+  // Toggle individual row selection
+  const toggleRowSelection = (rowId) => {
+    if (!isEditor) return
+    
+    if (currentPageSelected.includes(rowId)) {
+      setCurrentPageSelected(currentPageSelected.filter(id => id !== rowId))
+    } else {
+      setCurrentPageSelected([...currentPageSelected, rowId])
+    }
+  }
+
+  // Toggle all current page selection
+  const toggleAllSelection = () => {
+    if (!isEditor) return
+    
+    if (currentPageSelected.length === data?.list?.length) {
+      setCurrentPageSelected([])
+    } else {
+      setCurrentPageSelected(data?.list?.map(r => r._id) || [])
+    }
+  }
+
+  // Select/deselect all rows across pages (keep in sync)
+  const updateGlobalSelection = (newSelection) => {
+    if (!isEditor) return
+    setSelectedIds(newSelection)
+    setCurrentPageSelected(newSelection)
+  }
+
   const columns = [
+    {
+      key: '_id',
+      header: '',
+      width: '60px',
+      render: (_, row) => (
+        <Checkbox
+          checked={currentPageSelected.includes(row._id)}
+          onCheckedChange={() => toggleRowSelection(row._id)}
+        />
+      ),
+    },
     {
       key: 'stem',
       header: '题干',
@@ -184,12 +238,46 @@ export default function QuizList() {
             )}
           </div>
 
-          <DataTable columns={columns} data={data?.list} loading={isLoading} />
+          {isEditor && currentPageSelected.length > 0 && (
+            <div className="mb-4 flex items-center justify-between rounded-lg bg-primary/10 p-3">
+              <div className="flex items-center gap-2 text-primary">
+                <CheckSquare className="h-5 w-5" />
+                <span>已选择 {currentPageSelected.length} 道题目</span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => bulkDeleteMutation.mutate(currentPageSelected)}
+                  disabled={bulkDeleteMutation.isLoading}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  批量删除
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setCurrentPageSelected([])}>
+                  <X className="h-4 w-4" />
+                  取消
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <DataTable 
+            columns={columns} 
+            data={data?.list} 
+            loading={isLoading}
+            selectable={true}
+            selectedRows={currentPageSelected}
+            onSelectionChange={setCurrentPageSelected}
+          />
 
           <Pagination
             page={page}
             totalPages={data?.totalPages || 1}
-            onPageChange={setPage}
+            onPageChange={(newPage) => {
+              setPage(newPage)
+              setCurrentPageSelected([])
+            }}
             total={data?.total || 0}
             pageSize={pageSize}
           />
@@ -207,3 +295,6 @@ export default function QuizList() {
     </div>
   )
 }
+
+// Import Checkbox component
+import { Checkbox } from '../components/ui/checkbox'

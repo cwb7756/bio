@@ -81,6 +81,27 @@ async function del(db, event, admin) {
   return { code: 0, msg: '删除成功' };
 }
 
+// quiz.batchDelete: 批量删除题目（单次最多 100 条，服务端一次 where+remove 减少数据库调用）
+async function batchDelete(db, event, admin) {
+  const roleErr = requireRole(admin, 'editor');
+  if (roleErr) return roleErr;
+
+  const { questionIds } = event;
+  if (!Array.isArray(questionIds) || questionIds.length === 0) {
+    return { code: -1, msg: '缺少 questionIds' };
+  }
+  if (questionIds.length > 100) {
+    return { code: -1, msg: '单次最多删除 100 条' };
+  }
+
+  const _ = db.command;
+  const { stats } = await db.collection('quiz_questions')
+    .where({ _id: _.in(questionIds) })
+    .remove();
+
+  return { code: 0, data: { removed: stats.removed }, msg: '已删除 ' + stats.removed + ' 条题目' };
+}
+
 // quiz.batchImport: 批量导入
 async function batchImport(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
@@ -127,4 +148,4 @@ async function batchImport(db, event, admin) {
   return { code: 0, data: { added, failed, errors } };
 }
 
-module.exports = { list, create, update, del, batchImport };
+module.exports = { list, create, update, del, batchDelete, batchImport };

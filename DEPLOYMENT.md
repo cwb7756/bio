@@ -20,7 +20,7 @@ Before deploying, ensure you have:
 In the WeChat DevTools console:
 1. Open the project
 2. Go to Cloud Base → Environment Management
-3. Note your environment ID (e.g., `bio-d9gzmnqrif819033f`)
+3. Note your environment ID 
 4. Configure environment variables for cloud functions:
    - `JWT_SECRET` (for admin module)
    - `TENCENT_SECRET_ID`, `TENCENT_SECRET_KEY` (for Tencent AI services)
