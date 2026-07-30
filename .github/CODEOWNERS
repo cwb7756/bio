@@ -21,6 +21,17 @@ cloudfunctions/* @cwb7756
 miniprogram/* @cwb7756
 
 # =============================================
+# Web Admin Panel
+# =============================================
+webadmin/* @cwb7756
+
+# =============================================
+# 3D Model Subpackage & Toolchain
+# =============================================
+miniprogram/packages/3d-model/* @cwb7756
+tools/* @cwb7756
+
+# =============================================
 # CI/CD Configuration
 # =============================================
 .github/workflows/* @cwb7756
@@ -46,7 +57,7 @@ CHANGELOG.md @cwb7756
 # Project Configuration
 # =============================================
 project.config.json @cwb7756
-database.json @cwb7756
+docs/database.json @cwb7756
 package.json @cwb7756
 package-lock.json @cwb7756
 

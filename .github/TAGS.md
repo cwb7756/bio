@@ -24,6 +24,8 @@ This document outlines the tags used in the Bio repository for categorization an
 ### Area
 - `cloudfunctions` - Backend cloud function related
 - `miniprogram` - Frontend mini-program related
+- `webadmin` - Web admin panel (React + Vite)
+- `3d-model` - 3D model viewer, library and generation pipeline
 - `ui/ux` - User interface/experience
 - `performance` - Performance optimization
 - `security` - Security concerns
@@ -60,6 +62,10 @@ ai-tutor
 quiz-platform
 mistake-notebook
 flashcards-review
+3d-model-viewer
+xr-frame
+webadmin
+react-admin
 ```
 
 ## Milestones
@@ -74,4 +80,4 @@ Current milestone structure:
 
 ---
 
-Last Updated: July 28, 2026
+Last Updated: July 30, 2026

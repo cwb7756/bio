@@ -11,7 +11,7 @@
 [![CloudBase](https://img.shields.io/badge/Cloud-CloudBase-orange)](https://developers.weixin.qq.com/miniprogram/dev/wxopen/cloud-development/)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.0.0-339933?logo=node.js)](https://nodejs.org/)
 [![ESLint](https://img.shields.io/badge/ESLint-8.x-4B32C3)](https://eslint.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 </div>
 
@@ -85,6 +85,21 @@
 | 🏆 **成就系统** | 达成学习里程碑获得勋章奖励，记录学习荣誉墙 |
 | 📈 **学习报告** | 多维度数据分析（学习时长/正确率分布/知识点掌握度） |
 
+### 🧊 3D 模型库
+
+| 功能 | 描述 |
+| --- | --- |
+| 🧬 **生物结构模型** | DNA 双螺旋、动物细胞、叶绿体、线粒体、噬菌体等程序化生成 GLB 模型 |
+| 🖐️ **手势交互查看** | 基于 xr-frame 渲染，单指旋转、双指缩放、惯性滑动，沉浸式观察微观结构 |
+
+### 🖥️ Web 管理后台
+
+| 功能 | 描述 |
+| --- | --- |
+| 📊 **数据仪表盘** | 用户、课程、题目等核心指标可视化（React + Vite + Tailwind CSS） |
+| 🛠️ **全维度内容管理** | 用户、课程、知识点、题库、错题、成就、3D 模型、反馈与设置管理 |
+| 📦 **批量操作** | 用户批量封禁/解禁、题目批量删除，提升运营效率 |
+
 ### 👤 用户中心
 
 | 功能 | 描述 |
@@ -103,6 +118,7 @@
 | 刷题测验 | 针对知识点进行选择题练习并即时判分 |
 | 错题本 | 自动收录做错的题目，方便针对性复习 |
 | 闪卡复习 | 以卡片翻转形式复习核心知识点 |
+| 3D 模型库 | 浏览生物结构三维模型，支持手势旋转缩放查看 |
 | 学习宠物 | 陪伴式虚拟宠物，随学习进度成长 |
 | 成就系统 | 学习里程碑与成就解锁 |
 
@@ -120,6 +136,7 @@
 
 - **框架**: 微信小程序（原生开发，WXML + WXSS + JS）
 - **自定义组件**: TabBar、导航栏、知识图谱可视化
+- **3D 渲染**: xr-frame（微信官方 3D 引擎）+ three.js（three-platformize 适配层）
 - **状态管理**: App 全局 `globalData`
 - **缓存机制**: 本地 Storage + 缓存管理器 (`utils/cache.js`)
 - **UI 设计**: 手绘风格主题，SVG 线性图标（Tabler Icons）
@@ -136,11 +153,20 @@
 - **认证**: JWT + OpenID 双重验证
 - **工具链**: ESLint 8.x + 自定义安全规则插件
 
+### 管理后台技术
+
+- **框架**: React 18 + Vite 5（`webadmin/`）
+- **UI**: Tailwind CSS 3 + lucide-react 图标
+- **数据层**: TanStack Query + Axios（JWT 认证对接 admin 云函数）
+- **状态管理**: zustand
+- **图表**: Recharts
+
 ### 基础设施
 
 - **云开发环境**: CloudBase (自动扩缩容 Serverless)
 - **持续集成**: GitHub Actions (CI 工作流)
 - **代码质量**: ESLint 静态检查，语法验证
+- **模型工具链**: 程序化 GLB 模型生成脚本（`tools/`，共享 glb-builder 库）
 
 ### 第三方服务
 
@@ -163,11 +189,14 @@
 │   │   └── question.md
 │   ├── workflows/
 │   │   └── ci.yml                 # CI 工作流配置
-│   └── PULL_REQUEST_TEMPLATE.md   # PR 模板
+│   ├── CODEOWNERS                 # 代码审查负责人配置
+│   ├── PULL_REQUEST_TEMPLATE.md   # PR 模板
+│   ├── SECURITY.md                # 安全策略
+│   └── TAGS.md                    # 仓库标签指南
 │
 ├── cloudfunctions/                # 云函数集合
 │   ├── achievements/              # 成就系统：查询/获取勋章详情
-│   ├── admin/                     # 后台管理：用户管理、认证中间件
+│   ├── admin/                     # 后台管理：用户/课程/知识点/题库/错题/成就/模型等模块
 │   ├── aiChat/                    # AI 对话：流式问答、会话历史
 │   ├── aiCourseware/              # AI 课件：LLM 生成大纲、场景、配图、TTS
 │   ├── flashcards/                # 闪卡卡片：CRUD、复习记录
@@ -178,20 +207,24 @@
 │   ├── knowledgeMap/              # 知识图谱：节点数据、边关系图
 │   ├── login/                     # 用户登录：微信扫码 + 邮箱密码
 │   ├── mistakes/                  # 错题本：增删改查
+│   ├── modelLibrary/              # 3D 模型库：模型列表、下载临时链接
 │   ├── notebook/                  # 学习笔记：保存/获取/删除笔记
 │   ├── pet/                       # 学习宠物：状态查询/交互操作
 │   ├── quiz/                      # 刷题测验：题目获取/答题处理/成绩分析
 │   ├── report/                    # 学习报告：统计数据聚合
 │   ├── search/                    # 搜索功能：关键词检索
-│   ├── settings/                  # 设置：偏好修改
-│   └── flashcards/                # 闪卡复习：卡片 CRU D
+│   └── settings/                  # 设置：偏好修改
 │
 ├── miniprogram/                   # 小程序前端
 │   ├── assets/sounds/             # 音效资源（crisp/retro/soft 三套风格）
 │   ├── custom-tab-bar/            # 自定义底部导航栏（4 Tab）
 │   ├── images/                    # 图片与图标资源（宠物状态/教学插图）
+│   ├── packages/3d-model/         # 3D 模型分包
+│   │   ├── components/            # xr-model-viewer 模型渲染组件
+│   │   ├── pages/                 # gallery（模型库）/ viewer（模型查看）
+│   │   └── utils/                 # 模型加载工具
 │   ├── pages/                     # 页面组件
-│   │   ├── home/                  # 首页
+│   │   ├── home/                  # 首页（个性化课程、3D 模型库入口）
 │   │   ├── study/                 # 学习中心（课程概览）
 │   │   ├── course/                # 课程详情页
 │   │   ├── ai/                    # AI 课堂（AI 课件与讲解）
@@ -199,6 +232,7 @@
 │   │   ├── aiHub/                 # AI 功能入口页（已迁移为刷题页）
 │   │   ├── mine/                  # 我的（个人中心）
 │   │   ├── knowledge/             # 知识图谱详情页
+│   │   ├── knowledgeGraph/        # 知识图谱总览页
 │   │   ├── map/                   # 知识地图总览
 │   │   ├── quiz/                  # 刷题测验入口
 │   │   ├── quizEntry/             # 选择题考试界面
@@ -210,6 +244,8 @@
 │   │   ├── achievements/          # 成就系统
 │   │   ├── pet/                   # 学习宠物养成
 │   │   ├── login/                 # 登录页
+│   │   ├── profile/               # 个人资料编辑
+│   │   ├── search/                # 全局搜索
 │   │   ├── settings/              # 设置页
 │   │   └── feedback/              # 意见反馈
 │   ├── utils/                     # 工具函数
@@ -224,10 +260,28 @@
 │   ├── app.wxss                   # 全局样式
 │   └── sitemap.json               # 搜索引擎索引配置
 │
+├── webadmin/                      # Web 管理后台（React + Vite + Tailwind CSS）
+│   └── src/
+│       ├── components/            # 通用组件
+│       ├── hooks/                 # 自定义 Hooks
+│       ├── lib/                   # API 客户端与工具函数
+│       ├── pages/                 # 管理页面（users/courses/knowledge/quiz/mistakes/models/achievements/feedback/settings）
+│       └── stores/                # zustand 状态管理
+│
+├── tools/                         # 构建与资源生成脚本
+│   ├── lib/glb-builder.js         # GLB 构建共享库（MeshBuilder）
+│   ├── gen-dna-model.js           # DNA 双螺旋模型生成
+│   ├── gen-animal-cell-model.js   # 动物细胞模型生成
+│   ├── gen-chloroplast-model.js   # 叶绿体模型生成
+│   ├── gen-mitochondria-model.js  # 线粒体模型生成
+│   ├── gen-bacteriophage-model.js # 噬菌体模型生成
+│   └── gen-sounds.js              # 音效生成脚本
+│
 ├── docs/                          # 文档归档（不纳入 Git）
 │   ├── check.md                   # 上线前检查报告
 │   ├── courselist.md              # 课程列表规范
 │   ├── database-index-config.md   # 数据库索引配置指南
+│   ├── database.json              # 数据库权限配置
 │   ├── overview.md                # 项目交付概览
 │   └── performance-optimization.md # 性能优化方案
 │
@@ -244,7 +298,6 @@
 ├── CONTRIBUTING.md                # 贡献指南
 ├── DEPLOYMENT.md                  # 部署指南
 ├── LICENSE                        # MIT 许可证
-├── database.json                  # 数据库权限配置
 ├── package.json                   # 项目依赖（根目录）
 ├── package-lock.json              # 依赖锁定文件
 ├── project.config.json            # 微信项目配置
@@ -305,51 +358,6 @@ Made with ❤️ for high school biology students
 [Report Issues](https://github.com/cwb7756/bio/issues) • [View on GitHub](https://github.com/cwb7756/bio)
 
 </div>
-
-```
-bio/
-├── cloudfunctions/                # 云函数
-│   ├── achievements/              # 成就系统
-│   ├── flashcards/                # 闪卡复习
-│   ├── getCourseDetail/           # 课程详情
-│   ├── getCourseList/             # 课程列表
-│   ├── home/                      # 首页数据
-│   ├── knowledgeMap/              # 知识图谱
-│   ├── login/                     # 登录
-│   ├── mistakes/                  # 错题本
-│   ├── pet/                       # 学习宠物
-│   ├── quiz/                      # 刷题测验
-│   ├── report/                    # 学习报告
-│   └── settings/                  # 设置
-├── miniprogram/                   # 小程序前端
-│   ├── custom-tab-bar/            # 自定义底部导航栏
-│   ├── images/                    # 图片与图标资源
-│   ├── pages/                     # 页面
-│   │   ├── home/                  # 首页
-│   │   ├── study/                 # 学习中心
-│   │   ├── course/                # 课程详情
-│   │   ├── ai/                    # AI 答疑
-│   │   ├── mine/                  # 我的
-│   │   ├── knowledge/             # 知识图谱
-│   │   ├── quiz/                  # 刷题测验
-│   │   ├── quizSummary/           # 测验总结
-│   │   ├── flashcards/            # 闪卡复习
-│   │   ├── mistakes/              # 错题本
-│   │   ├── report/                # 学习报告
-│   │   ├── achievements/          # 成就系统
-│   │   ├── pet/                   # 学习宠物
-│   │   ├── map/                   # 知识地图
-│   │   ├── login/                 # 登录
-│   │   └── settings/              # 设置
-│   ├── utils/                     # 工具函数
-│   ├── app.js                     # 小程序入口
-│   ├── app.json                   # 全局配置
-│   ├── app.wxss                   # 全局样式
-│   └── sitemap.json               # 搜索索引配置
-├── docs/                          # 项目文档
-├── project.config.json            # 项目配置
-└── README.md                      # 项目说明
-```
 
 ## 🚀 快速开始
 

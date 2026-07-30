@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Web admin panel (`webadmin/`): React 18 + Vite + Tailwind CSS dashboard managing users, courses, knowledge points, quiz questions, mistakes, achievements, 3D models, feedback and settings via the `admin` cloud function (JWT auth)
+- Admin batch operations: bulk user ban/unban (`user.batchUpdateStatus`) and bulk quiz question deletion (`quiz.batchDelete`), up to 100 items per call with role-based permission checks
+- Admin mistake management (`mistakesModule`): mistake list query, export and batch deletion with `_openid`/`userID` compatibility
+- 3D model library:
+  - `modelLibrary` cloud function serving model list and temporary download URLs
+  - Admin model management (`modelModule`) with base64 upload, format validation and CRUD
+  - `packages/3d-model` subpackage with gallery and viewer pages (xr-frame rendering)
+  - Custom gesture controls: one-finger rotation, two-finger pinch zoom and inertial gliding, replacing camera-orbit-control
+  - Dynamic `xr-gltf` creation after model load for accurate loading states
+- Personalized course entry on home page, marked as premium with rotating-glow button animation; grid layout rebuilt with CSS Grid
+- Back button on login page; project logo replaces the flame icon
+- Programmatic 3D model toolchain (`tools/`): shared `glb-builder` (MeshBuilder) library with generators for DNA double helix, animal cell, chloroplast, mitochondria and bacteriophage models
 - Initial public release structure
 - Comprehensive documentation (README, CONTRIBUTING, DEPLOYMENT)
 - GitHub Actions CI workflow
@@ -27,9 +39,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Learning statistics dashboard
 
 ### Changed
+- Unified knowledge field naming across backend and webadmin: knowledge point `content` → `desc`, graph node `name` → `title` (with new difficulty field), edge `relation` → `type`, flashcard front/back → title/content
+- Home quick entry switched from flashcards to the 3D model library
+- Study page simplified: knowledge-map related UI and logic removed
+- Viewer page: status-bar height adaptation, back button and updated gesture hints
+- Bumped project `libVersion` to 3.17.0
 - Refactored authentication flow with proper OpenID isolation
 - Enhanced security with rate limiting on login attempts
 - Updated AI model integration to use Hunyuan-v3 / DeepSeek models
+
+### Removed
+- GLTFLoader and all glTF extension code from three-platformize (DRACO/KTX2/Meshopt handling, material and lighting extensions), significantly reducing bundle size
 
 ### Security
 - Implemented strict user data isolation using `_openid`
