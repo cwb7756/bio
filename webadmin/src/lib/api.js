@@ -27,8 +27,19 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // 清除认证信息
       useAuthStore.getState().logout();
-      window.location.href = '/login';
+      
+      // 只在必要时跳转到登录页（避免重复跳转）
+      const shouldRedirect = !localStorage.getItem('auth-error');
+      localStorage.setItem('auth-error', 'true');
+      
+      if (shouldRedirect) {
+        setTimeout(() => {
+          window.location.href = '/login';
+          localStorage.removeItem('auth-error');
+        }, 800);
+      }
     }
     return Promise.reject(error);
   }
@@ -99,9 +110,9 @@ export const quizApi = {
 
 // Mistakes API (admin only)
 export const mistakeApi = {
-  list: (params) => api.post('mistake.list', params),
-  export: (userId) => api.post('mistake.export', { userId }),
-  bulkDelete: (mistakeIds) => api.post('mistake.bulkDelete', { mistakeIds }),
+  list: (params) => api.post('mistakes.list', params),
+  export: (userId) => api.post('mistakes.export', { userId }),
+  bulkDelete: (mistakeIds) => api.post('mistakes.bulkDelete', { mistakeIds }),
 };
 
 // Study progress API (admin only)

@@ -34,7 +34,20 @@ export default function MistakeList() {
 
   const { data: mistakesData, isLoading } = useQuery({
     queryKey: ['mistakes', searchTerm, userIdFilter],
-    queryFn: () => mistakeApi.list({ page: 1, pageSize: 50, chapter: searchTerm || '', userId: userIdFilter || undefined }),
+    queryFn: async () => {
+      try {
+        const res = await mistakeApi.list({ page: 1, pageSize: 50, search: searchTerm || '', userId: userIdFilter || undefined })
+        // 兼容不同响应格式
+        return {
+          list: res?.list || res?.data?.list || [],
+          total: res?.total || res?.data?.total || (res?.list || res?.data?.list || []).length,
+          ...res
+        }
+      } catch (error) {
+        console.error('Failed to load mistakes:', error)
+        throw error
+      }
+    },
   })
 
   const deleteMutation = useMutation({
@@ -45,7 +58,7 @@ export default function MistakeList() {
       setSelectedMistakes([])
       setDeleteIds(null)
     },
-    onError: (err) => showError(err.message),
+    onError: (err) => showError(err.response?.data?.message || err.message || '删除失败'),
   })
 
   const exportMutation = useMutation({
@@ -61,7 +74,7 @@ export default function MistakeList() {
       URL.revokeObjectURL(url)
       success('错题已导出')
     },
-    onError: (err) => showError(err.message),
+    onError: (err) => showError(err.response?.data?.message || err.message || '导出失败'),
   })
 
   const handleUserSelect = (e) => {
@@ -69,10 +82,10 @@ export default function MistakeList() {
   }
 
   const toggleSelectAll = () => {
-    if (selectedMistakes.length === mistakes?.list?.length) {
+    if (selectedMistakes.length === mistakes.length) {
       setSelectedMistakes([])
     } else {
-      setSelectedMistakes(mistakes?.list?.map(m => m._id) || [])
+      setSelectedMistakes(mistakes.map(m => m._id))
     }
   }
 
@@ -92,8 +105,8 @@ export default function MistakeList() {
     exportMutation.mutate(userId)
   }
 
-  const mistakes = mistakesData?.list || []
-  const usersList = users?.data?.list || users?.list || []
+  const mistakes = (mistakesData?.list || mistakesData?.data?.list || [])
+  const usersList = (users?.data?.list || users?.list) || []
 
   return (
     <div className="space-y-6">
@@ -145,12 +158,12 @@ export default function MistakeList() {
           
           <div className="mt-4 flex justify-between items-center">
             <div className="text-sm text-muted-foreground">
-              共 {mistakesData?.total || 0} 条错题
+              共 {mistakesData?.total || mistakes.length} 条错题
             </div>
             <Button 
               variant="outline" 
               onClick={() => exportMutation.mutate(userIdFilter || usersList[0]?._id)}
-              disabled={exportMutation.isPending || !userIdFilter && usersList.length === 0}
+              disabled={exportMutation.isPending || (!userIdFilter && usersList.length === 0)}
             >
               <Download className="h-4 w-4 mr-2" />
               {exportMutation.isPending ? '导出中...' : '导出错题本'}
@@ -163,7 +176,7 @@ export default function MistakeList() {
       <Card>
         <CardHeader>
           <CardTitle>错题列表</CardTitle>
-          <CardDescription>共 {mistakesData?.total || 0} 条错题</CardDescription>
+          <CardDescription>共 {mistakesData?.total || mistakes.length} 条错题</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../hooks/useToast'
@@ -15,6 +15,24 @@ export default function Login() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showErrorToast, setShowErrorToast] = useState(false)
+
+  // 检测登录过期标志并显示提示
+  useEffect(() => {
+    const authError = localStorage.getItem('auth-error')
+    if (authError) {
+      setShowErrorToast(true)
+      setTimeout(() => {
+        localStorage.removeItem('auth-error')
+        setShowErrorToast(false)
+      }, 5000)
+    }
+    // 清空 auth-error 标志，避免刷新后一直显示
+    if (username || password) {
+      localStorage.removeItem('auth-error')
+      setShowErrorToast(false)
+    }
+  }, [username, password])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -27,7 +45,7 @@ export default function Login() {
       await login(username, password)
       navigate('/')
     } catch (err) {
-      showError(err.message || '登录失败，请检查用户名和密码')
+      showError(err.response?.data?.message || err.message || '登录失败，请检查用户名和密码')
     } finally {
       setLoading(false)
     }

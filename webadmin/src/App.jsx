@@ -56,6 +56,7 @@ export default function App() {
         <Route path="quiz/:id/edit" element={<ProtectedRoute roles={['superadmin', 'editor']}><QuizEdit /></ProtectedRoute>} />
         <Route path="quiz/import" element={<ProtectedRoute roles={['superadmin', 'editor']}><QuizImport /></ProtectedRoute>} />
         <Route path="mistakes" element={<ProtectedRoute roles={['superadmin', 'editor', 'viewer']}><MistakeList /></ProtectedRoute>} />
+        <Route path="knowledge" element={<Navigate to="/knowledge/points" replace />} />
         <Route path="knowledge/points" element={<KnowledgePoints />} />
         <Route path="knowledge/graph" element={<KnowledgeGraph />} />
         <Route path="knowledge/flashcards" element={<Flashcards />} />

@@ -14,6 +14,7 @@ const achievementModule = require('./modules/achievementModule');
 const feedbackModule = require('./modules/feedbackModule');
 const settingsModule = require('./modules/settingsModule');
 const modelModule = require('./modules/modelModule');
+const mistakesModule = require('./modules/mistakesModule');
 
 // Import middlewares
 const { authMiddleware } = require('./lib/middleware');
@@ -90,7 +91,12 @@ const ROUTES = {
   'model.uploadFile': modelModule.uploadFile,
   'model.update': modelModule.update,
   'model.delete': modelModule.delete,
-  'model.download': modelModule.download
+  'model.download': modelModule.download,
+  
+  // Mistake management
+  'mistakes.list': mistakesModule.list,
+  'mistakes.export': mistakesModule.export,
+  'mistakes.bulkDelete': mistakesModule.bulkDelete
 };
 
 // Main entry point

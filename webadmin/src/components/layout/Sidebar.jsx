@@ -21,7 +21,7 @@ const navItems = [
   { path: '/courses', label: '课程管理', icon: BookOpen, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/quiz', label: '题库管理', icon: HelpCircle, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/mistakes', label: '错题管理', icon: TrendingUp, roles: ['superadmin', 'editor', 'viewer'] },
-  { path: '/knowledge/points', label: '知识体系', icon: Network, roles: ['superadmin', 'editor', 'viewer'] },
+  { path: '/knowledge', label: '知识体系', icon: Network, roles: ['superadmin', 'editor', 'viewer'], hasChildren: true },
   { path: '/models', label: '3D 模型', icon: Box, roles: ['superadmin', 'editor'] },
   { path: '/achievements', label: '成就管理', icon: Trophy, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/feedback', label: '反馈管理', icon: MessageSquare, roles: ['superadmin', 'editor', 'viewer'] },
@@ -62,8 +62,11 @@ export default function Sidebar({ collapsed, onToggle }) {
       <nav className="flex-1 overflow-y-auto py-4">
         {filteredItems.map((item) => {
           const Icon = item.icon
-          const isActive = location.pathname === item.path ||
-            (item.path === '/knowledge/points' && location.pathname.startsWith('/knowledge'))
+          // 知识体系特殊处理：只要是 /knowledge 路径都高亮
+          let isActive = location.pathname === item.path
+          if (item.path === '/knowledge/points') {
+            isActive = location.pathname.startsWith('/knowledge')
+          }
 
           return (
             <NavLink
@@ -88,17 +91,17 @@ export default function Sidebar({ collapsed, onToggle }) {
 
         {/* Knowledge sub-menu */}
         {!collapsed && location.pathname.startsWith('/knowledge') && (
-          <div className="ml-8 mt-1 space-y-1 border-l pl-4">
+          <div className="mb-4 ml-8 mt-4 space-y-1 border-l pl-4">
             {knowledgeSubItems.map((sub) => (
               <NavLink
                 key={sub.path}
                 to={sub.path}
                 className={({ isActive }) =>
                   cn(
-                    'block py-1.5 text-sm transition-colors',
+                    'block px-3 py-2 text-sm transition-colors rounded-md',
                     isActive
-                      ? 'text-primary font-medium'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-primary font-medium bg-accent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
                   )
                 }
               >
