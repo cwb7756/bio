@@ -14,7 +14,7 @@
 }
 
 .page-header {
-  padding: 30rpx 8rpx 10rpx;
+  padding: 64rpx 8rpx 10rpx;
 }
 
 .page-title {

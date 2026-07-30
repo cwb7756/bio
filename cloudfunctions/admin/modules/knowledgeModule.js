@@ -15,7 +15,7 @@ async function listPoints(db, event, _admin) {
     const _ = db.command;
     query = _.or([
       { title: db.RegExp({ regexp: search, options: 'i' }) },
-      { content: db.RegExp({ regexp: search, options: 'i' }) }
+      { desc: db.RegExp({ regexp: search, options: 'i' }) }
     ]);
   }
 
@@ -34,11 +34,13 @@ async function savePoint(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
-  const { pointId, title, content, chapter, topic, sort } = event;
+  const { pointId, title, desc, chapter, sort } = event;
   if (!title) return { code: -1, msg: '标题不能为空' };
 
   const now = Date.now();
-  const data = { title, content: content || '', chapter: chapter || '', topic: topic || '', sort: sort || 0, updatedAt: now };
+  // 字段对齐 knowledge_points 集合：title/desc/chapter/icon/sort
+  const data = { title, desc: desc || '', chapter: chapter || '', updatedAt: now };
+  if (sort !== undefined) data.sort = Number(sort) || 0;
 
   if (pointId) {
     await db.collection('knowledge_points').doc(pointId).update({ data });
@@ -46,6 +48,8 @@ async function savePoint(db, event, admin) {
   }
 
   data.createdAt = now;
+  data.icon = 'ic-target';
+  data.sort = data.sort || 0;
   const { _id } = await db.collection('knowledge_points').add({ data });
   return { code: 0, data: { _id } };
 }
@@ -84,7 +88,7 @@ async function saveGraph(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
-  const { type, id, ...data } = event;
+  const { type, id, relation, ...data } = event;
   // type: 'node' | 'edge'
   if (type !== 'node' && type !== 'edge') {
     return { code: -1, msg: 'type 必须为 node 或 edge' };
@@ -93,6 +97,8 @@ async function saveGraph(db, event, admin) {
   const collection = type === 'node' ? 'knowledge_graph_nodes' : 'knowledge_graph_edges';
   const now = Date.now();
   data.updatedAt = now;
+  // 边的关系类型由前端用 relation 传递，存入时映射回 type 字段（contains/prerequisite）
+  if (type === 'edge' && relation) data.type = relation;
 
   if (id) {
     await db.collection(collection).doc(id).update({ data });
@@ -146,11 +152,13 @@ async function saveFlashcard(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
-  const { flashcardId, front, back, chapter, scope } = event;
-  if (!front) return { code: -1, msg: '正面内容不能为空' };
+  const { flashcardId, title, content, chapter, scope } = event;
+  if (!title) return { code: -1, msg: '标题不能为空' };
+  if (!content) return { code: -1, msg: '内容不能为空' };
 
   const now = Date.now();
-  const data = { front, back: back || '', chapter: chapter || '', scope: scope || 'system', updatedAt: now };
+  // 字段对齐 flashcards 集合：title/content/chapter/scope/icon/sort
+  const data = { title, content, chapter: chapter || '', scope: scope || 'system', updatedAt: now };
 
   if (flashcardId) {
     await db.collection('flashcards').doc(flashcardId).update({ data });
@@ -158,6 +166,8 @@ async function saveFlashcard(db, event, admin) {
   }
 
   data.createdAt = now;
+  data.icon = 'ic-folder';
+  data.sort = 0;
   const { _id } = await db.collection('flashcards').add({ data });
   return { code: 0, data: { _id } };
 }

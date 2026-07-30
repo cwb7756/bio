@@ -136,10 +136,10 @@ export const knowledgeApi = {
   deletePoint: (pointId) => api.post('knowledge.deletePoint', { pointId }),
   listGraph: () => api.post('knowledge.listGraph'),
   saveGraph: (data) => api.post('knowledge.saveGraph', data),
-  deleteGraph: (id) => api.post('knowledge.deleteGraph', { id }),
+  deleteGraph: (id, type) => api.post('knowledge.deleteGraph', { id, type }),
   flashcardList: () => api.post('flashcard.list'),
   saveFlashcard: (data) => api.post('flashcard.save', data),
-  deleteFlashcard: (cardId) => api.post('flashcard.delete', { cardId }),
+  deleteFlashcard: (flashcardId) => api.post('flashcard.delete', { flashcardId }),
 };
 
 // Achievement API

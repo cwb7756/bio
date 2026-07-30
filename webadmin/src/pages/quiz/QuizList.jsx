@@ -13,7 +13,7 @@ import DataTable from '../../components/DataTable'
 import Pagination from '../../components/Pagination'
 import PageHeader from '../../components/PageHeader'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X, Upload } from 'lucide-react'
 
 const questionTypes = {
   single: '单选题',
@@ -33,7 +33,6 @@ export default function QuizList() {
   const [typeFilter, setTypeFilter] = useState('')
   const [chapterFilter, setChapterFilter] = useState('')
   const [deleteId, setDeleteId] = useState(null)
-  const [selectedIds, setSelectedIds] = useState([])
   const [currentPageSelected, setCurrentPageSelected] = useState([])
 
   const pageSize = 20
@@ -86,7 +85,6 @@ export default function QuizList() {
     onSuccess: () => {
       success('已批量删除题目')
       queryClient.invalidateQueries(['quiz'])
-      setSelectedIds([])
       setCurrentPageSelected([])
     },
     onError: (err) => showError(err.message || '批量删除失败'),
@@ -96,47 +94,7 @@ export default function QuizList() {
     refetch();
   }
 
-  // Toggle individual row selection
-  const toggleRowSelection = (rowId) => {
-    if (!isEditor) return
-    
-    if (currentPageSelected.includes(rowId)) {
-      setCurrentPageSelected(currentPageSelected.filter(id => id !== rowId))
-    } else {
-      setCurrentPageSelected([...currentPageSelected, rowId])
-    }
-  }
-
-  // Toggle all current page selection
-  const toggleAllSelection = () => {
-    if (!isEditor) return
-    
-    if (currentPageSelected.length === data?.list?.length) {
-      setCurrentPageSelected([])
-    } else {
-      setCurrentPageSelected(data?.list?.map(r => r._id) || [])
-    }
-  }
-
-  // Select/deselect all rows across pages (keep in sync)
-  const updateGlobalSelection = (newSelection) => {
-    if (!isEditor) return
-    setSelectedIds(newSelection)
-    setCurrentPageSelected(newSelection)
-  }
-
   const columns = [
-    {
-      key: '_id',
-      header: '',
-      width: '60px',
-      render: (_, row) => (
-        <Checkbox
-          checked={currentPageSelected.includes(row._id)}
-          onCheckedChange={() => toggleRowSelection(row._id)}
-        />
-      ),
-    },
     {
       key: 'stem',
       header: '题干',
@@ -266,7 +224,7 @@ export default function QuizList() {
             columns={columns} 
             data={data?.list} 
             loading={isLoading}
-            selectable={true}
+            selectable={isEditor}
             selectedRows={currentPageSelected}
             onSelectionChange={setCurrentPageSelected}
           />
@@ -295,6 +253,3 @@ export default function QuizList() {
     </div>
   )
 }
-
-// Import Checkbox component
-import { Checkbox } from '../../components/ui/checkbox'

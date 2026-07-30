@@ -8,7 +8,6 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { Textarea } from '../../components/ui/textarea'
-import { Select } from '../../components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog'
 import DataTable from '../../components/DataTable'
 import PageHeader from '../../components/PageHeader'
@@ -24,7 +23,7 @@ export default function Flashcards() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingCard, setEditingCard] = useState(null)
   const [deleteId, setDeleteId] = useState(null)
-  const [form, setForm] = useState({ front: '', back: '', chapter: '', difficulty: 'medium' })
+  const [form, setForm] = useState({ title: '', content: '', chapter: '' })
 
   const { data, isLoading } = useQuery({
     queryKey: ['flashcards'],
@@ -54,42 +53,38 @@ export default function Flashcards() {
 
   const handleOpenCreate = () => {
     setEditingCard(null)
-    setForm({ front: '', back: '', chapter: '', difficulty: 'medium' })
+    setForm({ title: '', content: '', chapter: '' })
     setDialogOpen(true)
   }
 
   const handleEdit = (card) => {
     setEditingCard(card)
     setForm({
-      front: card.front || '',
-      back: card.back || '',
+      title: card.title || '',
+      content: card.content || '',
       chapter: card.chapter || '',
-      difficulty: card.difficulty || 'medium',
     })
     setDialogOpen(true)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!form.front || !form.back) {
-      showError('请输入正面和背面内容')
+    if (!form.title || !form.content) {
+      showError('请输入标题和内容')
       return
     }
-    saveMutation.mutate({ ...form, cardId: editingCard?._id })
+    saveMutation.mutate({ ...form, flashcardId: editingCard?._id })
   }
 
   const filteredData = (data?.list || data || []).filter((item) =>
-    !search || item.front?.includes(search) || item.chapter?.includes(search)
+    !search || item.title?.includes(search) || item.chapter?.includes(search)
   )
 
   const columns = [
-    { key: 'front', header: '正面', render: (v) => <span className="font-medium">{v?.length > 40 ? v.substring(0, 40) + '...' : v}</span> },
-    { key: 'back', header: '背面', render: (v) => v?.length > 40 ? v.substring(0, 40) + '...' : v },
+    { key: 'title', header: '标题', render: (v) => <span className="font-medium">{v?.length > 40 ? v.substring(0, 40) + '...' : v}</span> },
+    { key: 'content', header: '内容', render: (v) => v?.length > 40 ? v.substring(0, 40) + '...' : (v != null ? v : '-') },
     { key: 'chapter', header: '章节', render: (v) => v != null ? v : '-' },
-    { key: 'difficulty', header: '难度', render: (v) => {
-      const labels = { easy: '简单', medium: '中等', hard: '困难' }
-      return labels[v] || (v != null ? v : '-')
-    }},
+    { key: 'scope', header: '来源', render: (v) => v === 'user' ? '用户' : '系统' },
     {
       key: 'actions',
       header: '操作',
@@ -148,20 +143,20 @@ export default function Flashcards() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>正面内容 *</Label>
+              <Label>标题 *</Label>
               <Textarea
-                value={form.front}
-                onChange={(e) => setForm({ ...form, front: e.target.value })}
-                placeholder="正面问题或术语"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="卡片标题，如：细胞膜的流动镶嵌模型"
                 rows={2}
               />
             </div>
             <div className="space-y-2">
-              <Label>背面内容 *</Label>
+              <Label>内容 *</Label>
               <Textarea
-                value={form.back}
-                onChange={(e) => setForm({ ...form, back: e.target.value })}
-                placeholder="背面答案或解释"
+                value={form.content}
+                onChange={(e) => setForm({ ...form, content: e.target.value })}
+                placeholder="卡片内容要点"
                 rows={3}
               />
             </div>
@@ -171,16 +166,8 @@ export default function Flashcards() {
                 <Input
                   value={form.chapter}
                   onChange={(e) => setForm({ ...form, chapter: e.target.value })}
-                  placeholder="如：细胞结构"
+                  placeholder="如：必修一"
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>难度</Label>
-                <Select value={form.difficulty} onChange={(e) => setForm({ ...form, difficulty: e.target.value })}>
-                  <option value="easy">简单</option>
-                  <option value="medium">中等</option>
-                  <option value="hard">困难</option>
-                </Select>
               </div>
             </div>
             <DialogFooter>

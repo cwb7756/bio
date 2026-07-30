@@ -24,7 +24,7 @@ export default function KnowledgePoints() {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingPoint, setEditingPoint] = useState(null)
   const [deleteId, setDeleteId] = useState(null)
-  const [form, setForm] = useState({ name: '', chapter: '', description: '', keyPoints: '' })
+  const [form, setForm] = useState({ title: '', chapter: '', desc: '' })
 
   const { data, isLoading } = useQuery({
     queryKey: ['knowledge-points'],
@@ -54,24 +54,23 @@ export default function KnowledgePoints() {
 
   const handleOpenCreate = () => {
     setEditingPoint(null)
-    setForm({ name: '', chapter: '', description: '', keyPoints: '' })
+    setForm({ title: '', chapter: '', desc: '' })
     setDialogOpen(true)
   }
 
   const handleEdit = (point) => {
     setEditingPoint(point)
     setForm({
-      name: point.name || '',
+      title: point.title || '',
       chapter: point.chapter || '',
-      description: point.description || '',
-      keyPoints: point.keyPoints || '',
+      desc: point.desc || '',
     })
     setDialogOpen(true)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!form.name) {
+    if (!form.title) {
       showError('请输入知识点名称')
       return
     }
@@ -79,13 +78,13 @@ export default function KnowledgePoints() {
   }
 
   const filteredData = (data?.list || data || []).filter((item) =>
-    !search || item.name?.includes(search) || item.chapter?.includes(search)
+    !search || item.title?.includes(search) || item.chapter?.includes(search)
   )
 
   const columns = [
-    { key: 'name', header: '知识点名称', render: (v) => <span className="font-medium">{v}</span> },
+    { key: 'title', header: '知识点名称', render: (v) => <span className="font-medium">{v}</span> },
     { key: 'chapter', header: '章节', render: (v) => v != null ? v : '-' },
-    { key: 'description', header: '描述', render: (v) => v?.length > 50 ? v.substring(0, 50) + '...' : (v != null ? v : '-') },
+    { key: 'desc', header: '描述', render: (v) => v?.length > 50 ? v.substring(0, 50) + '...' : (v != null ? v : '-') },
     {
       key: 'actions',
       header: '操作',
@@ -146,8 +145,8 @@ export default function KnowledgePoints() {
             <div className="space-y-2">
               <Label>知识点名称 *</Label>
               <Input
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="如：细胞膜的结构"
               />
             </div>
@@ -156,24 +155,15 @@ export default function KnowledgePoints() {
               <Input
                 value={form.chapter}
                 onChange={(e) => setForm({ ...form, chapter: e.target.value })}
-                placeholder="如：细胞结构"
+                placeholder="如：必修一"
               />
             </div>
             <div className="space-y-2">
               <Label>描述</Label>
               <Textarea
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                value={form.desc}
+                onChange={(e) => setForm({ ...form, desc: e.target.value })}
                 placeholder="知识点描述"
-                rows={3}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>要点</Label>
-              <Textarea
-                value={form.keyPoints}
-                onChange={(e) => setForm({ ...form, keyPoints: e.target.value })}
-                placeholder="知识点要点"
                 rows={3}
               />
             </div>

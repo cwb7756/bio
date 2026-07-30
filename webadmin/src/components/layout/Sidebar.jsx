@@ -62,54 +62,50 @@ export default function Sidebar({ collapsed, onToggle }) {
       <nav className="flex-1 overflow-y-auto py-4">
         {filteredItems.map((item) => {
           const Icon = item.icon
-          // 知识体系特殊处理：只要是 /knowledge 路径都高亮
-          let isActive = location.pathname === item.path
-          if (item.path === '/knowledge/points') {
-            isActive = location.pathname.startsWith('/knowledge')
-          }
 
           return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/'}
-              className={({ isActive }) =>
-                cn(
-                  'flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                )
-              }
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className="h-5 w-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          )
-        })}
-
-        {/* Knowledge sub-menu */}
-        {!collapsed && location.pathname.startsWith('/knowledge') && (
-          <div className="mb-4 ml-8 mt-4 space-y-1 border-l pl-4">
-            {knowledgeSubItems.map((sub) => (
+            <div key={item.path}>
               <NavLink
-                key={sub.path}
-                to={sub.path}
+                to={item.path}
+                end={item.path === '/'}
                 className={({ isActive }) =>
                   cn(
-                    'block px-3 py-2 text-sm transition-colors rounded-md',
+                    'flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors',
                     isActive
-                      ? 'text-primary font-medium bg-accent'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                   )
                 }
+                title={collapsed ? item.label : undefined}
               >
-                {sub.label}
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
               </NavLink>
-            ))}
-          </div>
-        )}
+
+              {/* 知识体系子菜单：紧跟父项下方展开 */}
+              {item.hasChildren && !collapsed && location.pathname.startsWith(item.path) && (
+                <div className="my-1 ml-8 space-y-1 border-l pl-4">
+                  {knowledgeSubItems.map((sub) => (
+                    <NavLink
+                      key={sub.path}
+                      to={sub.path}
+                      className={({ isActive }) =>
+                        cn(
+                          'block px-3 py-2 text-sm transition-colors rounded-md',
+                          isActive
+                            ? 'text-primary font-medium bg-accent'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                        )
+                      }
+                    >
+                      {sub.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </nav>
 
       {/* Toggle button */}
