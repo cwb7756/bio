@@ -22,6 +22,15 @@ Page({
     }
   },
 
+  // ---- 返回上一页 ----
+  goBack() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: '/pages/home/home' });
+    }
+  },
+
   // ---- 登录/注册模式切换 ----
   switchAuthMode(e) {
     const mode = e.currentTarget.dataset.mode;

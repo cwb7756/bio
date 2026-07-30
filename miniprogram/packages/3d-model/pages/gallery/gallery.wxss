@@ -62,16 +62,15 @@
   padding: 16rpx 40rpx;
 }
 
-/* 网格 */
+/* 网格：强制两列并排（CSS Grid 精确分配，避免 flex + calc 的 rpx 舍入误差导致换行） */
 .grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 24rpx;
   margin-top: 30rpx;
 }
 
 .grid-item {
-  width: calc(50% - 12rpx);
   border: 4rpx solid var(--line, #1E2621);
   border-radius: 32rpx 26rpx 34rpx 24rpx;
   background: var(--paper, #FFFFFF);
@@ -150,7 +149,9 @@
   text-transform: uppercase;
 }
 
+/* 空状态在网格中跨满两列 */
 .empty {
+  grid-column: 1 / -1;
   width: 100%;
 }
 

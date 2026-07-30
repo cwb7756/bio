@@ -18,12 +18,12 @@ Page({
     continueLearning: null,
     isLoggedIn: false,
     features: [
-      { icon: 'ic-microscope', name: '知识图解', bg: 'g', path: '/pages/knowledgeGraph/knowledgeGraph' },
+      { icon: 'ic-book-sparkle', name: '个性化课程', bg: 'g', path: '/pages/aiClassroom/aiClassroom', premium: true },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/aiHub/aiHub' },
       { icon: 'ic-cube', name: '3D模型', bg: 'g3', path: '/packages/3d-model/pages/gallery/gallery' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },
       { icon: 'ic-video', name: 'B站课程', bg: 'g5', path: '/pages/study/study' },
-      { icon: 'ic-bot', name: '个性化课程', bg: 'g6', path: '/pages/aiClassroom/aiClassroom' }
+      { icon: 'ic-microscope', name: '知识图解', bg: 'g6', path: '/pages/knowledgeGraph/knowledgeGraph' }
     ],
     hotTopics: []
   },

@@ -71,7 +71,7 @@
           data-path="{{item.path}}"
           bindtap="goFeature"
         >
-          <view class="feat-ic ic-{{item.bg}}">
+          <view class="feat-ic ic-{{item.bg}} {{item.premium ? 'feat-premium' : ''}}">
             <view class="icon {{item.icon}} feat-icon"></view>
           </view>
           <text class="feat-name">{{item.name}}</text>

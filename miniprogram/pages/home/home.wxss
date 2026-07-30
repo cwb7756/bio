@@ -223,6 +223,8 @@
 }
 
 .feat {
+  position: relative;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -260,6 +262,41 @@
 .ic-g4 { background: var(--green-soft2); }
 .ic-g5 { background: #E7EEFB; }
 .ic-g6 { background: #FBE7EF; }
+
+/* 高级感按钮：流光溢彩旋转光环 */
+.feat-premium {
+  position: relative;
+}
+
+.feat-premium::before,
+.feat-premium::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #FFA8C5, #FFD89E, #FFF3A0, #A8E6B0, #9AD8FF, #C9B3FF, #FFA8C5);
+  animation: feat-premium-flow 3s linear infinite;
+  z-index: -1;
+}
+
+.feat-premium::before {
+  left: -10rpx;
+  top: -10rpx;
+  right: -10rpx;
+  bottom: -10rpx;
+}
+
+.feat-premium::after {
+  left: -18rpx;
+  top: -18rpx;
+  right: -18rpx;
+  bottom: -18rpx;
+  opacity: .5;
+  filter: blur(12rpx);
+}
+
+@keyframes feat-premium-flow {
+  to { transform: rotate(360deg); }
+}
 
 .feat-name {
   font-size: 25rpx;

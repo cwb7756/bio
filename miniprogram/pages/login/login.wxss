@@ -21,6 +21,33 @@
   overflow: hidden;
 }
 
+/* ---- 返回按钮 ---- */
+.hero-back {
+  position: absolute;
+  top: 24rpx;
+  left: 24rpx;
+  z-index: 3;
+  width: 92rpx;
+  height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 4rpx solid var(--line);
+  border-radius: 32rpx 26rpx 34rpx 24rpx;
+  box-shadow: var(--sh-sm);
+}
+
+.hero-back:active {
+  transform: translate(3rpx, 3rpx);
+  box-shadow: 0 0 0 var(--line);
+}
+
+.hero-back .icon {
+  width: 46rpx;
+  height: 46rpx;
+}
+
 .hero-deco {
   position: absolute;
   top: 0;

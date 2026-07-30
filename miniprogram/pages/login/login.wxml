@@ -7,6 +7,10 @@
 
   <!-- 顶部渐变区 -->
   <view class="hero">
+    <!-- 返回按钮 -->
+    <view class="hero-back" bindtap="goBack">
+      <view class="icon ic-back"></view>
+    </view>
     <view class="hero-deco">
       <view class="icon ic-dna hero-dna"></view>
       <view class="icon ic-leaf hero-leaf"></view>
