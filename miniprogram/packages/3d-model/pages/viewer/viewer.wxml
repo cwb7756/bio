@@ -1,0 +1,63 @@
+<!-- miniprogram/packages/3d-model/pages/viewer/viewer.wxml -->
+<view class="viewer-page">
+  <view class="header">
+    <text class="model-name">{{modelName}}</text>
+  </view>
+
+  <!-- 3D 画布（model-viewer 组件） -->
+  <view class="canvas-container" wx:if="{{isReady}}">
+    <model-viewer
+      model-path="{{modelPath}}"
+      file-name="{{fileName}}"
+      bind:loaded="onModelLoaded"
+      bind:error="onModelError"
+    ></model-viewer>
+
+    <view class="controls">
+      <text class="hint">单指拖动旋转模型 · 松手自动旋转</text>
+    </view>
+  </view>
+
+  <!-- 下载中 -->
+  <view class="loading-container" wx:if="{{downloading}}">
+    <view class="download-card">
+      <text class="download-title">正在下载模型</text>
+      <view class="progress">
+        <view class="progress-bar" style="width: {{downloadProgress}}%"></view>
+      </view>
+      <text class="progress-text">{{downloadProgress}}%</text>
+      <text class="download-hint">文件较大时请耐心等待</text>
+    </view>
+  </view>
+
+  <!-- 初始加载 -->
+  <view class="loading-container" wx:if="{{loading && !downloading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">正在获取模型信息...</text>
+  </view>
+
+  <!-- 下载确认弹窗 -->
+  <view class="modal-mask" wx:if="{{showDownloadTip}}" bindtap="cancelDownload">
+    <view class="modal-content" catchtap="noop">
+      <view class="modal-icon">3D</view>
+      <text class="modal-title">需要下载模型文件</text>
+      <text class="modal-desc">模型大小约 {{tipFileSize}}，下载后即可离线查看。建议在 Wi-Fi 环境下下载。</text>
+      <view class="modal-actions">
+        <button class="btn-cancel" bindtap="cancelDownload">取消</button>
+        <button class="btn-confirm" bindtap="confirmDownload">立即下载</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部信息面板 -->
+  <view class="info-panel" wx:if="{{isReady}}">
+    <view class="info-item">
+      <text class="label">模型大小</text>
+      <text class="value">{{fileSizeText}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">文件名</text>
+      <text class="value">{{fileName}}</text>
+    </view>
+  </view>
+</view>

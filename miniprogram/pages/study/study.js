@@ -164,5 +164,10 @@ Page({
     const first = this.data.chapters[0];
     const courseId = first ? first._id : 'course_required_1';
     wx.navigateTo({ url: '/pages/map/map?courseId=' + courseId });
+  },
+
+  // 3D 模型库（分包页面）
+  go3DModels() {
+    wx.navigateTo({ url: '/packages/3d-model/pages/gallery/gallery' });
   }
 });

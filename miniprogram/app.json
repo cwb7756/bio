@@ -24,6 +24,15 @@
     "pages/notebook/notebook",
     "pages/search/search"
   ],
+  "subPackages": [
+    {
+      "root": "packages/3d-model",
+      "pages": [
+        "pages/gallery/gallery",
+        "pages/viewer/viewer"
+      ]
+    }
+  ],
   "window": {
     "backgroundColor": "#F3F8F3",
     "backgroundTextStyle": "light",

@@ -369,6 +369,9 @@ view, text, scroll-view, swiper, input, textarea, button {
 .ic-pause {
   background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M9 4v16'/><path d='M15 4v16'/></svg>");
 }
+.ic-cube {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231E2621' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'><path d='M21 16.5v-9a2 2 0 0 0 -1 -1.73l-7 -4a2 2 0 0 0 -2 0l-7 4a2 2 0 0 0 -1 1.73v9a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7 -4a2 2 0 0 0 1 -1.73z'/><path d='M3.27 6.96l8.73 5.04 8.73 -5.04'/><path d='M12 22.08v-10.08'/></svg>");
+}
 
 /* ---- 角色类 ---- */
 .ic-bot {

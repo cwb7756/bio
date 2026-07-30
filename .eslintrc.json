@@ -32,6 +32,9 @@
         "browser": true,
         "es2022": true
       },
+      "parserOptions": {
+        "sourceType": "module"
+      },
       "globals": {
         "wx": "readonly",
         "App": "readonly",

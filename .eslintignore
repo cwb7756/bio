@@ -14,3 +14,7 @@ build/
 
 # 工具产物
 tools/img-compress/backup/
+
+# 第三方库（three.js 小程序版，分包内置）
+miniprogram/packages/**/assets/three-platformize/
+**/assets/three-platformize/

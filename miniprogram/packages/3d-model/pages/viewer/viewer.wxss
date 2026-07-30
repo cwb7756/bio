@@ -1,0 +1,249 @@
+/* miniprogram/packages/3d-model/pages/viewer/viewer.wxss */
+.viewer-page {
+  min-height: 100vh;
+  background: #1a1a2e;
+  color: white;
+}
+
+.header {
+  padding: 30rpx;
+  background: rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.model-name {
+  font-size: 36rpx;
+  font-weight: 600;
+}
+
+.canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+}
+
+.canvas-container model-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.controls {
+  position: absolute;
+  bottom: 240rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 16rpx 36rpx;
+  border-radius: 30rpx;
+}
+
+.hint {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* 加载中 */
+.loading-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid rgba(255, 255, 255, 0.15);
+  border-top: 6rpx solid #1890ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 30rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* 下载卡片 */
+.download-card {
+  background: rgba(30, 30, 50, 0.95);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border-radius: 24rpx;
+  padding: 50rpx 60rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 560rpx;
+}
+
+.download-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  margin-bottom: 30rpx;
+}
+
+.progress {
+  width: 100%;
+  height: 12rpx;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #1890ff, #36cfc9);
+  border-radius: 6rpx;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 30rpx;
+  color: #36cfc9;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.download-hint {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* 下载确认弹窗 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal-content {
+  width: 600rpx;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 50rpx 40rpx 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.modal-icon {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30rpx;
+}
+
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+}
+
+.modal-desc {
+  font-size: 26rpx;
+  color: #6b7280;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 40rpx;
+}
+
+.modal-actions {
+  display: flex;
+  width: 100%;
+  gap: 24rpx;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #ffffff;
+}
+
+.btn-cancel::after,
+.btn-confirm::after {
+  border: none;
+}
+
+/* 底部信息面板 */
+.info-panel {
+  position: absolute;
+  bottom: 40rpx;
+  left: 30rpx;
+  right: 30rpx;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  padding: 28rpx 32rpx;
+  z-index: 10;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 26rpx;
+}
+
+.value {
+  color: #fff;
+  font-size: 26rpx;
+  max-width: 420rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

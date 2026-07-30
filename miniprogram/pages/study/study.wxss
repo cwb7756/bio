@@ -79,6 +79,10 @@
   gap: 12rpx;
 }
 
+.model-entry {
+  margin-top: 24rpx;
+}
+
 .map-entry-percent {
   font-size: 28rpx;
   font-weight: 700;

@@ -1,0 +1,161 @@
+/* miniprogram/packages/3d-model/pages/gallery/gallery.wxss */
+/* 手绘风格，复用全局 CSS 变量（app.wxss） */
+.gallery-page {
+  min-height: 100vh;
+  background: var(--bg, #F3F8F3);
+}
+
+.page-body {
+  flex: 1;
+}
+
+.page-pad {
+  padding: 12rpx 36rpx 36rpx;
+}
+
+.page-header {
+  padding: 30rpx 8rpx 10rpx;
+}
+
+.page-title {
+  display: block;
+  font-size: 44rpx;
+  font-weight: 800;
+  color: var(--ink, #1E2621);
+}
+
+.page-subtitle {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--gray, #98A29B);
+}
+
+/* 状态块 */
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 0;
+  gap: 16rpx;
+}
+
+.state-text {
+  font-size: 28rpx;
+  color: var(--gray, #98A29B);
+}
+
+.state-sub {
+  font-size: 24rpx;
+  color: var(--gray, #98A29B);
+  opacity: 0.8;
+}
+
+.error-text {
+  color: #d9534f;
+}
+
+.retry-btn {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  padding: 16rpx 40rpx;
+}
+
+/* 网格 */
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24rpx;
+  margin-top: 30rpx;
+}
+
+.grid-item {
+  width: calc(50% - 12rpx);
+  border: 4rpx solid var(--line, #1E2621);
+  border-radius: 32rpx 26rpx 34rpx 24rpx;
+  background: var(--paper, #FFFFFF);
+  box-shadow: var(--sh, 6rpx 6rpx 0 #1E2621);
+  overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.grid-item:active {
+  transform: translate(4rpx, 4rpx);
+  box-shadow: 2rpx 2rpx 0 #1E2621;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 280rpx;
+  display: block;
+  border-bottom: 3rpx solid var(--line, #1E2621);
+}
+
+.thumbnail-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(95, 184, 148, 0.12);
+}
+
+.placeholder-icon {
+  width: 90rpx;
+  height: 90rpx;
+  opacity: 0.5;
+}
+
+.info {
+  padding: 20rpx 22rpx 24rpx;
+}
+
+.name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: var(--ink, #1E2621);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+  color: var(--gray, #98A29B);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 14rpx;
+}
+
+.size-chip {
+  font-size: 21rpx;
+  padding: 4rpx 16rpx;
+}
+
+.file-type {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--green-deep, #3E8E68);
+  text-transform: uppercase;
+}
+
+.empty {
+  width: 100%;
+}
+
+.empty-icon {
+  width: 110rpx;
+  height: 110rpx;
+  opacity: 0.4;
+}

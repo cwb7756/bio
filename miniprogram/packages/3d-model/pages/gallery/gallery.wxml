@@ -1,0 +1,60 @@
+<!-- miniprogram/packages/3d-model/pages/gallery/gallery.wxml -->
+<view class="gallery-page">
+  <view class="bg-dots"></view>
+
+  <view class="page-body">
+    <view class="page-pad">
+      <!-- 标题 -->
+      <view class="page-header">
+        <text class="page-title">3D 模型库</text>
+        <text class="page-subtitle">立体观察细胞、DNA 等生物结构</text>
+      </view>
+
+      <!-- 加载中 -->
+      <view class="state-block" wx:if="{{loading}}">
+        <text class="state-text">加载中...</text>
+      </view>
+
+      <!-- 错误 -->
+      <view class="state-block" wx:elif="{{error}}">
+        <text class="state-text error-text">{{error}}</text>
+        <view class="btn deep retry-btn" bindtap="loadModels">重新加载</view>
+      </view>
+
+      <!-- 模型网格 -->
+      <view class="grid" wx:else>
+        <view
+          class="grid-item"
+          wx:for="{{models}}"
+          wx:key="_id"
+          data-model="{{item}}"
+          bindtap="goToViewer"
+        >
+          <image
+            wx:if="{{item.thumbnailUrl}}"
+            src="{{item.thumbnailUrl}}"
+            mode="aspectFill"
+            class="thumbnail"
+          />
+          <view wx:else class="thumbnail thumbnail-placeholder">
+            <view class="icon ic-cube placeholder-icon"></view>
+          </view>
+          <view class="info">
+            <text class="name">{{item.name}}</text>
+            <text class="desc" wx:if="{{item.description}}">{{item.description}}</text>
+            <view class="meta">
+              <text class="chip size-chip">{{item.sizeText}}</text>
+              <text class="file-type">{{item.fileType}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="state-block empty" wx:if="{{models.length === 0}}">
+          <view class="icon ic-cube empty-icon"></view>
+          <text class="state-text">暂无模型资源</text>
+          <text class="state-sub">管理员上传后即可查看</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

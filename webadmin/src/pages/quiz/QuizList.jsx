@@ -5,14 +5,14 @@ import { quizApi } from '../../lib/api'
 import { useQuizzes, cancelAndSetQueryData, rollbackPreviousData } from '../../hooks/useApi'
 import { useToast } from '../../hooks/useToast'
 import { useAuth } from '../../hooks/useAuth'
-import { Card, CardContent } from '../components/ui/card'
-import { Button } from '../components/ui/button'
-import { Input } from '../components/ui/input'
-import { Select } from '../components/ui/select'
-import DataTable from '../components/DataTable'
-import Pagination from '../components/Pagination'
-import PageHeader from '../components/PageHeader'
-import ConfirmDialog from '../components/ConfirmDialog'
+import { Card, CardContent } from '../../components/ui/card'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Select } from '../../components/ui/select'
+import DataTable from '../../components/DataTable'
+import Pagination from '../../components/Pagination'
+import PageHeader from '../../components/PageHeader'
+import ConfirmDialog from '../../components/ConfirmDialog'
 import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X } from 'lucide-react'
 
 const questionTypes = {
@@ -297,4 +297,4 @@ export default function QuizList() {
 }
 
 // Import Checkbox component
-import { Checkbox } from '../components/ui/checkbox'
+import { Checkbox } from '../../components/ui/checkbox'

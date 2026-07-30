@@ -11,6 +11,8 @@ import {
   MessageSquare,
   Settings,
   GraduationCap,
+  Box,
+  TrendingUp,
 } from 'lucide-react'
 
 const navItems = [
@@ -20,6 +22,7 @@ const navItems = [
   { path: '/quiz', label: '题库管理', icon: HelpCircle, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/mistakes', label: '错题管理', icon: TrendingUp, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/knowledge/points', label: '知识体系', icon: Network, roles: ['superadmin', 'editor', 'viewer'] },
+  { path: '/models', label: '3D 模型', icon: Box, roles: ['superadmin', 'editor'] },
   { path: '/achievements', label: '成就管理', icon: Trophy, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/feedback', label: '反馈管理', icon: MessageSquare, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/settings/admins', label: '系统设置', icon: Settings, roles: ['superadmin'] },

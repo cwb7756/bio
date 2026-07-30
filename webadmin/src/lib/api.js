@@ -151,3 +151,14 @@ export const settingsApi = {
   get: () => api.post('settings.get'),
   update: (data) => api.post('settings.update', data),
 };
+
+// 3D Model API
+export const modelApi = {
+  list: (params) => api.post('model.list', params),
+  detail: (modelId) => api.post('model.detail', { modelId }),
+  create: (data) => api.post('model.create', data),
+  uploadFile: (data) => api.post('model.uploadFile', data),
+  update: (modelId, data) => api.post('model.update', { modelId, ...data }),
+  delete: (modelId) => api.post('model.delete', { modelId }),
+  download: (modelId) => api.post('model.download', { modelId }),
+};

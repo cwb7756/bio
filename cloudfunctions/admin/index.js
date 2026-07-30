@@ -13,6 +13,7 @@ const knowledgeModule = require('./modules/knowledgeModule');
 const achievementModule = require('./modules/achievementModule');
 const feedbackModule = require('./modules/feedbackModule');
 const settingsModule = require('./modules/settingsModule');
+const modelModule = require('./modules/modelModule');
 
 // Import middlewares
 const { authMiddleware } = require('./lib/middleware');
@@ -80,7 +81,16 @@ const ROUTES = {
   
   // Settings
   'settings.get': settingsModule.get,
-  'settings.update': settingsModule.update
+  'settings.update': settingsModule.update,
+  
+  // Model management
+  'model.list': modelModule.list,
+  'model.detail': modelModule.detail,
+  'model.create': modelModule.create,
+  'model.uploadFile': modelModule.uploadFile,
+  'model.update': modelModule.update,
+  'model.delete': modelModule.delete,
+  'model.download': modelModule.download
 };
 
 // Main entry point
@@ -100,8 +110,12 @@ exports.main = async (event) => {
   if (!action) return { code: 400, msg: '缺少 action 参数' };
   
   // Validate params
-  const validErr = validateParams(event);
-  if (validErr) return validErr;
+  // 注：model.uploadFile 传输 base64 文件内容，长度必然超过 10000 字符通用上限，
+  // 跳过通用校验，文件大小由 modelModule.uploadFile 内部 MAX_BASE64_SIZE 限制。
+  if (action !== 'model.uploadFile') {
+    const validErr = validateParams(event);
+    if (validErr) return validErr;
+  }
   
   // JWT auth
   const authResult = authMiddleware(event);

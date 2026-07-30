@@ -1,6 +1,6 @@
 // Optimized API hooks with cache strategies to reduce cloud function calls
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { userApi, courseApi, quizApi, knowledgeApi, achievementApi, feedbackApi } from '../lib/api';
+import { userApi, courseApi, quizApi, knowledgeApi, achievementApi, feedbackApi, modelApi } from '../lib/api';
 
 // Query configuration based on data update frequency
 export const queryConfig = {
@@ -38,6 +38,29 @@ export function useUsers(params, options = {}) {
     cacheTime: queryConfig.DYNAMIC.cacheTime,
     meta: { log: true },
     ...options,
+  });
+}
+
+// ==================== 3D Model Hooks ====================
+export function useModels(params = {}, options = {}) {
+  return useQuery({
+    queryKey: ['models', params],
+    queryFn: () => modelApi.list(params),
+    staleTime: queryConfig.SEMISTATIC.staleTime,
+    cacheTime: queryConfig.SEMISTATIC.cacheTime,
+    meta: { log: true },
+    ...options,
+  });
+}
+
+export function useModelDetail(modelId, enabled = false) {
+  return useQuery({
+    queryKey: ['model-detail', modelId],
+    queryFn: () => modelApi.detail(modelId),
+    staleTime: queryConfig.SEMISTATIC.staleTime,
+    cacheTime: queryConfig.SEMISTATIC.cacheTime,
+    enabled: !!modelId && enabled,
+    meta: { log: true },
   });
 }
 

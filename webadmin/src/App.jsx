@@ -18,6 +18,9 @@ import FeedbackList from './pages/feedback/FeedbackList'
 import AdminList from './pages/settings/AdminList'
 import SystemConfig from './pages/settings/SystemConfig'
 import MistakeList from './pages/mistakes/MistakeList'
+import ModelList from './pages/models/ModelList'
+import ModelUpload from './pages/models/ModelUpload'
+import ModelEdit from './pages/models/ModelEdit'
 
 function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, hasRole } = useAuth()
@@ -58,6 +61,9 @@ export default function App() {
         <Route path="knowledge/flashcards" element={<Flashcards />} />
         <Route path="achievements" element={<AchievementList />} />
         <Route path="feedback" element={<FeedbackList />} />
+        <Route path="models" element={<ProtectedRoute roles={['superadmin', 'editor']}><ModelList /></ProtectedRoute>} />
+        <Route path="models/new" element={<ProtectedRoute roles={['superadmin', 'editor']}><ModelUpload /></ProtectedRoute>} />
+        <Route path="models/:id/edit" element={<ProtectedRoute roles={['superadmin', 'editor']}><ModelEdit /></ProtectedRoute>} />
         <Route path="settings/admins" element={<ProtectedRoute roles={['superadmin']}><AdminList /></ProtectedRoute>} />
         <Route path="settings/config" element={<ProtectedRoute roles={['superadmin']}><SystemConfig /></ProtectedRoute>} />
       </Route>
