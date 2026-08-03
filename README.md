@@ -48,7 +48,7 @@
 
 ### 📷 方式二：扫码进入
 
-<img src="mini-program-qr.jpg" alt="小程序码" width="200" />
+<img src="mini-program-qr.png" alt="小程序码" width="200" />
 
 微信扫一扫，即刻开始学习
 
