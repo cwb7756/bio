@@ -23,6 +23,8 @@ uploadPreview/
 .env
 .env.local
 .env.*.local
+# 小程序本地环境配置（真实配置不提交，仅提交 env.example.js 模板）
+miniprogram/env.js
 *.pem
 *.key
 *.p12
