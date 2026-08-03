@@ -7,8 +7,6 @@ const NODE_W = 220;
 const NODE_H = 128;
 const ROOT_W = 300;
 const ROOT_H = 140;
-const HGAP = 24;
-const VGAP = 56;
 const PAD = 50;
 
 Page({

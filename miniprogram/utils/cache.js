@@ -47,7 +47,7 @@ export function cacheGet(name, params = {}, ttl = 5 * 60 * 1000) {
  * @param {object} params - 查询参数
  * @param {number} ttl - 缓存有效期（毫秒），默认 5 分钟
  */
-export function cacheSet(name, data, params = {}, ttl = 5 * 60 * 1000) {
+export function cacheSet(name, data, params = {}) {
   const key = getCacheKey(name, params);
   try {
     wx.setStorageSync(key, {

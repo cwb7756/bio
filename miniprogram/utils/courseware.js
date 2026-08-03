@@ -23,7 +23,11 @@ var LLM_MIN_INTERVAL = 1500;
 // 以跨过分钟级限流窗口；普通错误使用短退避（3s → 7s → 15s）
 function llmJson(messages, onText) {
   var notifyText = typeof onText === 'function' ? function (t) {
-    try { onText(t); } catch (e) { }
+    try {
+      onText(t);
+    } catch (e) {
+      // ignore observer errors
+    }
   } : null;
   return new Promise(function (resolve, reject) {
     function attempt(retriesLeft, delay) {

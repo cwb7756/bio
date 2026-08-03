@@ -91,7 +91,7 @@ Page({
         });
         wx.showToast({ title: '暂无题目', icon: 'none' });
       }
-    }).catch(err => {
+    }).catch(_err => {
       wx.hideLoading();
       this.setData({
         loading: false,
@@ -153,7 +153,7 @@ Page({
         this.setData({ answered: false, selectedOption: -1 });
         wx.showToast({ title: res.result.msg || '判定失败', icon: 'none' });
       }
-    }).catch(err => {
+    }).catch(_err => {
       // 判定失败，回退作答状态允许重试
       this.setData({ answered: false, selectedOption: -1 });
       wx.showToast({ title: '判定失败', icon: 'none' });

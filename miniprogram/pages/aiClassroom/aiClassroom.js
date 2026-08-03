@@ -326,7 +326,11 @@ Page({
     // 清理临时音频文件（best-effort）
     const fs = this._fs;
     this._audioFiles.forEach(function (p) {
-      try { fs.unlinkSync(p); } catch (e) { }
+      try {
+        fs.unlinkSync(p);
+      } catch (e) {
+        // ignore cleanup failures
+      }
     });
     this._audioFiles = [];
   },

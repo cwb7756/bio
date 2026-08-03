@@ -182,7 +182,7 @@ Page({
     }
   },
 
-  onCardTouchEnd(e) {
+  onCardTouchEnd(_e) {
     if (!this._touchStart) return;
     // 清除长按定时器
     if (this._touchStart.timer) {

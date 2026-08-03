@@ -111,8 +111,6 @@ Page({
     }
     this.setData({ savingMistakes: true });
     wx.showLoading({ title: '收藏中...', mask: true });
-    const info = wx.getStorageSync('userInfo') || {};
-
     const tasks = list.map((d) => {
       const correctOpt = d.options.find((o) => o.isCorrect);
       return new Promise((resolve) => {
