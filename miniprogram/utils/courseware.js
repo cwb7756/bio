@@ -359,7 +359,7 @@ function fallbackScene(sectionTitle, goal) {
 function cleanTtsText(text) {
   return String(text || '')
     .replace(/[*#>`~|]/g, '')
-    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
+    .replace(/(?:[\u{1F000}-\u{1FAFF}]|[\u{2600}-\u{27BF}]|\u{FE0F})/gu, '')
     .replace(/\s+/g, ' ')
     .trim();
 }

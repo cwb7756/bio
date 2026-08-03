@@ -105,7 +105,9 @@ function parseStreamedOutline(text) {
               goal: typeof s.goal === 'string' ? s.goal.trim().slice(0, 40) : ''
             });
           }
-        } catch (e) { }
+        } catch (e) {
+          // ignore malformed partial chunk while streaming
+        }
         objStart = -1;
       }
     }

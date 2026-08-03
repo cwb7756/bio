@@ -14,7 +14,7 @@ import DataTable from '../../components/DataTable'
 import Pagination from '../../components/Pagination'
 import PageHeader from '../../components/PageHeader'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import { Plus, Search, Edit, Trash2, RefreshCw, Download, FileBox } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, RefreshCw, Download, FileBox, Eye } from 'lucide-react'
 
 const fileTypeColors = {
   gltf: 'bg-blue-100 text-blue-800',
@@ -109,10 +109,10 @@ export default function ModelList() {
       key: 'name',
       header: '模型名称',
       render: (v, row) => (
-        <div className="max-w-xs">
-          <div className="font-medium truncate">{v || '-'}</div>
+        <button type="button" className="max-w-xs text-left" onClick={() => navigate(`/models/${row._id}/view`)}>
+          <div className="font-medium truncate text-primary hover:underline">{v || '-'}</div>
           <div className="text-xs text-muted-foreground truncate">{row.description || ''}</div>
-        </div>
+        </button>
       ),
     },
     {
@@ -152,6 +152,9 @@ export default function ModelList() {
       width: '150px',
       render: (_, row) => (
         <div className="flex gap-2">
+          <Button size="sm" variant="outline" title="浏览模型" onClick={() => navigate(`/models/${row._id}/view`)}>
+            <Eye className="h-4 w-4" />
+          </Button>
           <Button
             size="sm"
             variant="outline"
