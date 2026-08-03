@@ -5,7 +5,7 @@ Page({
   data: {
     statusBarHeight: 20,
     authMode: 'login', // 'login' | 'register'
-    email: '',
+    nickname: '',
     password: '',
     confirmPassword: '',
     loading: false
@@ -39,8 +39,8 @@ Page({
   },
 
   // ---- 输入处理 ----
-  onEmailInput(e) {
-    this.setData({ email: e.detail.value });
+  onNicknameInput(e) {
+    this.setData({ nickname: e.detail.value });
   },
 
   onPasswordInput(e) {
@@ -58,17 +58,17 @@ Page({
     this._callLoginCloud('wxLogin', {});
   },
 
-  // ---- 邮箱登录/注册提交 ----
+  // ---- 昵称登录/注册提交 ----
   handleEmailSubmit() {
     if (this.data.loading) return;
-    const { authMode, email, password, confirmPassword } = this.data;
+    const { authMode, nickname, password, confirmPassword } = this.data;
 
-    if (!email) {
-      wx.showToast({ title: '请输入邮箱', icon: 'none' });
+    if (!nickname || !nickname.trim()) {
+      wx.showToast({ title: '请输入昵称', icon: 'none' });
       return;
     }
-    if (!this._validateEmail(email)) {
-      wx.showToast({ title: '邮箱格式不正确', icon: 'none' });
+    if (nickname.trim().length > 30) {
+      wx.showToast({ title: '昵称不能超过30个字符', icon: 'none' });
       return;
     }
     if (!password) {
@@ -85,7 +85,7 @@ Page({
     }
     this.setData({ loading: true });
     const action = authMode === 'register' ? 'emailRegister' : 'emailLogin';
-    this._callLoginCloud(action, { email, password });
+    this._callLoginCloud(action, { nickname: nickname.trim(), password });
   },
 
   // ---- 调用云函数 ----
@@ -135,9 +135,4 @@ Page({
     });
   },
 
-  // ---- 工具方法 ----
-  _validateEmail(email) {
-    const reg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return reg.test(email);
-  }
 });

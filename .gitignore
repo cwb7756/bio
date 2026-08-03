@@ -36,6 +36,7 @@ miniprogram/env.js
 # =============================================
 # Qoder IDE
 .qoder/
+.cursor/
 skills-lock.json
 
 # 其他编辑器

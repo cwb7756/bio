@@ -18,7 +18,7 @@ Page({
     continueLearning: null,
     isLoggedIn: false,
     features: [
-      { icon: 'ic-book-sparkle', name: '个性化课程', bg: 'g', path: '/pages/aiClassroom/aiClassroom', premium: true },
+      { icon: 'ic-book-sparkle', name: '个性化课程', bg: 'g', path: '/pages/aiClassroom/aiClassroom' },
       { icon: 'ic-pen', name: '刷题练习', bg: 'g2', path: '/pages/aiHub/aiHub' },
       { icon: 'ic-cube', name: '3D模型', bg: 'g3', path: '/packages/3d-model/pages/gallery/gallery' },
       { icon: 'ic-eraser', name: '错题本', bg: 'g4', path: '/pages/mistakes/mistakes' },

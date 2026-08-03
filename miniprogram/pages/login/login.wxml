@@ -33,7 +33,7 @@
     <!-- 分割线 -->
     <view class="divider">
       <view class="divider-line"></view>
-      <text class="divider-text">或使用邮箱</text>
+      <text class="divider-text">或使用昵称</text>
       <view class="divider-line"></view>
     </view>
 
@@ -51,16 +51,16 @@
       >注册</view>
     </view>
 
-    <!-- 邮箱输入框 -->
+    <!-- 昵称输入框 -->
     <view class="input-row">
-      <view class="icon ic-mail input-icon"></view>
+      <view class="icon ic-user input-icon"></view>
       <input
         class="input-field"
         type="text"
-        placeholder="请输入邮箱"
+        placeholder="请输入昵称"
         placeholder-class="input-placeholder"
-        value="{{email}}"
-        bindinput="onEmailInput"
+        value="{{nickname}}"
+        bindinput="onNicknameInput"
       />
     </view>
 
@@ -90,12 +90,12 @@
       />
     </view>
 
-    <!-- 邮箱登录/注册按钮 -->
+    <!-- 昵称登录/注册按钮 -->
     <view
-      class="btn ghost email-login-btn {{(!email || !password || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
+      class="btn ghost email-login-btn {{(!nickname || !password || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
       bindtap="handleEmailSubmit"
     >
-      <text>{{authMode === 'register' ? '注册并登录' : '邮箱登录'}}</text>
+      <text>{{authMode === 'register' ? '注册并登录' : '昵称登录'}}</text>
     </view>
   </view>
 

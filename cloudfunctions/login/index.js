@@ -88,23 +88,23 @@ async function wxLogin(event) {
 }
 
 /**
- * 邮箱登录：邮箱不存在则提示未注册，不再自动创建
+ * 昵称登录：昵称不存在则提示未注册，不再自动创建
  * 增加 OPENID 绑定一致性校验 + 速率限制
  */
 async function emailLogin(event) {
   const { OPENID } = cloud.getWXContext();
-  const { email, password } = event;
+  const { nickname, password } = event;
 
-  if (!email || !password) {
-    return { code: -1, msg: '邮箱和密码不能为空' };
+  if (!nickname || !nickname.trim() || !password) {
+    return { code: -1, msg: '昵称和密码不能为空' };
   }
 
   const { data } = await db.collection('users')
-    .where({ email })
+    .where({ nickname: nickname.trim() })
     .get();
 
   if (data.length === 0) {
-    return { code: -1, msg: '该邮箱未注册，请先注册' };
+    return { code: -1, msg: '该昵称未注册，请先注册' };
   }
 
   const user = data[0];
@@ -164,14 +164,14 @@ async function emailLogin(event) {
 }
 
 /**
- * 邮箱注册：邮箱已存在则提示，否则创建（写入唯一 username=email 与 nickname）
+ * 昵称注册：昵称已存在则提示，否则创建（邮箱保留为空，昵称作为登录标识）
  * 必须在微信小程序内注册（需 OPENID）
  */
 async function emailRegister(event) {
-  const { email, password, nickName } = event;
+  const { nickname, password } = event;
 
-  if (!email || !password) {
-    return { code: -1, msg: '邮箱和密码不能为空' };
+  if (!nickname || !nickname.trim() || !password) {
+    return { code: -1, msg: '昵称和密码不能为空' };
   }
   if (password.length < 6) {
     return { code: -1, msg: '密码至少6位' };
@@ -183,11 +183,11 @@ async function emailRegister(event) {
   }
 
   const { data } = await db.collection('users')
-    .where({ email })
+    .where({ nickname: nickname.trim() })
     .get();
 
   if (data.length > 0) {
-    return { code: -1, msg: '该邮箱已注册，请直接登录' };
+    return { code: -1, msg: '该昵称已注册，请直接登录' };
   }
 
   const now = Date.now();
@@ -195,10 +195,10 @@ async function emailRegister(event) {
 
   const newUser = {
     _openid: OPENID,
-    username: email,
-    nickname: nickName || (email.split('@')[0] + randSuffix(4)),
+    username: nickname.trim(),
+    nickname: nickname.trim(),
     avatar: '',
-    email,
+    email: '',
     passwordHash,
     grade: '',
     streakDays: 0,
