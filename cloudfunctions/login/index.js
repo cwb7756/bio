@@ -1,5 +1,5 @@
-// 云函数 login - 用户认证（微信登录 + 邮箱登录/注册）
-// 兼容现有 users 集合 schema：nickname, avatar, passwordHash(bcrypt), createdAt/updatedAt(时间戳)
+// 云函数 login - 用户认证（微信登录 + 昵称登录/注册）
+// 兼容现有 users 集合 schema：nickname(用于登录), avatar, passwordHash(bcrypt)，createdAt/updatedAt(时间戳)
 // 注意：users 集合存在 username_unique / nickname_unique 唯一索引，创建用户时必须写入唯一的 username 与 nickname
 const cloud = require('wx-server-sdk');
 const bcrypt = require('bcryptjs');
@@ -36,7 +36,6 @@ function toSafe(user) {
   return {
     nickname: user.nickname || '',
     avatar: user.avatar || '',
-    email: user.email || '',
     grade: user.grade || '',
     streakDays: user.streakDays || 0,
     totalStudyMinutes: user.totalStudyMinutes || 0
@@ -76,7 +75,6 @@ async function wxLogin(event) {
     username: OPENID,
     nickname: nickName || ('生物爱好者' + randSuffix()),
     avatar: avatarUrl || '',
-    email: '',
     grade: '',
     streakDays: 0,
     totalStudyMinutes: 0,
@@ -88,10 +86,9 @@ async function wxLogin(event) {
 }
 
 /**
- * 昵称登录：昵称不存在则提示未注册，不再自动创建
- * 增加 OPENID 绑定一致性校验 + 速率限制
+ * 昵称登录：通过昵称 + 密码认证
  */
-async function emailLogin(event) {
+async function nicknameLogin(event) {
   const { OPENID } = cloud.getWXContext();
   const { nickname, password } = event;
 
@@ -164,41 +161,43 @@ async function emailLogin(event) {
 }
 
 /**
- * 昵称注册：昵称已存在则提示，否则创建（邮箱保留为空，昵称作为登录标识）
+ * 昵称注册：昵称已存在则提示，否则创建
  * 必须在微信小程序内注册（需 OPENID）
  */
-async function emailRegister(event) {
+async function nicknameRegister(event) {
   const { nickname, password } = event;
 
   if (!nickname || !nickname.trim() || !password) {
     return { code: -1, msg: '昵称和密码不能为空' };
   }
-  if (password.length < 6) {
-    return { code: -1, msg: '密码至少6位' };
+  if (nickname.trim().length > 20) {
+    return { code: -1, msg: '昵称不超过 20 字' };
   }
-
+  if (password.length < 6) {
+    return { code: -1, msg: '密码至少 6 位' };
+  }
+  
   const { OPENID } = cloud.getWXContext();
   if (!OPENID) {
     return { code: -1, msg: '请在微信小程序内注册' };
   }
-
+  
   const { data } = await db.collection('users')
     .where({ nickname: nickname.trim() })
     .get();
-
+  
   if (data.length > 0) {
-    return { code: -1, msg: '该昵称已注册，请直接登录' };
+    return { code: -1, msg: '该昵称已被注册，请直接登录' };
   }
-
+  
   const now = Date.now();
   const passwordHash = await bcrypt.hash(password, 10);
-
+  
   const newUser = {
     _openid: OPENID,
     username: nickname.trim(),
     nickname: nickname.trim(),
     avatar: '',
-    email: '',
     passwordHash,
     grade: '',
     streakDays: 0,
@@ -211,8 +210,8 @@ async function emailRegister(event) {
 }
 
 /**
- * 更新个人资料：昵称、头像、年级、邮箱、密码（可选绑定）
- * 昵称与邮箱需唯一性校验（排除自身）
+ * 更新个人资料：昵称、头像、年级、密码（可选设置）
+ * 昵称需唯一性校验（排除自身）
  */
 async function updateProfile(event) {
   const { OPENID } = cloud.getWXContext();
@@ -220,7 +219,7 @@ async function updateProfile(event) {
     return { code: -1, msg: '无法获取用户身份' };
   }
 
-  const { nickname, avatar, grade, email, password } = event;
+  const { nickname, avatar, grade, password } = event;
 
   if (!nickname || !nickname.trim()) {
     return { code: -1, msg: '昵称不能为空' };
@@ -254,22 +253,7 @@ async function updateProfile(event) {
   if (avatar !== undefined) updateData.avatar = avatar;
   if (grade !== undefined) updateData.grade = grade;
 
-  // 邮箱绑定（可选）
-  if (email && email.trim()) {
-    if (email.trim() !== user.email) {
-      const emailCheck = await db.collection('users')
-        .where({ email: email.trim(), _id: _.neq(user._id) })
-        .get();
-      if (emailCheck.data.length > 0) {
-        return { code: -1, msg: '该邮箱已被绑定，请换一个' };
-      }
-      updateData.email = email.trim();
-      // 绑定邮箱时同步 username 以保持一致
-      updateData.username = email.trim();
-    }
-  }
-
-  // 密码设置（可选，需配合邮箱）
+  // 密码设置（可选，设置后可用昵称登录）
   if (password) {
     if (password.length < 6) {
       return { code: -1, msg: '密码至少6位' };
@@ -294,10 +278,10 @@ exports.main = async (event, context) => {
     switch (action) {
       case 'wxLogin':
         return await wxLogin(event);
-      case 'emailLogin':
-        return await emailLogin(event);
-      case 'emailRegister':
-        return await emailRegister(event);
+      case 'nicknameLogin':
+        return await nicknameLogin(event);
+      case 'nicknameRegister':
+        return await nicknameRegister(event);
       case 'updateProfile':
         return await updateProfile(event);
       default:
@@ -317,9 +301,9 @@ exports.main = async (event, context) => {
 // ---------- 测试导出 ----------
 exports.toSafe = toSafe;
 exports.validateParams = validateParams;
-exports.emailLogin = emailLogin;
+exports.nicknameLogin = nicknameLogin;
 exports.wxLogin = wxLogin;
-exports.emailRegister = emailRegister;
+exports.nicknameRegister = nicknameRegister;
 exports.updateProfile = updateProfile;
 exports.LOCK_THRESHOLD = LOCK_THRESHOLD;
 exports.LOCK_DURATION = LOCK_DURATION;

@@ -1,7 +1,12 @@
 // utils/courseGenJob.js
 // AI课堂课件生成任务全局管理器（单例）
 // 生成流程挂在全局对象上：退出/销毁页面后任务继续运行，回到页面可恢复进度或直接播放
+// 场景生成采用 CONCURRENCY 个 LLM 并发 + 索引认领补位制：工人完成即认领下一节，
+// 结果按索引落位保证顺序；限流退避时其余工人继续补位
 const cw = require('./courseware.js');
+
+// LLM 并发工人数
+const CONCURRENCY = 3;
 
 // ---------- 任务状态 ----------
 
@@ -12,12 +17,12 @@ const state = {
   question: '',
   title: '',
   voice: 101001,       // 课件音色（随课件保存到历史记录）
-  genCurrent: 0,       // 正在生成第几节（1-based）
   genTotal: 0,
-  genDoneList: [],     // [{ title, sceneType }]
+  genDoneList: [],     // [{ title, sceneType }]（按大纲索引顺序）
   genProgress: '0%',
   genStage: '',        // 阶段提示（如「正在绘制插图…」）
   sections: [],       // 大纲快照（生成页章节清单展示）
+  genStatuses: [],     // 每节状态 ['pending'|'doing'|'done']，按大纲索引
   scenesRaw: []        // 已生成的场景（含生图 fileID 写回）
 };
 
@@ -31,12 +36,12 @@ function getState() {
     failed: state.failed,
     question: state.question,
     title: state.title,
-    genCurrent: state.genCurrent,
     genTotal: state.genTotal,
     genDoneList: state.genDoneList,
     genProgress: state.genProgress,
     genStage: state.genStage,
-    sections: state.sections
+    sections: state.sections,
+    genStatuses: state.genStatuses
   };
 }
 
@@ -127,7 +132,6 @@ function start(question, title, sections, voice) {
   state.question = question;
   state.title = title;
   state.voice = typeof voice === 'number' ? voice : 101001;
-  state.genCurrent = 1;
   state.genTotal = sections.length;
   state.genDoneList = [];
   state.genProgress = '0%';
@@ -135,6 +139,7 @@ function start(question, title, sections, voice) {
   state.sections = sections.map(function (s) {
     return { title: s.title, sceneType: s.sceneType };
   });
+  state.genStatuses = sections.map(function () { return 'pending'; });
   state.scenesRaw = [];
   notify();
   // 异步执行，不阻塞调用方
@@ -144,26 +149,55 @@ function start(question, title, sections, voice) {
 
 async function run(question, title, sections) {
   const imageJobs = [];
-  for (let i = 0; i < sections.length; i++) {
-    if (aborted) return finish(false);
-    state.genCurrent = i + 1;
-    notify();
-    const scene = await genOneScene(question, title, sections[i], i, sections.length);
-    if (aborted) return finish(false);
-    state.scenesRaw.push(scene);
-    scheduleSceneImages(imageJobs, scene);
+  const total = sections.length;
+  const results = new Array(total).fill(null);
+  let nextIndex = 0;
+
+  // 按索引重算已完成场景（filter 保留大纲顺序）
+  function refreshDoneState() {
+    state.scenesRaw = results.filter(Boolean);
     state.genDoneList = state.scenesRaw.map(function (s) {
       return { title: s.title, sceneType: s.type };
     });
-    state.genProgress = Math.round(state.scenesRaw.length / sections.length * 100) + '%';
-    notify();
+    state.genProgress = total > 0 ? Math.round(state.scenesRaw.length / total * 100) + '%' : '0%';
   }
 
+  // 工人：认领下一个未生成索引，完成后继续认领（补位）；中止时退出
+  async function worker() {
+    while (!aborted) {
+      const i = nextIndex;
+      nextIndex += 1;
+      if (i >= total) return;
+      state.genStatuses[i] = 'doing';
+      notify();
+      const scene = await genOneScene(question, title, sections[i], i, total);
+      if (aborted) return;
+      results[i] = scene;
+      state.genStatuses[i] = 'done';
+      refreshDoneState();
+      notify();
+    }
+  }
+
+  // 并发启动 min(CONCURRENCY, total) 个工人
+  const workers = [];
+  const workerCount = Math.min(CONCURRENCY, total);
+  for (let w = 0; w < workerCount; w++) {
+    workers.push(worker());
+  }
+  await Promise.all(workers);
+
+  if (aborted) return finish(false);
   if (!state.scenesRaw.length) {
     return finish(true);
   }
 
-  // 等待全部生图任务完成（帧级并行，fileID 直接写回场景对象）
+  // 收集场景生图任务（并行），fileID 直接写回场景对象
+  state.scenesRaw.forEach(function (scene) {
+    scheduleSceneImages(imageJobs, scene);
+  });
+
+  // 等待全部生图任务完成
   if (imageJobs.length) {
     state.genStage = '正在绘制插图…';
     notify();
@@ -193,6 +227,7 @@ function finish(failed, done) {
   state.failed = !!failed;
   state.done = !!done;
   state.genStage = '';
+  state.genStatuses = [];
   notify();
 }
 

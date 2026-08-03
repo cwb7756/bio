@@ -1,7 +1,7 @@
 {
   "name": "login",
   "version": "1.0.0",
-  "description": "用户认证云函数 - 微信登录 + 邮箱登录",
+  "description": "用户认证云函数 - 微信登录 + 昵称登录",
   "main": "index.js",
   "scripts": {
     "test": "jest"

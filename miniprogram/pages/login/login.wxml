@@ -61,6 +61,7 @@
         placeholder-class="input-placeholder"
         value="{{nickname}}"
         bindinput="onNicknameInput"
+        maxlength="20"
       />
     </view>
 
@@ -70,14 +71,14 @@
       <input
         class="input-field"
         password="{{true}}"
-        placeholder="{{authMode === 'register' ? '设置密码（至少6位）' : '请输入密码'}}"
+        placeholder="{{authMode === 'register' ? '设置密码（至少 6 位）' : '请输入密码'}}"
         placeholder-class="input-placeholder"
         value="{{password}}"
         bindinput="onPasswordInput"
       />
     </view>
-
-    <!-- 确认密码输入框（仅注册） -->
+    
+    <!-- 确认密码输入框（仅注册）-->
     <view class="input-row" wx:if="{{authMode === 'register'}}">
       <view class="icon ic-lock input-icon"></view>
       <input
@@ -92,8 +93,8 @@
 
     <!-- 昵称登录/注册按钮 -->
     <view
-      class="btn ghost email-login-btn {{(!nickname || !password || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
-      bindtap="handleEmailSubmit"
+      class="btn ghost nickname-login-btn {{(!nickname || !password || (authMode === 'register' && !confirmPassword)) ? 'btn-disabled' : ''}}"
+      bindtap="handleNicknameSubmit"
     >
       <text>{{authMode === 'register' ? '注册并登录' : '昵称登录'}}</text>
     </view>

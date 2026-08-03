@@ -59,16 +59,16 @@ Page({
   },
 
   // ---- 昵称登录/注册提交 ----
-  handleEmailSubmit() {
+  handleNicknameSubmit() {
     if (this.data.loading) return;
     const { authMode, nickname, password, confirmPassword } = this.data;
-
+  
     if (!nickname || !nickname.trim()) {
       wx.showToast({ title: '请输入昵称', icon: 'none' });
       return;
     }
-    if (nickname.trim().length > 30) {
-      wx.showToast({ title: '昵称不能超过30个字符', icon: 'none' });
+    if (nickname.trim().length > 20) {
+      wx.showToast({ title: '昵称不超过 20 字', icon: 'none' });
       return;
     }
     if (!password) {
@@ -76,7 +76,7 @@ Page({
       return;
     }
     if (password.length < 6) {
-      wx.showToast({ title: '密码至少6位', icon: 'none' });
+      wx.showToast({ title: '密码至少 6 位', icon: 'none' });
       return;
     }
     if (authMode === 'register' && password !== confirmPassword) {
@@ -84,13 +84,13 @@ Page({
       return;
     }
     this.setData({ loading: true });
-    const action = authMode === 'register' ? 'emailRegister' : 'emailLogin';
+    const action = authMode === 'register' ? 'nicknameRegister' : 'nicknameLogin';
     this._callLoginCloud(action, { nickname: nickname.trim(), password });
   },
 
   // ---- 调用云函数 ----
   _callLoginCloud(action, extra) {
-    wx.showLoading({ title: action === 'emailRegister' ? '注册中...' : '登录中...' });
+    wx.showLoading({ title: action === 'nicknameRegister' ? '注册中...' : '登录中...' });
 
     wx.cloud.callFunction({
       name: 'login',

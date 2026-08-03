@@ -218,7 +218,7 @@
 }
 
 /* ---- 登录按钮 ---- */
-.email-login-btn {
+.nickname-login-btn {
   width: 100%;
   height: 92rpx;
   font-size: 30rpx;

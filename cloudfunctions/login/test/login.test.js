@@ -1,7 +1,7 @@
 jest.mock('wx-server-sdk');
 const cloud = require('wx-server-sdk');
 const bcrypt = require('bcryptjs');
-const { toSafe, validateParams, emailLogin, LOCK_THRESHOLD, LOCK_DURATION } = require('../index');
+const { toSafe, validateParams, nicknameLogin, LOCK_THRESHOLD, LOCK_DURATION } = require('../index');
 
 // ===== toSafe 脱敏函数 =====
 describe('toSafe - 脱敏函数', () => {
@@ -9,7 +9,6 @@ describe('toSafe - 脱敏函数', () => {
     const user = {
       nickname: 'test',
       avatar: 'url',
-      email: 'test@test.com',
       grade: '高一',
       streakDays: 5,
       totalStudyMinutes: 100,
@@ -28,7 +27,6 @@ describe('toSafe - 脱敏函数', () => {
     const user = {
       nickname: 'bioLover',
       avatar: 'http://avatar.png',
-      email: 'bio@test.com',
       grade: '高二',
       streakDays: 7,
       totalStudyMinutes: 300
@@ -36,7 +34,6 @@ describe('toSafe - 脱敏函数', () => {
     const safe = toSafe(user);
     expect(safe.nickname).toBe('bioLover');
     expect(safe.avatar).toBe('http://avatar.png');
-    expect(safe.email).toBe('bio@test.com');
     expect(safe.grade).toBe('高二');
     expect(safe.streakDays).toBe(7);
     expect(safe.totalStudyMinutes).toBe(300);
@@ -46,7 +43,6 @@ describe('toSafe - 脱敏函数', () => {
     const safe = toSafe({});
     expect(safe.nickname).toBe('');
     expect(safe.avatar).toBe('');
-    expect(safe.email).toBe('');
     expect(safe.grade).toBe('');
     expect(safe.streakDays).toBe(0);
     expect(safe.totalStudyMinutes).toBe(0);
@@ -76,8 +72,8 @@ describe('validateParams - 参数校验', () => {
   });
 });
 
-// ===== emailLogin 速率限制 =====
-describe('emailLogin - 速率限制', () => {
+// ===== nicknameLogin 速率限制 =====
+describe('nicknameLogin - 速率限制', () => {
   beforeEach(() => {
     cloud.__store.collections = {};
     cloud.__store.openid = 'test-openid';
@@ -89,15 +85,15 @@ describe('emailLogin - 速率限制', () => {
       data: [{
         _id: 'user1',
         _openid: 'test-openid',
-        email: 'test@test.com',
+        nickname: 'testuser',
         passwordHash: passwordHash,
         loginFailCount: 4,
         lastFailAt: Date.now() - 1000
       }]
     };
 
-    const result = await emailLogin({
-      email: 'test@test.com',
+    const result = await nicknameLogin({
+      nickname: 'testuser',
       password: 'wrongpassword'
     });
 
@@ -112,15 +108,15 @@ describe('emailLogin - 速率限制', () => {
       data: [{
         _id: 'user1',
         _openid: 'test-openid',
-        email: 'test@test.com',
+        nickname: 'testuser',
         passwordHash: passwordHash,
         loginFailCount: 5,
         lastFailAt: Date.now() - 60000
       }]
     };
 
-    const result = await emailLogin({
-      email: 'test@test.com',
+    const result = await nicknameLogin({
+      nickname: 'testuser',
       password: 'wrongpassword'
     });
 
@@ -135,15 +131,15 @@ describe('emailLogin - 速率限制', () => {
       data: [{
         _id: 'user1',
         _openid: 'test-openid',
-        email: 'test@test.com',
+        nickname: 'testuser',
         passwordHash: passwordHash,
         loginFailCount: 5,
         lastFailAt: Date.now() - LOCK_DURATION - 1000
       }]
     };
 
-    const result = await emailLogin({
-      email: 'test@test.com',
+    const result = await nicknameLogin({
+      nickname: 'testuser',
       password: 'wrongpassword'
     });
 
@@ -158,15 +154,15 @@ describe('emailLogin - 速率限制', () => {
       data: [{
         _id: 'user1',
         _openid: 'test-openid',
-        email: 'test@test.com',
+        nickname: 'testuser',
         passwordHash: passwordHash,
         loginFailCount: 3,
         lastFailAt: Date.now() - 1000
       }]
     };
 
-    const result = await emailLogin({
-      email: 'test@test.com',
+    const result = await nicknameLogin({
+      nickname: 'testuser',
       password: 'correctpass'
     });
 
@@ -175,11 +171,11 @@ describe('emailLogin - 速率限制', () => {
     expect(result.user).not.toHaveProperty('passwordHash');
   });
 
-  test('未注册邮箱返回提示', async () => {
+  test('未注册昵称返回提示', async () => {
     cloud.__store.collections.users = { data: [] };
 
-    const result = await emailLogin({
-      email: 'notexist@test.com',
+    const result = await nicknameLogin({
+      nickname: 'notexist',
       password: 'anypassword'
     });
 

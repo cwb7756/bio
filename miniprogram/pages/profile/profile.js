@@ -9,7 +9,6 @@ Page({
     nickname: '',
     grade: '高一',
     grades: ['高一', '高二', '高三'],
-    email: '',
     password: '',
     submitting: false
   },
@@ -27,8 +26,7 @@ Page({
       this.setData({
         avatar: info.avatar || '',
         nickname: info.nickname || '',
-        grade: info.grade || '高一',
-        email: info.email || ''
+        grade: info.grade || '高一'
       });
     }
   },
@@ -63,10 +61,6 @@ Page({
     this.setData({ grade: e.currentTarget.dataset.grade });
   },
 
-  onEmailInput(e) {
-    this.setData({ email: e.detail.value });
-  },
-
   onPasswordInput(e) {
     this.setData({ password: e.detail.value });
   },
@@ -74,7 +68,7 @@ Page({
   // ---- 提交保存 ----
   submit() {
     if (this.data.submitting) return;
-    const { nickname, avatar, grade, email, password } = this.data;
+    const { nickname, avatar, grade, password } = this.data;
 
     if (!nickname || !nickname.trim()) {
       wx.showToast({ title: '请输入昵称', icon: 'none' });
@@ -85,20 +79,10 @@ Page({
       return;
     }
 
-    // 邮箱与密码组合校验
-    if (email || password) {
-      if (!email) {
-        wx.showToast({ title: '绑定密码需同时填写邮箱', icon: 'none' });
-        return;
-      }
-      if (!this._validateEmail(email)) {
-        wx.showToast({ title: '邮箱格式不正确', icon: 'none' });
-        return;
-      }
-      if (!password || password.length < 6) {
-        wx.showToast({ title: '密码至少6位', icon: 'none' });
-        return;
-      }
+    // 可选：设置密码（用于昵称登录）
+    if (password && password.length < 6) {
+      wx.showToast({ title: '密码至少6位', icon: 'none' });
+      return;
     }
 
     this.setData({ submitting: true });
@@ -110,7 +94,6 @@ Page({
       grade: grade
     };
     if (avatar) data.avatar = avatar;
-    if (email) data.email = email.trim();
     if (password) data.password = password;
 
     wx.cloud.callFunction({
@@ -159,11 +142,5 @@ Page({
 
   goBack() {
     wx.navigateBack();
-  },
-
-  // ---- 工具方法 ----
-  _validateEmail(email) {
-    const reg = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return reg.test(email);
   }
 });

@@ -151,7 +151,7 @@
         <view class="icon ic-bot cl-gen-icon"></view>
       </view>
       <text class="cl-gen-title">AI 老师正在制作课件</text>
-      <text class="cl-gen-progress-text">正在生成 第{{genCurrent}}节 / 共{{genTotal}}节</text>
+      <text class="cl-gen-progress-text">已完成 {{genDoneList.length}} / {{genTotal}} 节</text>
       <text wx:if="{{genStage}}" class="cl-gen-stage">{{genStage}}</text>
       <view class="cl-progress">
         <view class="cl-progress-bar" style="width: {{genProgress}};">

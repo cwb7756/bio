@@ -66,10 +66,6 @@ export default function UserDetail() {
               <span className="font-medium">{user.nickname != null ? user.nickname : '-'}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">邮箱</span>
-              <span className="font-medium">{user.email || '-'}</span>
-            </div>
-            <div className="flex justify-between">
               <span className="text-muted-foreground">年级</span>
               <span className="font-medium">{user.grade || '-'}</span>
             </div>

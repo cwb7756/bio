@@ -73,24 +73,8 @@
         <!-- 可选区域 -->
         <view class="optional-divider">
           <view class="divider-line"></view>
-          <text class="divider-text">以下为可选项（绑定后可用邮箱登录）</text>
+          <text class="divider-text">以下为可选项（设置后可用昵称登录）</text>
           <view class="divider-line"></view>
-        </view>
-
-        <!-- 邮箱 -->
-        <view class="field-label">
-          <text>邮箱</text>
-        </view>
-        <view class="input-row">
-          <view class="icon ic-mail input-icon"></view>
-          <input
-            class="input-field"
-            type="text"
-            placeholder="选填，用于绑定邮箱登录"
-            placeholder-class="input-placeholder"
-            value="{{email}}"
-            bindinput="onEmailInput"
-          />
         </view>
 
         <!-- 密码 -->
@@ -102,7 +86,7 @@
           <input
             class="input-field"
             password="{{true}}"
-            placeholder="选填，至少6位"
+            placeholder="选填，至少 6 位，设置后可用昵称登录"
             placeholder-class="input-placeholder"
             value="{{password}}"
             bindinput="onPasswordInput"

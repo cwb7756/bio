@@ -130,7 +130,6 @@ Page({
     sections: [],
     outlineTip: OUTLINE_TIPS[0],  // 大纲等待轮播提示
     // generating 态
-    genCurrent: 0,           // 正在生成第几节（1-based）
     genTotal: 0,
     genDoneList: [],         // [{ title, sceneType }]
     genProgress: '0%',       // 进度条宽度（含单位，规避内联样式 }}% 校验误报）
@@ -199,13 +198,13 @@ Page({
     }
   },
 
-  // 生成页章节清单：根据已完成数推导每节状态（done/doing/pending）
-  _buildGenList(sections, doneCount) {
+  // 生成页章节清单：按 genStatuses 逐节映射状态（并行生成时可多节 doing）
+  _buildGenList(sections, statuses) {
     return (sections || []).map(function (sec, i) {
       return {
         title: sec.title,
         sceneType: sec.sceneType,
-        status: i < doneCount ? 'done' : (i === doneCount ? 'doing' : 'pending')
+        status: statuses && statuses[i] ? statuses[i] : 'pending'
       };
     });
   },
@@ -268,12 +267,11 @@ Page({
     if (js.running) {
       this.setData({
         phase: 'generating',
-        genCurrent: js.genCurrent,
         genTotal: js.genTotal,
         genDoneList: js.genDoneList,
         genProgress: js.genProgress,
         genStage: js.genStage,
-        genList: this._buildGenList(js.sections, js.genDoneList.length),
+        genList: this._buildGenList(js.sections, js.genStatuses),
         genTip: GEN_TIPS[0]
       });
       this._startTipRotation('genTip', GEN_TIPS);
@@ -299,12 +297,11 @@ Page({
     if (js.running && this.data.phase !== 'generating') {
       this.setData({
         phase: 'generating',
-        genCurrent: js.genCurrent,
         genTotal: js.genTotal,
         genDoneList: js.genDoneList,
         genProgress: js.genProgress,
         genStage: js.genStage,
-        genList: this._buildGenList(js.sections, js.genDoneList.length),
+        genList: this._buildGenList(js.sections, js.genStatuses),
         genTip: GEN_TIPS[0]
       });
       this._startTipRotation('genTip', GEN_TIPS);
@@ -470,13 +467,12 @@ Page({
     }
     this.setData({
       phase: 'generating',
-      genCurrent: 1,
       genTotal: sections.length,
       genDoneList: [],
       genProgress: '0%',
       genStage: '',
       genTip: GEN_TIPS[0],
-      genList: this._buildGenList(sections, 0)
+      genList: this._buildGenList(sections, sections.map(function () { return 'pending'; }))
     });
     this._startTipRotation('genTip', GEN_TIPS);
   },
@@ -485,12 +481,11 @@ Page({
   onJobUpdate(s) {
     if (this.data.phase === 'generating') {
       this.setData({
-        genCurrent: s.genCurrent,
         genTotal: s.genTotal,
         genDoneList: s.genDoneList,
         genProgress: s.genProgress,
         genStage: s.genStage,
-        genList: this._buildGenList(s.sections && s.sections.length ? s.sections : this.data.sections, s.genDoneList.length)
+        genList: this._buildGenList(s.sections && s.sections.length ? s.sections : this.data.sections, s.genStatuses)
       });
     }
     const pages = getCurrentPages();

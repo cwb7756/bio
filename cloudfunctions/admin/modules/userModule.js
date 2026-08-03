@@ -12,7 +12,7 @@ async function list(db, event, admin) {
   if (search) {
     query = _.or([
       { nickname: db.RegExp({ regexp: search, options: 'i' }) },
-      { email: db.RegExp({ regexp: search, options: 'i' }) }
+      { username: db.RegExp({ regexp: search, options: 'i' }) }
     ]);
   }
   if (banned !== undefined && banned !== '') {
@@ -32,7 +32,6 @@ async function list(db, event, admin) {
     _id: u._id,
     nickName: u.nickname || '',
     avatar: u.avatar || '',
-    email: u.email || '',
     grade: u.grade || '',
     streakDays: u.streakDays || 0,
     totalStudyMinutes: u.totalStudyMinutes || 0,
@@ -85,7 +84,6 @@ async function detail(db, event, admin) {
         _id: user._id,
         nickName: user.nickname || '',
         avatar: user.avatar || '',
-        email: user.email || '',
         grade: user.grade || '',
         streakDays: user.streakDays || 0,
         totalStudyMinutes: user.totalStudyMinutes || 0,
