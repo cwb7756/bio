@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to Bio! Before submitting your PR, please review the following checklist.
 
-## 📋 Description
+## [Description]
 
 Please include a summary of the changes and the related issue if applicable. Also include the motivation behind these changes and why they are necessary.
 

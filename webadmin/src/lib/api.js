@@ -72,7 +72,38 @@ export const authApi = {
 
 // Dashboard API
 export const dashboardApi = {
-  getStats: () => api.post('dashboard.stats'),
+  getStats: async () => {
+    try {
+      const stats = await api.post('dashboard.stats');
+      return {
+        totalUsers: 0,
+        todayNew: 0,
+        activeUsers: 0,
+        totalQuizzes: 0,
+        accuracyRate: 0,
+        courseCount: 0,
+        quizCount: 0,
+        quizRate: 0,
+        weekActivity: [],
+        ...stats,
+      };
+    } catch (error) {
+      if (error.response?.status === 404) {
+        return {
+          totalUsers: 0,
+          todayNew: 0,
+          activeUsers: 0,
+          totalQuizzes: 0,
+          accuracyRate: 0,
+          courseCount: 0,
+          quizCount: 0,
+          quizRate: 0,
+          weekActivity: [],
+        };
+      }
+      throw error;
+    }
+  },
 };
 
 // User API

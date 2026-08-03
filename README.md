@@ -1,10 +1,21 @@
-# 生物自学打卡 (Bio) - 高中生物学习助手 🧬
+# 生物自学打卡 (Bio) - 高中生物学习助手
 
 <div align="center">
 
 <img src="logo.png" alt="Bio Logo" width="200" />
 
 **AI 赋能的个性化生物学习系统 · 知识图谱 · 智能刷题 · 错题本 · AI 答疑 · 学习成就**
+
+</div>
+
+## 目录速览
+
+- [项目亮点](#-核心特性)
+- [技术栈](#-技术栈)
+- [项目结构](#-项目结构)
+- [快速开始](#-快速开始)
+- [GitHub 文档](#-github-文档)
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![WeChat Mini Program](https://img.shields.io/badge/WeChat-Mini%20Program-green)](https://developers.weixin.qq.com/miniprogram/dev/framework/)
@@ -17,7 +28,7 @@
 
 ---
 
-## 📱 立即体验
+## 立即体验
 
 <div align="center">
 
@@ -50,7 +61,7 @@
 
 基于微信云开发的高中生物学习小程序，涵盖课程学习、知识图谱、AI 答疑、刷题测验、错题本、闪卡复习、学习宠物与成就系统等功能模块，帮助高中生高效学习生物知识。
 
-## ✨ 核心特性
+## 核心特性
 
 ### 🎓 系统化学习
 
@@ -179,7 +190,7 @@
 | TTS 语音 | 音频讲解 | 腾讯云语音合成 |
 | 邮件服务 | 密码重置提醒 | 腾讯云 SMS |
 
-## 📁 项目结构
+## 项目结构
 
 ```bio/
 ├── .github/
@@ -310,7 +321,7 @@
 
 本项目采用 [MIT 许可证](LICENSE)。允许自由使用、修改、分发，包括商业项目。
 
-## 🤝 贡献指南
+## 贡献指南
 
 欢迎提交 Issues 和 Pull Requests！以下是几种参与方式：
 
@@ -319,7 +330,7 @@
 - ❓ [提出问题](.github/ISSUE_TEMPLATE/question.md)
 - 📝 [阅读贡献指南](CONTRIBUTING.md)
 
-## 🔐 安全策略
+## 安全策略
 
 我们重视代码安全。如果发现安全问题，请直接通过以下方式联系：
 
@@ -327,7 +338,7 @@
 
 我们会尽快响应并修复漏洞。**请勿公开披露未授权的安全问题。**
 
-## 📊 项目统计
+## 项目统计
 
 <div align="center">
 
@@ -337,7 +348,7 @@
 
 </div>
 
-## 🙏 致谢
+## 致谢
 
 感谢以下开源项目和技术提供强大支持：
 
@@ -359,7 +370,7 @@ Made with ❤️ for high school biology students
 
 </div>
 
-## 🚀 快速开始
+## 快速开始
 
 ### 前置要求
 

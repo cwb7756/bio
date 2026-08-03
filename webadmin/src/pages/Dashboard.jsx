@@ -26,10 +26,21 @@ export default function Dashboard() {
     refetchInterval: 30 * 1000, // Auto refresh every 30s
     retry: 2,
     meta: { log: true },
+    placeholderData: {
+      totalUsers: 0,
+      todayNew: 0,
+      activeUsers: 0,
+      totalQuizzes: 0,
+      accuracyRate: 0,
+      courseCount: 0,
+      quizCount: 0,
+      quizRate: 0,
+      weekActivity: [],
+    },
   })
 
   const handleRefresh = () => {
-    refetch();
+    refetch()
   }
 
   return (
@@ -165,7 +176,7 @@ export default function Dashboard() {
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
-                    data={[{ name: '正确', value: stats.quizRate || 0 }, { name: '错误', value: 100 - (stats.quizRate || 0) }]}
+                    data={[{ name: '正确', value: stats?.quizRate ?? 0 }, { name: '错误', value: 100 - (stats?.quizRate ?? 0) }]}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
