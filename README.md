@@ -101,7 +101,7 @@
 
 | 功能 | 描述 |
 | --- | --- |
-| 🧬 **生物结构模型** | DNA 双螺旋、动物细胞、叶绿体、线粒体、噬菌体等程序化生成 GLB 模型 |
+| 🧬 **生物结构模型** | DNA 双螺旋、动物细胞、叶绿体、线粒体、噬菌体等程序化生成 GLB 模型，精细还原细胞器结构 |
 | 🖐️ **手势交互查看** | 基于 xr-frame 渲染，单指旋转、双指缩放、惯性滑动，沉浸式观察微观结构 |
 
 ### 🖥️ Web 管理后台
@@ -116,7 +116,7 @@
 
 | 功能 | 描述 |
 | --- | --- |
-| 🔐 **账号管理** | 微信扫码登录 + 邮箱密码备用，JWT 安全认证，支持密码重置 |
+| 🔐 **账号管理** | 微信一键登录 + 昵称密码登录/注册，JWT 安全认证 |
 | ⚙️ **个性化设置** | 界面主题切换（彩色/手绘/复古）、通知控制、隐私管理 |
 | 💌 **意见反馈** | 问题反馈入口，连接开发团队获取支持
 
@@ -189,7 +189,6 @@
 | AI 对话 | 智能问答 | 腾讯混元 / DeepSeek |
 | 图像生成 | 课件插图 | 腾讯云 AI |
 | TTS 语音 | 音频讲解 | 腾讯云语音合成 |
-| 邮件服务 | 密码重置提醒 | 腾讯云 SMS |
 
 ## 项目结构
 
@@ -217,7 +216,7 @@
 │   ├── getCourseList/             # 课程列表：教材切换/章节统计
 │   ├── home/                      # 首页：热门推荐、继续学习
 │   ├── knowledgeMap/              # 知识图谱：节点数据、边关系图
-│   ├── login/                     # 用户登录：微信扫码 + 邮箱密码
+│   ├── login/                     # 用户登录：微信一键登录 + 昵称密码登录/注册
 │   ├── mistakes/                  # 错题本：增删改查
 │   ├── modelLibrary/              # 3D 模型库：模型列表、下载临时链接
 │   ├── notebook/                  # 学习笔记：保存/获取/删除笔记
@@ -270,7 +269,8 @@
 │   ├── app.js                     # 小程序入口
 │   ├── app.json                   # 全局配置（路由/窗口样式/TabBar）
 │   ├── app.wxss                   # 全局样式
-│   └── sitemap.json               # 搜索引擎索引配置
+│   ├── sitemap.json               # 搜索引擎索引配置
+│   └── env.example.js             # 环境配置模板（复制为 env.js 填入云环境 ID）
 │
 ├── webadmin/                      # Web 管理后台（React + Vite + Tailwind CSS）
 │   └── src/
@@ -281,7 +281,7 @@
 │       └── stores/                # zustand 状态管理
 │
 ├── tools/                         # 构建与资源生成脚本
-│   ├── lib/glb-builder.js         # GLB 构建共享库（MeshBuilder）
+│   ├── lib/glb-builder.js         # GLB 构建共享库（MeshBuilder：环面/晶体细分/变径管等）
 │   ├── gen-dna-model.js           # DNA 双螺旋模型生成
 │   ├── gen-animal-cell-model.js   # 动物细胞模型生成
 │   ├── gen-chloroplast-model.js   # 叶绿体模型生成
@@ -398,7 +398,7 @@ cd cloudfunctions/<function-name>
 npm install
 
 # 方式二：批量安装所有云函数
-cd c:\Users\17723\Desktop\bio
+cd bio
 for /d %i in (cloudfunctions\*) do (@cd "%i" & npm install & cd ..)
 
 # PowerShell 版本
@@ -412,7 +412,7 @@ Get-ChildItem cloudfunctions -Directory | ForEach-Object { Set-Location $_.FullN
 1. 打开项目，点击「云开发」按钮
 2. 创建新环境或选择现有环境
 3. 记录环境 ID
-4. 更新 `miniprogram/app.js` 第 8 行中的 `env` 字段
+4. 复制 `miniprogram/env.example.js` 为 `miniprogram/env.js`，将其中的 `envId` 替换为你的云环境 ID
 
 #### 4️⃣ 上传并部署云函数
 
