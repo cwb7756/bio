@@ -72,7 +72,11 @@ class MeshBuilder {
   }
 
   // 沿路径生成圆管（平行传输近似保证截面连续）
+  // radius 可为常数或 (i, t) => number（t 为 0..1 归一化路径位置），支持变径/锥形
   tube(points, radius, radialSeg) {
+    const radiusAt = typeof radius === 'function'
+      ? radius
+      : () => radius;
     const ringIdx = [];
     let prevU = null;
     for (let i = 0; i < points.length; i++) {
@@ -88,11 +92,12 @@ class MeshBuilder {
       u = normalize(u);
       prevU = u;
       const v = cross(t, u);
+      const r = radiusAt(i, points.length > 1 ? i / (points.length - 1) : 0);
       const ring = [];
       for (let j = 0; j < radialSeg; j++) {
         const a = (j / radialSeg) * Math.PI * 2;
         const dir = add(scale(u, Math.cos(a)), scale(v, Math.sin(a)));
-        ring.push(this.addVertex(add(p, scale(dir, radius))));
+        ring.push(this.addVertex(add(p, scale(dir, r))));
       }
       ringIdx.push(ring);
     }
@@ -113,6 +118,46 @@ class MeshBuilder {
   // 两点之间的圆柱
   cylinderBetween(p1, p2, radius, radialSeg) {
     this.tube([p1, p2], radius, radialSeg);
+  }
+
+  // 环面（甲状体）：majorR 主半径，minorR 管半径，axis 为环所在平面的法向 'x'|'y'|'z'
+  // 用于核孔、套环、颗粒带等细节；tStart/tEnd 可做部分弧
+  torus(center, majorR, minorR, majorSeg, minorSeg, axis = 'y', opts = {}) {
+    const tStart = opts.thetaStart !== undefined ? opts.thetaStart : 0;
+    const tEnd = opts.thetaEnd !== undefined ? opts.thetaEnd : Math.PI * 2;
+    const full = Math.abs(tEnd - tStart - Math.PI * 2) < 1e-6;
+    const mDiv = full ? majorSeg : Math.max(2, Math.round(majorSeg * (tEnd - tStart) / (Math.PI * 2)));
+    // 根据 axis 将局部 (cosθ*(majorR+minorR*cosφ), minorR*sinφ, sinθ*(...)) 映射到世界
+    const place = (a, b, c) => {
+      if (axis === 'y') return [center[0] + a, center[1] + b, center[2] + c];
+      if (axis === 'x') return [center[0] + b, center[1] + a, center[2] + c];
+      return [center[0] + a, center[1] + c, center[2] + b]; // 'z'
+    };
+    const grid = [];
+    for (let i = 0; i <= mDiv; i++) {
+      const theta = tStart + (i / mDiv) * (tEnd - tStart);
+      const ct = Math.cos(theta);
+      const st = Math.sin(theta);
+      const row = [];
+      for (let j = 0; j <= minorSeg; j++) {
+        const phi = (j / minorSeg) * Math.PI * 2;
+        const rr = majorR + minorR * Math.cos(phi);
+        row.push(this.addVertex(place(ct * rr, minorR * Math.sin(phi), st * rr)));
+      }
+      grid.push(row);
+    }
+    const iMax = full ? mDiv : mDiv; // full 时首尾环重合，仍按 mDiv 列连接
+    for (let i = 0; i < iMax; i++) {
+      const ni = full ? (i + 1) % mDiv : i + 1;
+      for (let j = 0; j < minorSeg; j++) {
+        const a = grid[i][j];
+        const b = grid[ni][j];
+        const c = grid[ni][j + 1];
+        const d = grid[i][j + 1];
+        this.faces.push([a, b, c]);
+        this.faces.push([a, c, d]);
+      }
+    }
   }
 
   // UV 球/椭球。opts.thetaStart/thetaEnd 可限制方位角范围实现剖切（配合双面材质展示内部）
@@ -156,8 +201,9 @@ class MeshBuilder {
     }
   }
 
-  // 正二十面体（平直法线：每面独立顶点），scaleVec 可轴向拉伸；自动校正 winding 朝外
-  icosahedron(center, radius, scaleVec = [1, 1, 1]) {
+  // 正二十面体 / 细分派生球（平直法线：每面独立顶点），scaleVec 可轴向拉伸；自动校正 winding 朝外
+  // freq：每条边的细分等分数，1=原始 20 面，freq>1 生成 20*freq^2 面的派生球（晶体颗状衣壳）
+  icosahedron(center, radius, scaleVec = [1, 1, 1], freq = 1) {
     const t = (1 + Math.sqrt(5)) / 2;
     const raw = [
       [-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0],
@@ -170,16 +216,15 @@ class MeshBuilder {
       [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9],
       [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]
     ];
-    for (const f of faceIdx) {
-      let pts = f.map(i => {
-        const v = raw[i];
-        return add(center, [
-          v[0] * radius * scaleVec[0],
-          v[1] * radius * scaleVec[1],
-          v[2] * radius * scaleVec[2]
-        ]);
-      });
-      // 法线朝外校验：面法线与"面心-质心"同向
+    const F = Math.max(1, Math.round(freq));
+    // 将单位方向投影为世界坐标（轴向拉伸）
+    const project = v => add(center, [
+      v[0] * radius * scaleVec[0],
+      v[1] * radius * scaleVec[1],
+      v[2] * radius * scaleVec[2]
+    ]);
+    const emit = tri => {
+      let pts = tri;
       const faceCenter = scale(add(add(pts[0], pts[1]), pts[2]), 1 / 3);
       const n = cross(sub(pts[1], pts[0]), sub(pts[2], pts[0]));
       if (dot(n, sub(faceCenter, center)) < 0) pts = [pts[0], pts[2], pts[1]];
@@ -187,6 +232,30 @@ class MeshBuilder {
       const b = this.addVertex(pts[1]);
       const c = this.addVertex(pts[2]);
       this.faces.push([a, b, c]);
+    };
+    for (const f of faceIdx) {
+      const v0 = raw[f[0]];
+      const v1 = raw[f[1]];
+      const v2 = raw[f[2]];
+      if (F === 1) {
+        emit([project(v0), project(v1), project(v2)]);
+        continue;
+      }
+      // 重心网格细分：沿两边方向均匀内插后归一化投影到球面
+      const gridPt = (i, j) => {
+        const a = (F - i - j) / F;
+        const b = i / F;
+        const c = j / F;
+        return project(normalize(add(add(scale(v0, a), scale(v1, b)), scale(v2, c))));
+      };
+      for (let i = 0; i < F; i++) {
+        for (let j = 0; j < F - i; j++) {
+          emit([gridPt(i, j), gridPt(i + 1, j), gridPt(i, j + 1)]);
+          if (j < F - i - 1) {
+            emit([gridPt(i + 1, j), gridPt(i + 1, j + 1), gridPt(i, j + 1)]);
+          }
+        }
+      }
     }
   }
 }
