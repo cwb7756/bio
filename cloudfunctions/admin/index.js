@@ -3,6 +3,24 @@ const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 
+// 构造带 CORS 头的 HTTP 响应（webadmin 通过网关跨域调用）
+// 网关不会自动附加 CORS 头，必须由云函数返回 statusCode/headers/body 结构
+function httpResponse(result, event) {
+  const headers = event.headers || {};
+  const origin = headers.origin || headers.Origin || '*';
+  return {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+      'Access-Control-Max-Age': '86400',
+      'Content-Type': 'application/json; charset=utf-8'
+    },
+    body: JSON.stringify(result)
+  };
+}
+
 // Import modules
 const authModule = require('./modules/authModule');
 const dashboardModule = require('./modules/dashboardModule');
@@ -103,7 +121,8 @@ const ROUTES = {
 
 // Main entry point
 exports.main = async (event) => {
-  // 兼容网关 HTTP 访问：如果 body 是字符串则解析合并到 event
+  // 兼容网关 HTTP 访问：如果 body 是字符串则解析合并到 event；
+  // 若网关已解析为对象（Content-Type: application/json）则直接合并
   if (event.body && typeof event.body === 'string') {
     try {
       const parsed = JSON.parse(event.body);
@@ -111,38 +130,45 @@ exports.main = async (event) => {
     } catch (e) {
       // body 不是合法 JSON，忽略
     }
+  } else if (event.body && typeof event.body === 'object') {
+    event = Object.assign({}, event.body, event);
+  }
+
+  // 浏览器跨域预检请求：直接返回 CORS 头，不进入业务逻辑
+  if (event.httpMethod === 'OPTIONS') {
+    return httpResponse({ code: 0, msg: 'ok' }, event);
   }
 
   const { action } = event;
   
-  if (!action) return { code: 400, msg: '缺少 action 参数' };
+  if (!action) return httpResponse({ code: 400, msg: '缺少 action 参数' }, event);
   
   // Validate params
   // 注：model.uploadFile 传输 base64 文件内容，长度必然超过 10000 字符通用上限，
   // 跳过通用校验，文件大小由 modelModule.uploadFile 内部 MAX_BASE64_SIZE 限制。
   if (action !== 'model.uploadFile') {
     const validErr = validateParams(event);
-    if (validErr) return validErr;
+    if (validErr) return httpResponse(validErr, event);
   }
   
   // JWT auth
   const authResult = authMiddleware(event);
-  if (!authResult.ok) return authResult.error;
+  if (!authResult.ok) return httpResponse(authResult.error, event);
   const admin = authResult.admin; // Admin info passed to handlers
   
   // Route to handler
   const handler = ROUTES[action];
-  if (!handler) return { code: -1, msg: '未知的操作类型：' + action };
+  if (!handler) return httpResponse({ code: -1, msg: '未知的操作类型：' + action }, event);
   
   // Execute business logic
   try {
-    return await handler(db, event, admin);
+    return httpResponse(await handler(db, event, admin), event);
   } catch (err) {
     console.error('admin error [' + action + ']:', err);
     const msg = String(err && (err.errMsg || err.message) || '');
     if (msg.includes('duplicate key')) {
-      return { code: -1, msg: '数据冲突，请重试' };
+      return httpResponse({ code: -1, msg: '数据冲突，请重试' }, event);
     }
-    return { code: -1, msg: '服务器异常：' + (err.message || '未知错误') };
+    return httpResponse({ code: -1, msg: '服务器异常：' + (err.message || '未知错误') }, event);
   }
 };

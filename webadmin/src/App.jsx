@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import Layout from './components/layout/Layout'
 import Login from './pages/Login'
+import NotFound from './pages/NotFound'
 import Dashboard from './pages/Dashboard'
 import UserList from './pages/users/UserList'
 import UserDetail from './pages/users/UserDetail'
@@ -70,7 +71,7 @@ export default function App() {
         <Route path="settings/admins" element={<ProtectedRoute roles={['superadmin']}><AdminList /></ProtectedRoute>} />
         <Route path="settings/config" element={<ProtectedRoute roles={['superadmin']}><SystemConfig /></ProtectedRoute>} />
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }
