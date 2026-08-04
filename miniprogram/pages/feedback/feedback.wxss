@@ -63,15 +63,6 @@
   color: var(--gray);
 }
 
-/* 联系方式输入框 */
-.fb-input {
-  border: 3rpx solid var(--gray-line);
-  border-radius: 24rpx;
-  background: var(--paper2);
-  padding: 18rpx 20rpx;
-  font-size: 27rpx;
-}
-
 /* 提交按钮 */
 .fb-submit {
   width: 100%;

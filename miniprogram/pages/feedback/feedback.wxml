@@ -42,16 +42,6 @@
           <text class="fb-count">{{contentLen}}/2000</text>
         </view>
 
-        <view class="fb-label">联系方式（选填）</view>
-        <input
-          class="fb-input"
-          placeholder="微信号/QQ/邮箱，方便我们联系你"
-          placeholder-class="fb-ph"
-          maxlength="100"
-          value="{{contact}}"
-          bindinput="onContactInput"
-        />
-
         <view class="btn fb-submit {{submitting ? 'disabled' : ''}}" bindtap="submit">
           {{submitting ? '提交中...' : '提交反馈'}}
         </view>

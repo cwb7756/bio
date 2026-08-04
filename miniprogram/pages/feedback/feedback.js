@@ -14,7 +14,6 @@ Page({
     type: 'suggest',
     content: '',
     contentLen: 0,
-    contact: '',
     submitting: false,
     history: [],
     historyLoaded: false
@@ -46,10 +45,6 @@ Page({
   onContentInput(e) {
     const val = e.detail.value || '';
     this.setData({ content: val, contentLen: val.length });
-  },
-
-  onContactInput(e) {
-    this.setData({ contact: e.detail.value || '' });
   },
 
   // 预览历史反馈图片
@@ -84,7 +79,7 @@ Page({
             action: 'submit',
             type: this.data.type,
             content: content,
-            contact: (this.data.contact || '').trim(),
+            contact: '', // 已移除联系方式填写项，返回空值
             images: []
           },
           success: (r) => resolve(r),
@@ -97,7 +92,7 @@ Page({
 
       if (res.result && res.result.code === 0) {
         wx.showToast({ title: '提交成功，感谢反馈', icon: 'none' });
-        this.setData({ content: '', contentLen: 0, contact: '', type: 'suggest' });
+        this.setData({ content: '', contentLen: 0, type: 'suggest' });
         this.loadHistory();
       } else if (res.result && res.result.code === 401) {
         wx.showToast({ title: '请先登录', icon: 'none' });
