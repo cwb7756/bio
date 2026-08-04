@@ -133,7 +133,46 @@
 .fb-h-status {
   margin-top: 14rpx;
   font-size: 22rpx;
+  color: var(--gray);
+}
+
+.fb-h-status.on {
   color: var(--green-deep);
+}
+
+/* 官方回复 */
+.fb-h-reply {
+  margin-top: 16rpx;
+  background: var(--green-soft);
+  border-radius: 20rpx;
+  padding: 18rpx 20rpx;
+}
+
+.fb-h-reply-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.fb-h-reply-tag {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+
+.fb-h-reply-time {
+  font-size: 20rpx;
+  color: var(--gray);
+}
+
+.fb-h-reply-content {
+  font-size: 26rpx;
+  line-height: 1.6;
+  color: var(--ink);
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* 空态 */

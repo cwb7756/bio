@@ -26,6 +26,21 @@ async function list(db, event, _admin) {
   return { code: 0, data: { list: data, total, page, pageSize } };
 }
 
+// quiz.detail: 题目详情（编辑回显用，返回完整题目文档）
+async function detail(db, event, _admin) {
+  const { questionId } = event;
+  if (!questionId) return { code: -1, msg: '缺少 questionId' };
+
+  // 用 where 查询而非 doc().get()：文档不存在时不抛错，可正确返回 404
+  const { data } = await db.collection('quiz_questions')
+    .where({ _id: questionId })
+    .limit(1)
+    .get();
+  if (data.length === 0) return { code: 404, msg: '题目不存在' };
+
+  return { code: 0, data: data[0] };
+}
+
 // quiz.create: 新建题目
 async function create(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
@@ -148,4 +163,4 @@ async function batchImport(db, event, admin) {
   return { code: 0, data: { added, failed, errors } };
 }
 
-module.exports = { list, create, update, del, batchDelete, batchImport };
+module.exports = { list, detail, create, update, del, batchDelete, batchImport };

@@ -21,8 +21,8 @@ In the WeChat DevTools console:
 1. Open the project
 2. Go to Cloud Base → Environment Management
 3. Note your environment ID 
-4. Configure environment variables for cloud functions:
-   - `JWT_SECRET` (for admin module)
+4. Configure environment variables for cloud functions (required before deploying `admin`):
+   - `JWT_SECRET` (**required for admin module**) — use a strong random string, e.g. `openssl rand -hex 32`. The admin cloud function will **refuse to start (fail-closed)** if it is missing, to prevent forged admin tokens.
    - `TENCENT_SECRET_ID`, `TENCENT_SECRET_KEY` (for Tencent AI services)
    - `TTS_VOICE` (for text-to-speech voice selection)
 

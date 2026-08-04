@@ -82,7 +82,17 @@
               bindtap="previewImage"
             ></image>
           </view>
-          <view class="fb-h-status">已提交，感谢反馈</view>
+          <!-- 官方回复 -->
+          <view class="fb-h-reply" wx:if="{{item.reply}}">
+            <view class="fb-h-reply-head">
+              <text class="fb-h-reply-tag">官方回复</text>
+              <text class="fb-h-reply-time">{{item.replyTimeText}}</text>
+            </view>
+            <text class="fb-h-reply-content">{{item.reply}}</text>
+          </view>
+          <view class="fb-h-status {{item.status === 'replied' || item.status === 'resolved' ? 'on' : ''}}">
+            {{item.statusText}}
+          </view>
         </view>
       </view>
 

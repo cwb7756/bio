@@ -83,7 +83,6 @@ export const dashboardApi = {
         accuracyRate: 0,
         courseCount: 0,
         quizCount: 0,
-        quizRate: 0,
         weekActivity: [],
         ...stats,
       };
@@ -97,7 +96,6 @@ export const dashboardApi = {
           accuracyRate: 0,
           courseCount: 0,
           quizCount: 0,
-          quizRate: 0,
           weekActivity: [],
         };
       }

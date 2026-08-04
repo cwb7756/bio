@@ -217,7 +217,7 @@ export default function UserList() {
           {/* 分页 */}
           <Pagination
             page={page}
-            totalPages={data?.totalPages || 1}
+            totalPages={Math.max(1, Math.ceil((data?.total || 0) / pageSize))}
             onPageChange={setPage}
             total={data?.total || 0}
             pageSize={pageSize}

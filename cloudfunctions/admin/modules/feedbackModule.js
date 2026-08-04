@@ -7,11 +7,16 @@ const { requireRole } = require('../lib/middleware');
 async function list(db, event, _admin) {
   const _ = db.command;
   const { skip, limit, page, pageSize } = parsePagination(event);
-  const { status = '', type = '' } = event;
+  const { status = '', type = '', search = '' } = event;
 
   let query = {};
   if (status) query.status = status;
   if (type) query.type = type;
+  if (search) {
+    // 内容模糊搜索，转义正则特殊字符
+    const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    query.content = db.RegExp({ regexp: escaped, options: 'i' });
+  }
 
   const { total } = await db.collection('feedbacks').where(query).count();
   const { data } = await db.collection('feedbacks')
@@ -20,6 +25,24 @@ async function list(db, event, _admin) {
     .skip(skip)
     .limit(limit)
     .get();
+
+  // 批量查询用户昵称（兼容旧数据仅含 userID）
+  const userIds = [];
+  data.forEach((item) => {
+    if (item.userID && userIds.indexOf(item.userID) < 0) userIds.push(item.userID);
+  });
+  const userMap = {};
+  if (userIds.length > 0) {
+    try {
+      const { data: users } = await db.collection('users')
+        .where({ _id: _.in(userIds) })
+        .limit(100)
+        .get();
+      users.forEach((u) => { userMap[u._id] = u.nickname || ''; });
+    } catch (e) {
+      console.error('query feedback users error:', e);
+    }
+  }
 
   // 批量获取临时图片 URL
   const fileIDs = [];
@@ -45,6 +68,8 @@ async function list(db, event, _admin) {
 
   const listData = data.map((item) => ({
     _id: item._id,
+    userID: item.userID || '',
+    userNickName: userMap[item.userID] || '',
     type: item.type || 'other',
     content: item.content || '',
     contact: item.contact || '',
@@ -63,7 +88,9 @@ async function reply(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
   if (roleErr) return roleErr;
 
-  const { feedbackId, replyContent } = event;
+  const { feedbackId } = event;
+  // 兼容两种参数名：前端传 content，接口语义为 replyContent
+  const replyContent = event.replyContent || event.content;
   if (!feedbackId || !replyContent) {
     return { code: -1, msg: '反馈 ID 和回复内容不能为空' };
   }

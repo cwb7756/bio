@@ -61,6 +61,13 @@ export default function FeedbackList() {
     replyMutation.mutate({ feedbackId: replyDialog._id, content: replyContent })
   }
 
+  // 兼容两种回复数据结构：replies 数组（扩展结构）或 reply 字符串（当前后端存储）
+  const existingReplies = replyDialog?.replies?.length
+    ? replyDialog.replies
+    : replyDialog?.reply
+      ? [{ content: replyDialog.reply, createdAt: replyDialog.repliedAt }]
+      : []
+
   return (
     <div>
       <PageHeader title="反馈管理" description="查看和回复用户反馈" />
@@ -136,7 +143,7 @@ export default function FeedbackList() {
 
           <Pagination
             page={page}
-            totalPages={data?.totalPages || 1}
+            totalPages={Math.max(1, Math.ceil((data?.total || 0) / pageSize))}
             onPageChange={setPage}
             total={data?.total || 0}
             pageSize={pageSize}
@@ -165,10 +172,10 @@ export default function FeedbackList() {
               </div>
 
               {/* 已有回复 */}
-              {replyDialog.replies && replyDialog.replies.length > 0 && (
+              {existingReplies.length > 0 && (
                 <div className="space-y-2">
                   <Label>回复记录</Label>
-                  {replyDialog.replies.map((reply, i) => (
+                  {existingReplies.map((reply, i) => (
                     <div key={i} className="rounded-lg bg-muted/50 p-3">
                       <div className="flex justify-between text-sm">
                         <span className="font-medium">{reply.adminName || '管理员'}</span>

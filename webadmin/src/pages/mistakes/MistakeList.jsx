@@ -150,7 +150,7 @@ export default function MistakeList() {
               >
                 <option value="">全部学生</option>
                 {usersList.map((u) => (
-                  <option key={u._id} value={u._id}>{u.nickName}</option>
+                  <option key={u._id} value={u._id}>{u.nickname}</option>
                 ))}
               </select>
             </div>

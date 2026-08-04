@@ -47,6 +47,21 @@ async function createCourse(db, event, admin) {
   return { code: 0, data: { _id } };
 }
 
+// course.detail: 课程详情（编辑回显用，返回完整课程文档）
+async function detailCourse(db, event, _admin) {
+  const { courseId } = event;
+  if (!courseId) return { code: -1, msg: '缺少 courseId' };
+
+  // 用 where 查询而非 doc().get()：文档不存在时不抛错，可正确返回 404
+  const { data } = await db.collection('courses')
+    .where({ _id: courseId })
+    .limit(1)
+    .get();
+  if (data.length === 0) return { code: 404, msg: '课程不存在' };
+
+  return { code: 0, data: { course: data[0] } };
+}
+
 // course.update: 编辑课程
 async function updateCourse(db, event, admin) {
   const roleErr = requireRole(admin, 'editor');
@@ -139,6 +154,6 @@ async function deleteLesson(db, event, admin) {
 }
 
 module.exports = {
-  listCourses, createCourse, updateCourse, deleteCourse,
+  listCourses, detailCourse, createCourse, updateCourse, deleteCourse,
   listLessons, createLesson, updateLesson, deleteLesson
 };

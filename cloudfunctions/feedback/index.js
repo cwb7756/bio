@@ -1,5 +1,6 @@
 // 云函数 feedback - 意见反馈
 // submit: 提交反馈（类型+文字+图片fileID+联系方式）；list: 查询我的历史反馈（图片换临时URL）
+// 注意：写入必须带 _openid（云函数端 add 不会自动注入）；查询需兼容旧数据仅含 userID 的记录
 const cloud = require('wx-server-sdk');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
@@ -56,7 +57,8 @@ async function submit(event, openid) {
 
   const res = await db.collection('feedbacks').add({
     data: {
-      userID: user._id,
+      _openid: openid,
+      userID: user._id, // 保留 userID 兼容历史数据格式（值为用户文档 _id）
       type: type,
       content: content,
       images: images,
@@ -77,8 +79,14 @@ async function list(event, openid) {
   const page = Math.max(1, parseInt(event.page, 10) || 1);
   const pageSize = Math.min(20, Math.max(1, parseInt(event.pageSize, 10) || 10));
 
+  const user = await findUser(openid);
+  // 兼容旧数据：早期反馈记录只有 userID（值为用户文档 _id），新记录才有 _openid
+  const whereCond = user
+    ? db.command.or([{ _openid: openid }, { userID: user._id }])
+    : { _openid: openid };
+
   const { data } = await db.collection('feedbacks')
-    .where({ _openid: openid })
+    .where(whereCond)
     .orderBy('createdAt', 'desc')
     .skip((page - 1) * pageSize)
     .limit(pageSize)
@@ -109,7 +117,9 @@ async function list(event, openid) {
     type: item.type || 'other',
     content: item.content || '',
     status: item.status || 'pending',
+    reply: item.reply || '',
     createdAt: item.createdAt || 0,
+    repliedAt: item.repliedAt || 0,
     images: (item.images || [])
       .map((f) => urlMap[f] || '')
       .filter((u) => !!u)

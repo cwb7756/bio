@@ -123,7 +123,9 @@ Page({
           const list = (res.result.data.list || []).map((item) => ({
             ...item,
             typeName: this.typeName(item.type),
-            timeText: this.formatTime(item.createdAt)
+            statusText: this.statusText(item.status),
+            timeText: this.formatTime(item.createdAt),
+            replyTimeText: this.formatTime(item.repliedAt)
           }));
           this.setData({ history: list, historyLoaded: true });
         } else {
@@ -140,6 +142,17 @@ Page({
   typeName(id) {
     const hit = this.data.types.find((t) => t.id === id);
     return hit ? hit.name : '其他';
+  },
+
+  // 状态 → 中文文案
+  statusText(status) {
+    const map = {
+      pending: '待处理',
+      replied: '已回复',
+      resolved: '已解决',
+      closed: '已关闭'
+    };
+    return map[status] || '待处理';
   },
 
   // 时间戳 → MM-DD HH:mm

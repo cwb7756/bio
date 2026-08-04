@@ -42,6 +42,7 @@ const ROUTES = {
   
   // Course management
   'course.list': courseModule.listCourses,
+  'course.detail': courseModule.detailCourse,
   'course.create': courseModule.createCourse,
   'course.update': courseModule.updateCourse,
   'course.delete': courseModule.deleteCourse,
@@ -52,6 +53,7 @@ const ROUTES = {
   
   // Quiz management
   'quiz.list': quizModule.list,
+  'quiz.detail': quizModule.detail,
   'quiz.create': quizModule.create,
   'quiz.update': quizModule.update,
   'quiz.delete': quizModule.del,

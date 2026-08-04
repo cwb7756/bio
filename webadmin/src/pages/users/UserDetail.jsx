@@ -11,10 +11,13 @@ export default function UserDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const { data: user, isLoading } = useQuery({
+  const { data: detail, isLoading } = useQuery({
     queryKey: ['user', id],
     queryFn: () => userApi.detail(id),
   })
+
+  // 后端返回结构：{ user: {...}, stats: {...}, records: [...] }，需解构 user
+  const user = detail?.user
 
   if (isLoading) {
     return (
@@ -56,7 +59,7 @@ export default function UserDetail() {
                 <User className="h-5 w-5" />
                 基本信息
               </span>
-              <StatusBadge status={user.banned ? 'banned' : 'active'} />
+              <StatusBadge status={user.status || 'active'} />
             </CardTitle>
             <CardDescription>用户概览</CardDescription>
           </CardHeader>
@@ -105,17 +108,17 @@ export default function UserDetail() {
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="rounded-lg border p-4">
                 <p className="text-sm text-muted-foreground">刷题次数</p>
-                <p className="text-2xl font-bold">{user.stats?.quizCount || 0}</p>
+                <p className="text-2xl font-bold">{detail?.stats?.quizCount || 0}</p>
               </div>
               <div className="rounded-lg border p-4">
                 <p className="text-sm text-muted-foreground">课程学习</p>
-                <p className="text-2xl font-bold">{user.stats?.lessonCount || 0}</p>
+                <p className="text-2xl font-bold">{detail?.stats?.lessonCount || 0}</p>
               </div>
               <div className="rounded-lg border p-4">
                 <p className="text-sm text-muted-foreground">错题本</p>
                 <p className="text-2xl font-bold text-red-600 flex items-center gap-1">
                   <XCircle className="h-5 w-5" />
-                  {user.stats?.mistakeCount || 0}
+                  {detail?.stats?.mistakeCount || 0}
                 </p>
               </div>
               <div className="rounded-lg border p-4">
@@ -131,8 +134,8 @@ export default function UserDetail() {
             <div className="mt-6">
               <h4 className="mb-3 text-sm font-medium">最近学习记录</h4>
               <div className="space-y-2">
-                {user.records && user.records.length > 0 ? (
-                  user.records.slice(0, 5).map((record, i) => (
+                {detail?.records && detail.records.length > 0 ? (
+                  detail.records.slice(0, 5).map((record, i) => (
                     <div key={i} className="flex items-center justify-between rounded-md border p-3 text-sm">
                       <span className="text-muted-foreground">
                         {record.courseName || record.chapter != null ? record.chapter : '-'}

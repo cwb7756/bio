@@ -83,12 +83,12 @@ async function stats(db, _event, _admin) {
     code: 0,
     data: {
       totalUsers: usersCount.total,
-      todayNewUsers: todayNewUsers.total,
+      todayNew: todayNewUsers.total,
       activeUsers: activeUsers,
-      quizTotal: quizTotal.total,
-      quizRate: quizRate,
-      coursesCount: coursesCount.total,
-      quizQuestionsCount: quizQuestionsCount.total,
+      totalQuizzes: quizTotal.total,
+      accuracyRate: quizRate,
+      courseCount: coursesCount.total,
+      quizCount: quizQuestionsCount.total,
       feedbackPending: feedbackPending.total,
       weekActivity: weekData
     }

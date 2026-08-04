@@ -6,18 +6,28 @@ const { requireRole } = require('../lib/middleware');
 async function list(db, event, admin) {
   const _ = db.command;
   const { skip, limit, page, pageSize } = parsePagination(event);
-  const { search = '', banned } = event;
+  const { search = '', banned, status } = event;
 
-  let query = {};
+  // 兼容两种筛选参数：banned(boolean) 旧参数 / status('active'|'banned') 前端参数
+  let isBanned;
+  if (banned !== undefined && banned !== '') {
+    isBanned = !!banned;
+  } else if (status === 'active' || status === 'banned') {
+    isBanned = status === 'banned';
+  }
+
+  // 组合条件必须用 _.and()，不可在 Command 对象上追加属性（会损坏查询）
+  const conditions = [];
   if (search) {
-    query = _.or([
+    conditions.push(_.or([
       { nickname: db.RegExp({ regexp: search, options: 'i' }) },
       { username: db.RegExp({ regexp: search, options: 'i' }) }
-    ]);
+    ]));
   }
-  if (banned !== undefined && banned !== '') {
-    query.banned = !!banned;
+  if (isBanned !== undefined) {
+    conditions.push({ banned: isBanned });
   }
+  const query = conditions.length > 1 ? _.and(conditions) : (conditions[0] || {});
 
   const { total } = await db.collection('users').where(query).count();
   const { data } = await db.collection('users')
@@ -30,7 +40,7 @@ async function list(db, event, admin) {
 
   const list = data.map((u) => ({
     _id: u._id,
-    nickName: u.nickname || '',
+    nickname: u.nickname || '',
     avatar: u.avatar || '',
     grade: u.grade || '',
     streakDays: u.streakDays || 0,
@@ -82,7 +92,7 @@ async function detail(db, event, admin) {
     data: {
       user: {
         _id: user._id,
-        nickName: user.nickname || '',
+        nickname: user.nickname || '',
         avatar: user.avatar || '',
         grade: user.grade || '',
         streakDays: user.streakDays || 0,

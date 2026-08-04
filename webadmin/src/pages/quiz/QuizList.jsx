@@ -231,7 +231,7 @@ export default function QuizList() {
 
           <Pagination
             page={page}
-            totalPages={data?.totalPages || 1}
+            totalPages={Math.max(1, Math.ceil((data?.total || 0) / pageSize))}
             onPageChange={(newPage) => {
               setPage(newPage)
               setCurrentPageSelected([])

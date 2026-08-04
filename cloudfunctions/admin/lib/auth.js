@@ -2,8 +2,13 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-// JWT 密钥：优先从环境变量读取，开发环境使用默认值
-const JWT_SECRET = process.env.JWT_SECRET || 'bio-admin-secret-change-in-production';
+// JWT 密钥：必须通过环境变量注入（云开发控制台 → 云函数 → admin → 环境变量配置）
+// 禁止硬编码默认值：公开默认密钥会导致任何人都能伪造管理员身份（越权）
+// 未配置时拒绝启动（fail-closed），部署文档见 DEPLOYMENT.md
+if (!process.env.JWT_SECRET) {
+  throw new Error('[admin] 缺少 JWT_SECRET 环境变量：请在云开发控制台为 admin 云函数配置 JWT_SECRET（强随机字符串）后重新部署');
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = '24h';
 
 // 生成 JWT
