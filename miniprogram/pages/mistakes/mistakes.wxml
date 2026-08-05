@@ -41,7 +41,7 @@
 
       <block wx:else>
         <!-- 错题卡片 -->
-        <view wx:for="{{mistakes}}" wx:key="_id" class="mk-card">
+        <view wx:for="{{mistakes}}" wx:key="_id" class="mk-card" id="mk-{{item._id}}">
           <view class="mk-head">
             <view class="chip mk-chip">{{item.chapter}} · {{item.topic}}</view>
             <view class="mk-del" data-id="{{item._id}}" catchtap="removeMistake" wx:if="{{!item.isDemo}}">

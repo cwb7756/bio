@@ -19,9 +19,16 @@ Page({
     submitting: false
   },
 
-  onLoad() {
+  onLoad(options) {
     const sys = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sys.statusBarHeight });
+    // 从笔记本跳转时携带章节参数，自动筛选对应章节
+    const targetChapter = (options && options.chapter) || '';
+    let activeChapter = 0;
+    if (targetChapter) {
+      const idx = this.data.chapters.indexOf(targetChapter);
+      if (idx > 0) activeChapter = idx;
+    }
+    this.setData({ statusBarHeight: sys.statusBarHeight, activeChapter });
   },
 
   onShow() {

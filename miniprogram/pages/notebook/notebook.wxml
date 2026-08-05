@@ -57,6 +57,9 @@
               class="nb-del"
               catchtap="removeNote"
               data-id="{{item._id}}"
+              catchtouchstart="noop"
+              catchtouchmove="noop"
+              catchtouchend="noop"
             >
               <view class="icon ic-close"></view>
             </view>
@@ -74,6 +77,9 @@
             class="nb-goto"
             catchtap="goCourse"
             data-courseid="{{item.meta.courseId}}"
+            catchtouchstart="noop"
+            catchtouchmove="noop"
+            catchtouchend="noop"
           >
             <text>去学习</text>
             <view class="icon ic-arrow-right"></view>

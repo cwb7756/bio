@@ -15,9 +15,11 @@ Page({
     searchValue: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     const sys = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sys.statusBarHeight });
+    // 从笔记本跳转时携带 questionId，加载后定位展开对应错题
+    this._targetQuestionId = (options && options.questionId) || '';
   },
 
   onShow() {
@@ -52,6 +54,20 @@ Page({
             isDemo: isDemo,
             loading: false
           });
+          // 从笔记本跳转：首屏展开对应错题并滚动定位
+          if (!append && this._targetQuestionId) {
+            const target = list.find((m) => m.questionId === this._targetQuestionId);
+            if (target) {
+              this.setData({ ['expanded.' + target._id]: true });
+              setTimeout(() => {
+                wx.pageScrollTo({
+                  selector: '#mk-' + target._id,
+                  duration: 300,
+                  fail: () => {}
+                });
+              }, 100);
+            }
+          }
         } else {
           this.setData({ loading: false });
           wx.showToast({ title: '加载失败', icon: 'none' });

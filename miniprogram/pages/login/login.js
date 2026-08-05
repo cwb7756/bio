@@ -18,12 +18,17 @@ Page({
     // 检查本地登录状态
     const cached = wx.getStorageSync('userInfo');
     if (cached && cached.nickname) {
-      wx.switchTab({ url: '/pages/home/home' });
+      this._backToSource();
     }
   },
 
   // ---- 返回上一页 ----
   goBack() {
+    this._backToSource();
+  },
+
+  // 登录完成后安全返回来源页：有来源页则返回，无来源页（直接打开登录页）则回退首页
+  _backToSource() {
     if (getCurrentPages().length > 1) {
       wx.navigateBack();
     } else {
@@ -112,11 +117,11 @@ Page({
           });
 
           setTimeout(() => {
-            // 微信一键登录的新用户跳转信息填写页，其余直接进首页
+            // 微信一键登录的新用户跳转信息填写页，其余返回引起登录的页面
             if (action === 'wxLogin' && res.result.isNewUser) {
               wx.redirectTo({ url: '/pages/profile/profile?mode=setup' });
             } else {
-              wx.switchTab({ url: '/pages/home/home' });
+              this._backToSource();
             }
           }, 1500);
         } else {

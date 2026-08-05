@@ -118,10 +118,11 @@ Page({
   // ===== 拖拽逻辑 =====
 
   onCardTouchStart(e) {
-    // 示例笔记不可拖动
     var id = e.currentTarget.dataset.id;
     var note = this._findNote(id);
-    if (!note || note.isDemo) return;
+    if (!note) return;
+    // 示例笔记不可拖动
+    var isDemo = !!note.isDemo;
 
     var touch = e.touches[0];
     this._touchStart = {
@@ -137,6 +138,7 @@ Page({
     // 长按 350ms 进入拖拽
     this._touchStart.timer = setTimeout(function () {
       if (!self._touchStart || self._touchStart.moved) return;
+      if (isDemo) return; // 示例笔记不进入拖拽
       wx.vibrateShort({ type: 'light' });
       self.setData({ draggingId: id });
     }, 350);
@@ -192,6 +194,7 @@ Page({
 
     var id = this._touchStart.id;
     var wasDragging = this.data.draggingId === id;
+    var wasTap = !wasDragging && !this._touchStart.moved;
     this.setData({ draggingId: '' });
 
     if (wasDragging) {
@@ -227,6 +230,11 @@ Page({
     }
 
     this._touchStart = null;
+
+    // 轻点（无位移、未进入拖拽）→ 跳转至笔记出处
+    if (wasTap) {
+      this.goSourceById(id);
+    }
   },
 
   // 防抖保存布局
@@ -312,6 +320,53 @@ Page({
       wx.navigateTo({ url: '/pages/course/course?courseId=' + courseId });
     }
   },
+
+  // 点击卡片 → 跳转至笔记出处页面
+  goSourceById(id) {
+    var note = this._findNote(id);
+    if (!note) return;
+    if (note.isDemo) {
+      wx.showToast({ title: '示例笔记，收录真实内容后可跳转', icon: 'none' });
+      return;
+    }
+    var url = this._buildSourceUrl(note);
+    if (!url) {
+      wx.showToast({ title: '暂无跳转出处', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: url,
+      fail: function () { wx.showToast({ title: '页面跳转失败', icon: 'none' }); }
+    });
+  },
+
+  // 根据笔记来源构建出处页面 URL
+  _buildSourceUrl(note) {
+    var meta = note.meta || {};
+    if (note.source === 'course' || note.source === 'study') {
+      var courseId = meta.courseId || note.refId;
+      if (courseId) return '/pages/course/course?courseId=' + courseId;
+    }
+    if (note.source === 'knowledge') {
+      var kUrl = '/pages/knowledge/knowledge?courseId=' + (meta.courseId || 'course_required_1');
+      if (note.type === 'knowledge' && note.refId) kUrl += '&kpId=' + note.refId;
+      return kUrl;
+    }
+    if (note.source === 'flashcards') {
+      var fUrl = '/pages/flashcards/flashcards';
+      if (meta.chapter) fUrl += '?chapter=' + encodeURIComponent(meta.chapter);
+      return fUrl;
+    }
+    if (note.source === 'mistakes') {
+      var mUrl = '/pages/mistakes/mistakes';
+      if (note.refId) mUrl += '?questionId=' + note.refId;
+      return mUrl;
+    }
+    return '';
+  },
+
+  // 无操作占位（拦截按钮触摸冒泡，避免触发卡片拖拽/跳转判定）
+  noop() {},
 
   _findNote(id) {
     for (var i = 0; i < this.data.notes.length; i++) {

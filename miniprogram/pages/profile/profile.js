@@ -114,7 +114,8 @@ Page({
 
           setTimeout(() => {
             if (this.data.mode === 'setup') {
-              wx.switchTab({ url: '/pages/home/home' });
+              // 新用户完善资料后返回引起登录的页面
+              this._backToSource();
             } else {
               wx.navigateBack();
             }
@@ -137,7 +138,16 @@ Page({
 
   // setup 模式跳过
   skipSetup() {
-    wx.switchTab({ url: '/pages/home/home' });
+    this._backToSource();
+  },
+
+  // 安全返回来源页：有来源页则返回，无来源页（直接打开填写页）则回退首页
+  _backToSource() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack();
+    } else {
+      wx.switchTab({ url: '/pages/home/home' });
+    }
   },
 
   goBack() {
