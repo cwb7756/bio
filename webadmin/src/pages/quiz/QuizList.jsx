@@ -9,17 +9,24 @@ import { Card, CardContent } from '../../components/ui/card'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Select } from '../../components/ui/select'
+import { Badge } from '../../components/ui/badge'
 import DataTable from '../../components/DataTable'
 import Pagination from '../../components/Pagination'
 import PageHeader from '../../components/PageHeader'
 import ConfirmDialog from '../../components/ConfirmDialog'
-import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X, Upload } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, RefreshCw, CheckSquare, Square, X, Upload, Sparkles, CheckCircle2, XCircle } from 'lucide-react'
 
 const questionTypes = {
   single: '单选题',
   multiple: '多选题',
   judge: '判断题',
   fill: '填空题',
+}
+
+const questionStatus = {
+  pending: { label: '待审核', variant: 'warning' },
+  approved: { label: '已上线', variant: 'success' },
+  rejected: { label: '已拒绝', variant: 'destructive' },
 }
 
 export default function QuizList() {
@@ -32,6 +39,7 @@ export default function QuizList() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [chapterFilter, setChapterFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
   const [deleteId, setDeleteId] = useState(null)
   const [currentPageSelected, setCurrentPageSelected] = useState([])
 
@@ -39,7 +47,7 @@ export default function QuizList() {
 
   // Optimized query with semistatic data cache strategy
   const { data, isLoading, refetch, error } = useQuizzes(
-    { page, search, type: typeFilter, chapter: chapterFilter },
+    { page, search, type: typeFilter, chapter: chapterFilter, status: statusFilter },
     {}
   )
 
@@ -90,6 +98,21 @@ export default function QuizList() {
     onError: (err) => showError(err.message || '批量删除失败'),
   })
 
+  // Bulk review mutation (approve 上线 / reject 拒绝)
+  const bulkReviewMutation = useMutation({
+    mutationFn: ({ ids, action }) => quizApi.batchReview(ids, action),
+    onSuccess: (res) => {
+      success(res?.updated ? `已处理 ${res.updated} 条题目` : '处理完成')
+      queryClient.invalidateQueries(['quiz'])
+      setCurrentPageSelected([])
+    },
+    onError: (err) => showError(err.message || '批量审核失败'),
+  })
+
+  const handleBulkReview = (action) => {
+    bulkReviewMutation.mutate({ ids: currentPageSelected, action })
+  }
+
   const handleRefresh = () => {
     refetch();
   }
@@ -111,6 +134,12 @@ export default function QuizList() {
       const colors = { easy: 'text-green-600', medium: 'text-yellow-600', hard: 'text-red-600' }
       const labels = { easy: '简单', medium: '中等', hard: '困难' }
       return <span className={colors[v]}>{v != null ? (labels[v] || v) : '-'}</span>
+    }},
+    { key: 'status', header: '状态', width: '90px', render: (v) => {
+      const cfg = questionStatus[v]
+      if (cfg) return <Badge variant={cfg.variant}>{cfg.label}</Badge>
+      // 存量旧题无 status 字段，视为已上线
+      return <Badge variant="success">已上线</Badge>
     }},
     {
       key: 'actions',
@@ -134,11 +163,15 @@ export default function QuizList() {
   return (
     <div>
       <PageHeader 
-        title="题库管理"
-        description="管理题目与批量导入"
+        title="题库管理" 
+        description="管理题目与批量导入" 
         actions={
           isEditor && (
             <div className="flex gap-2">
+              <Button variant="outline" onClick={() => navigate('/quiz/ai')}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI 出题
+              </Button>
               <Button variant="outline" onClick={() => navigate('/quiz/import')}>
                 <Upload className="h-4 w-4 mr-2" />
                 批量导入
@@ -189,6 +222,16 @@ export default function QuizList() {
               onChange={(e) => { setChapterFilter(e.target.value); setPage(1) }}
               className="w-32"
             />
+            <Select
+              value={statusFilter}
+              onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
+              className="w-32"
+            >
+              <option value="">全部状态</option>
+              <option value="pending">待审核</option>
+              <option value="approved">已上线</option>
+              <option value="rejected">已拒绝</option>
+            </Select>
             {isEditor && (
               <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -203,6 +246,23 @@ export default function QuizList() {
                 <span>已选择 {currentPageSelected.length} 道题目</span>
               </div>
               <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  onClick={() => handleBulkReview('approve')}
+                  disabled={bulkReviewMutation.isLoading}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  通过上线
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => handleBulkReview('reject')}
+                  disabled={bulkReviewMutation.isLoading}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  拒绝
+                </Button>
                 <Button 
                   size="sm" 
                   variant="outline" 

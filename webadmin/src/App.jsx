@@ -11,6 +11,7 @@ import CourseEdit from './pages/courses/CourseEdit'
 import QuizList from './pages/quiz/QuizList'
 import QuizEdit from './pages/quiz/QuizEdit'
 import QuizImport from './pages/quiz/QuizImport'
+import AiQuizGen from './pages/quiz/AiQuizGen'
 import KnowledgePoints from './pages/knowledge/KnowledgePoints'
 import KnowledgeGraph from './pages/knowledge/KnowledgeGraph'
 import Flashcards from './pages/knowledge/Flashcards'
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="quiz/new" element={<ProtectedRoute roles={['superadmin', 'editor']}><QuizEdit /></ProtectedRoute>} />
         <Route path="quiz/:id/edit" element={<ProtectedRoute roles={['superadmin', 'editor']}><QuizEdit /></ProtectedRoute>} />
         <Route path="quiz/import" element={<ProtectedRoute roles={['superadmin', 'editor']}><QuizImport /></ProtectedRoute>} />
+        <Route path="quiz/ai" element={<ProtectedRoute roles={['superadmin', 'editor']}><AiQuizGen /></ProtectedRoute>} />
         <Route path="mistakes" element={<ProtectedRoute roles={['superadmin', 'editor', 'viewer']}><MistakeList /></ProtectedRoute>} />
         <Route path="knowledge" element={<Navigate to="/knowledge/points" replace />} />
         <Route path="knowledge/points" element={<KnowledgePoints />} />
@@ -69,6 +71,7 @@ export default function App() {
         <Route path="models/:id/view" element={<ModelViewer />} />
         <Route path="models/:id/edit" element={<ProtectedRoute roles={['superadmin', 'editor']}><ModelEdit /></ProtectedRoute>} />
         <Route path="settings/admins" element={<ProtectedRoute roles={['superadmin']}><AdminList /></ProtectedRoute>} />
+        <Route path="settings" element={<ProtectedRoute roles={['superadmin']}><Navigate to="/settings/admins" replace /></ProtectedRoute>} />
         <Route path="settings/config" element={<ProtectedRoute roles={['superadmin']}><SystemConfig /></ProtectedRoute>} />
       </Route>
       <Route path="*" element={<NotFound />} />

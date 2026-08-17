@@ -135,6 +135,15 @@ export const quizApi = {
   delete: (quizId) => api.post('quiz.delete', { quizId }),
   batchDelete: (quizIds) => api.post('quiz.batchDelete', { questionIds: quizIds }),
   batchImport: (questions) => api.post('quiz.batchImport', { questions }),
+  batchReview: (questionIds, action) => api.post('quiz.batchReview', { questionIds, action }),
+};
+
+// AI Quiz Generation API (DeepSeek)
+export const aiQuizApi = {
+  create: (params) => api.post('aiQuizGen.create', params),
+  tick: (jobId) => api.post('aiQuizGen.tick', { jobId }),
+  list: () => api.post('aiQuizGen.list'),
+  cancel: (jobId) => api.post('aiQuizGen.cancel', { jobId }),
 };
 
 // Mistakes API (admin only)
@@ -190,6 +199,7 @@ export const feedbackApi = {
 export const settingsApi = {
   get: () => api.post('settings.get'),
   update: (data) => api.post('settings.update', data),
+  testDeepseek: () => api.post('settings.testDeepseek'),
 };
 
 // 3D Model API

@@ -10,7 +10,14 @@ import { Textarea } from '../../components/ui/textarea'
 import { Select } from '../../components/ui/select'
 import { Badge } from '../../components/ui/badge'
 import PageHeader from '../../components/PageHeader'
-import { Save, Settings, Plus, Trash2, Bot } from 'lucide-react'
+import { Save, Settings, Plus, Trash2, Bot, KeyRound, Zap } from 'lucide-react'
+
+const DEFAULT_DEEPSEEK = {
+  hasKey: false,
+  keyMasked: '',
+  baseUrl: 'https://api.deepseek.com',
+  model: 'deepseek-v4-flash',
+}
 
 export default function SystemConfig() {
   const { success, error: showError } = useToast()
@@ -27,42 +34,66 @@ export default function SystemConfig() {
       enableAchievements: true,
     },
     announcement: '',
+    deepseek: DEFAULT_DEEPSEEK,
   })
   const [newGrade, setNewGrade] = useState('')
   const [newTextbook, setNewTextbook] = useState('')
+  // DeepSeek API Key 输入框（留空保存 = 不修改已配置的 key）
+  const [apiKeyInput, setApiKeyInput] = useState('')
 
   const { data, isLoading } = useQuery({
     queryKey: ['system-config'],
     queryFn: settingsApi.get,
-    onSuccess: (data) => {
-      if (data) {
-        setConfig({
-          grades: data.grades || ['高一', '高二', '高三'],
-          textbooks: data.textbooks || ['必修一', '必修二', '选择性必修一', '选择性必修二', '选择性必修三'],
-          aiModel: data.aiModel || 'hunyuan-v3',
-          aiProvider: data.aiProvider || 'tencent',
-          globalSwitches: data.globalSwitches || {
-            enableRegistration: true,
-            enableAI: true,
-            enablePet: true,
-            enableAchievements: true,
-          },
-          announcement: data.announcement || '',
-        })
-      }
-    },
   })
+
+  // TanStack Query v5 已移除 useQuery 的 onSuccess，改用 useEffect 回填表单
+  useEffect(() => {
+    if (data) {
+      setConfig({
+        grades: data.grades || ['高一', '高二', '高三'],
+        textbooks: data.textbooks || ['必修一', '必修二', '选择性必修一', '选择性必修二', '选择性必修三'],
+        aiModel: data.aiModel || 'hunyuan-v3',
+        aiProvider: data.aiProvider || 'tencent',
+        globalSwitches: data.globalSwitches || {
+          enableRegistration: true,
+          enableAI: true,
+          enablePet: true,
+          enableAchievements: true,
+        },
+        announcement: data.announcement || '',
+        deepseek: data.deepseek || DEFAULT_DEEPSEEK,
+      })
+    }
+  }, [data])
 
   const updateMutation = useMutation({
     mutationFn: (data) => settingsApi.update(data),
     onSuccess: () => {
       success('配置已更新')
+      setApiKeyInput('')
     },
     onError: (err) => showError(err.message),
   })
 
+  // DeepSeek 连接测试（需先保存配置）
+  const testDeepseekMutation = useMutation({
+    mutationFn: settingsApi.testDeepseek,
+    onSuccess: (res) => {
+      success(`连接成功（当前模型：${res?.model || config.deepseek.model}）`)
+    },
+    onError: (err) => showError(err.message || '连接失败'),
+  })
+
   const handleSave = () => {
-    updateMutation.mutate(config)
+    // deepseek 子对象为脱敏展示值，不入库；仅提交用户输入的新 key 与派生配置
+    const { deepseek, ...rest } = config
+    const payload = {
+      ...rest,
+      deepseekBaseUrl: deepseek.baseUrl,
+      deepseekModel: deepseek.model,
+    }
+    if (apiKeyInput.trim()) payload.deepseekApiKey = apiKeyInput.trim()
+    updateMutation.mutate(payload)
   }
 
   const addGrade = () => {
@@ -245,6 +276,62 @@ export default function SystemConfig() {
                   </div>
                 )
               })}
+            </CardContent>
+          </Card>
+
+          {/* DeepSeek 出题配置 */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <KeyRound className="h-5 w-5" />
+                DeepSeek 出题配置
+              </CardTitle>
+              <CardDescription>
+                AI 一键出题使用的 DeepSeek 接口。旧模型名 deepseek-chat / deepseek-reasoner 已于 2026-07 弃用；
+                计费采用峰谷定价（闲时半价），建议闲时批量出题
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 lg:grid-cols-3">
+              <div className="space-y-2">
+                <Label>API Key</Label>
+                <Input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder={config.deepseek.hasKey ? `已配置（${config.deepseek.keyMasked}），留空则不修改` : '未配置，请输入 sk- 开头的 Key'}
+                />
+                {config.deepseek.hasKey && !apiKeyInput && (
+                  <p className="text-xs text-muted-foreground">当前已配置：{config.deepseek.keyMasked}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>接口地址</Label>
+                <Input
+                  value={config.deepseek.baseUrl}
+                  onChange={(e) => setConfig({ ...config, deepseek: { ...config.deepseek, baseUrl: e.target.value } })}
+                  placeholder="https://api.deepseek.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>模型</Label>
+                <Select
+                  value={config.deepseek.model}
+                  onChange={(e) => setConfig({ ...config, deepseek: { ...config.deepseek, model: e.target.value } })}
+                >
+                  <option value="deepseek-v4-flash">deepseek-v4-flash（推荐，快速低价）</option>
+                  <option value="deepseek-v4-pro">deepseek-v4-pro（更强，适合困难推理题）</option>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-1"
+                  onClick={() => testDeepseekMutation.mutate()}
+                  disabled={testDeepseekMutation.isPending}
+                >
+                  <Zap className="h-4 w-4 mr-1" />
+                  {testDeepseekMutation.isPending ? '测试中...' : '测试连接（需先保存）'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

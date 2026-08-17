@@ -155,10 +155,11 @@ async function matchContext(event) {
   var lower = text.toLowerCase();
 
   // 并行预取全部参考数据（数据量小，全量获取后客户端过滤）
+  // 题目仅取已上线（审核通过）的，AI 待审核题不对用户可见
   var results = await Promise.all([
     db.collection('courses').limit(10).get(),
     db.collection('lessons').limit(50).get(),
-    db.collection('quiz_questions').limit(20).get()
+    db.collection('quiz_questions').where({ status: 'approved' }).limit(20).get()
   ]);
 
   var courses = results[0].data;
@@ -314,9 +315,9 @@ async function toolQueryMistakes(openid, limit) {
   };
 }
 
-// 获取练习题（含答案解析，供AI讲解分析）
+// 获取练习题（含答案解析，供AI讲解分析）；仅取已上线（审核通过）题目
 async function toolGetQuiz(chapter, topic, limit) {
-  var where = {};
+  var where = { status: 'approved' };
   if (chapter) where.chapter = chapter;
   if (topic) where.topic = topic;
   var n = Math.min(10, Math.max(1, parseInt(limit, 10) || 3));
@@ -336,9 +337,9 @@ async function toolGetQuiz(chapter, topic, limit) {
   };
 }
 
-// 随机出题：从题库随机抽取题目供学生练习
+// 随机出题：从题库随机抽取题目供学生练习（仅取已上线审核通过的题目）
 async function toolGenerateQuiz(topic, chapter, count) {
-  var where = {};
+  var where = { status: 'approved' };
   if (chapter) where.chapter = chapter;
   if (topic) where.topic = topic;
   var n = Math.min(10, Math.max(1, parseInt(count, 10) || 3));

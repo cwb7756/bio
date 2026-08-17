@@ -14,8 +14,10 @@ var CHAPTER_ORDER = ['必修一', '必修二', '选择性必修一', '选择性�
 // categories: 聚合题目分类结构（按教材分册 + 考点两级）
 // → { code: 0, data: { chapters: [{ name, count, topics: [{ name, count }] }], topics: [{ name, chapter, count }] } }
 // 仅投影 chapter/topic 字段全量拉取，JS 端分组聚合（数据量小，规避聚合 API 兼容性问题）
+// 仅统计已上线（审核通过）题目，AI 待审核题不对用户可见
 async function getCategories() {
   var { data } = await db.collection('quiz_questions')
+    .where({ status: 'approved' })
     .field({ chapter: true, topic: true })
     .limit(1000)
     .get();
@@ -58,12 +60,13 @@ async function getCategories() {
 // list: 查询题目列表
 // → { code: 0, questions: [{ questionId, stem, options, type, chapter, topic }] }
 // chapter/topic 可选过滤条件（为空则不筛选），仅返回不含答案的字段，limit 50
+// 仅返回已上线（审核通过）题目，AI 待审核题不对用户可见
 async function listQuestions(event) {
   var chapter = event.chapter || '';
   var topic = event.topic || '';
 
-  // 构建查询条件：仅拼接非空字段
-  var where = {};
+  // 构建查询条件：仅拼接非空字段（status 固定为已上线）
+  var where = { status: 'approved' };
   if (chapter) where.chapter = chapter;
   if (topic) where.topic = topic;
 

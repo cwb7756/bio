@@ -73,8 +73,10 @@ async function searchKnowledgePoints(kw) {
 }
 
 // 搜索题目：按 stem/topic 匹配；不返回答案/解析（与 quiz list 一致）
+// 仅返回已上线（审核通过）题目，AI 待审核题不对用户可见
 async function searchQuestions(kw) {
   const { data } = await db.collection('quiz_questions')
+    .where({ status: 'approved' })
     .field({ stem: true, chapter: true, topic: true, options: true, type: true })
     .limit(1000)
     .get();

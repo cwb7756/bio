@@ -19,19 +19,44 @@ const navItems = [
   { path: '/', label: '数据看板', icon: LayoutDashboard, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/users', label: '用户管理', icon: Users, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/courses', label: '课程管理', icon: BookOpen, roles: ['superadmin', 'editor', 'viewer'] },
-  { path: '/quiz', label: '题库管理', icon: HelpCircle, roles: ['superadmin', 'editor', 'viewer'] },
+  {
+    path: '/quiz',
+    label: '题库管理',
+    icon: HelpCircle,
+    roles: ['superadmin', 'editor', 'viewer'],
+    hasChildren: true,
+    subItems: [
+      { path: '/quiz', label: '题库列表', end: true },
+      { path: '/quiz/ai', label: 'AI 出题', roles: ['superadmin', 'editor'] },
+    ],
+  },
   { path: '/mistakes', label: '错题管理', icon: TrendingUp, roles: ['superadmin', 'editor', 'viewer'] },
-  { path: '/knowledge', label: '知识体系', icon: Network, roles: ['superadmin', 'editor', 'viewer'], hasChildren: true },
+  {
+    path: '/knowledge',
+    label: '知识体系',
+    icon: Network,
+    roles: ['superadmin', 'editor', 'viewer'],
+    hasChildren: true,
+    subItems: [
+      { path: '/knowledge/points', label: '知识点' },
+      { path: '/knowledge/graph', label: '知识图谱' },
+      { path: '/knowledge/flashcards', label: '闪光卡' },
+    ],
+  },
   { path: '/models', label: '3D 模型', icon: Box, roles: ['superadmin', 'editor'] },
   { path: '/achievements', label: '成就管理', icon: Trophy, roles: ['superadmin', 'editor', 'viewer'] },
   { path: '/feedback', label: '反馈管理', icon: MessageSquare, roles: ['superadmin', 'editor', 'viewer'] },
-  { path: '/settings/admins', label: '系统设置', icon: Settings, roles: ['superadmin'] },
-]
-
-const knowledgeSubItems = [
-  { path: '/knowledge/points', label: '知识点' },
-  { path: '/knowledge/graph', label: '知识图谱' },
-  { path: '/knowledge/flashcards', label: '闪光卡' },
+  {
+    path: '/settings',
+    label: '系统设置',
+    icon: Settings,
+    roles: ['superadmin'],
+    hasChildren: true,
+    subItems: [
+      { path: '/settings/admins', label: '管理员列表' },
+      { path: '/settings/config', label: '系统配置' },
+    ],
+  },
 ]
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -82,13 +107,14 @@ export default function Sidebar({ collapsed, onToggle }) {
                 {!collapsed && <span>{item.label}</span>}
               </NavLink>
 
-              {/* 知识体系子菜单：紧跟父项下方展开 */}
+              {/* 子菜单：紧跟父项下方展开（题库管理 / 知识体系） */}
               {item.hasChildren && !collapsed && location.pathname.startsWith(item.path) && (
                 <div className="my-1 ml-8 space-y-1 border-l pl-4">
-                  {knowledgeSubItems.map((sub) => (
+                  {(item.subItems || []).filter((sub) => !sub.roles || hasRole(sub.roles)).map((sub) => (
                     <NavLink
                       key={sub.path}
                       to={sub.path}
+                      end={sub.end}
                       className={({ isActive }) =>
                         cn(
                           'block px-3 py-2 text-sm transition-colors rounded-md',

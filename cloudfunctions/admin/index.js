@@ -33,6 +33,7 @@ const feedbackModule = require('./modules/feedbackModule');
 const settingsModule = require('./modules/settingsModule');
 const modelModule = require('./modules/modelModule');
 const mistakesModule = require('./modules/mistakesModule');
+const aiQuizModule = require('./modules/aiQuizModule');
 
 // Import middlewares
 const { authMiddleware } = require('./lib/middleware');
@@ -77,6 +78,14 @@ const ROUTES = {
   'quiz.delete': quizModule.del,
   'quiz.batchDelete': quizModule.batchDelete,
   'quiz.batchImport': quizModule.batchImport,
+  'quiz.batchReview': quizModule.batchReview,
+  'quiz.backfillStatus': quizModule.backfillStatus,
+
+  // AI 出题任务（DeepSeek）
+  'aiQuizGen.create': aiQuizModule.create,
+  'aiQuizGen.tick': aiQuizModule.tick,
+  'aiQuizGen.list': aiQuizModule.list,
+  'aiQuizGen.cancel': aiQuizModule.cancel,
   
   // Knowledge management
   'knowledge.listPoints': knowledgeModule.listPoints,
@@ -103,6 +112,7 @@ const ROUTES = {
   // Settings
   'settings.get': settingsModule.get,
   'settings.update': settingsModule.update,
+  'settings.testDeepseek': settingsModule.testDeepseek,
   
   // Model management
   'model.list': modelModule.list,
